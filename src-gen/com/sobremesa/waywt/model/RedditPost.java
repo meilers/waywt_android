@@ -1,0 +1,142 @@
+package com.sobremesa.waywt.model;
+
+import android.content.ContentValues;
+import android.database.Cursor;
+import com.sobremesa.waywt.database.tables.RedditPostTable;
+
+/**
+ * Generated model class for usage in your application, defined by classifiers in ecore diagram
+ * 		
+ * Generated Class. Do not modify!
+ * 
+ * @author MDSDACP Team - goetzfred@fh-bingen.de 
+ * @date 2013.11.05	 
+ */
+public class RedditPost {
+
+	private Long id;
+	private int ups;
+	private int downs;
+	private java.lang.String author;
+	private long created;
+
+	private final ContentValues values = new ContentValues();
+
+	public RedditPost() {
+	}
+
+	public RedditPost(final Cursor cursor) {
+		setId(cursor.getLong(cursor.getColumnIndex(RedditPostTable.ID)));
+		setUps(cursor.getInt(cursor.getColumnIndex(RedditPostTable.UPS)));
+		setDowns(cursor.getInt(cursor.getColumnIndex(RedditPostTable.DOWNS)));
+		setAuthor(cursor.getString(cursor
+				.getColumnIndex(RedditPostTable.AUTHOR)));
+		setCreated(cursor.getLong(cursor
+				.getColumnIndex(RedditPostTable.CREATED)));
+
+	}
+
+	/**
+	 * Set id
+	 *
+	 * @param id from type java.lang.Long
+	 */
+	public void setId(final Long id) {
+		this.id = id;
+		this.values.put(RedditPostTable.ID, id);
+	}
+
+	/**
+	 * Get id
+	 *
+	 * @return id from type java.lang.Long				
+	 */
+	public Long getId() {
+		return this.id;
+	}
+
+	/**
+	 * Set ups and set content value
+	 *
+	 * @param ups from type int
+	 */
+	public void setUps(final int ups) {
+		this.ups = ups;
+		this.values.put(RedditPostTable.UPS, ups);
+	}
+
+	/**
+	 * Get ups
+	 *
+	 * @return ups from type int				
+	 */
+	public int getUps() {
+		return this.ups;
+	}
+
+	/**
+	 * Set downs and set content value
+	 *
+	 * @param downs from type int
+	 */
+	public void setDowns(final int downs) {
+		this.downs = downs;
+		this.values.put(RedditPostTable.DOWNS, downs);
+	}
+
+	/**
+	 * Get downs
+	 *
+	 * @return downs from type int				
+	 */
+	public int getDowns() {
+		return this.downs;
+	}
+
+	/**
+	 * Set author and set content value
+	 *
+	 * @param author from type java.lang.String
+	 */
+	public void setAuthor(final java.lang.String author) {
+		this.author = author;
+		this.values.put(RedditPostTable.AUTHOR, author);
+	}
+
+	/**
+	 * Get author
+	 *
+	 * @return author from type java.lang.String				
+	 */
+	public java.lang.String getAuthor() {
+		return this.author;
+	}
+
+	/**
+	 * Set created and set content value
+	 *
+	 * @param created from type long
+	 */
+	public void setCreated(final long created) {
+		this.created = created;
+		this.values.put(RedditPostTable.CREATED, created);
+	}
+
+	/**
+	 * Get created
+	 *
+	 * @return created from type long				
+	 */
+	public long getCreated() {
+		return this.created;
+	}
+
+	/**
+	 * Get ContentValues
+	 *
+	 * @return id from type android.content.ContentValues with the values of this object				
+	 */
+	public ContentValues getContentValues() {
+		return this.values;
+	}
+}
