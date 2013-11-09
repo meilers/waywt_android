@@ -7,7 +7,7 @@ package com.sobremesa.waywt.database.tables;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.11.05
+ * @date 2013.11.08
  */
 public interface RedditPostTable {
 	String TABLE_NAME = "redditpost";
@@ -17,16 +17,19 @@ public interface RedditPostTable {
 	String DOWNS = "downs";
 	String AUTHOR = "author";
 	String CREATED = "created";
+	String PERMALINK = "permalink";
 
-	String[] ALL_COLUMNS = new String[]{ID, UPS, DOWNS, AUTHOR, CREATED};
+	String[] ALL_COLUMNS = new String[]{ID, UPS, DOWNS, AUTHOR, CREATED,
+			PERMALINK};
 
 	String SQL_CREATE = "CREATE TABLE " + TABLE_NAME + " ( " + ID
 			+ " INTEGER PRIMARY KEY AUTOINCREMENT" + "," + UPS + " INTEGER"
 			+ "," + DOWNS + " INTEGER" + "," + AUTHOR + " TEXT" + "," + CREATED
-			+ " INTEGER" + " )";
+			+ " INTEGER" + "," + PERMALINK + " TEXT" + " )";
 
 	String SQL_INSERT = "INSERT INTO " + TABLE_NAME + " (" + UPS + "," + DOWNS
-			+ "," + AUTHOR + "," + CREATED + ") VALUES ( ?, ?, ?, ? )";
+			+ "," + AUTHOR + "," + CREATED + "," + PERMALINK
+			+ ") VALUES ( ?, ?, ?, ?, ? )";
 
 	String SQL_DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
 

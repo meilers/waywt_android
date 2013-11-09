@@ -19,6 +19,10 @@
         <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPost/created"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_X57QoUaSEeOAhZ6b1CwEtg"/>
       </children>
+      <children xmi:type="notation:Node" xmi:id="_BSQUcEjoEeOAxPjgSvgFCQ" type="2001">
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPost/permalink"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_BSQUcUjoEeOAxPjgSvgFCQ"/>
+      </children>
       <styles xmi:type="notation:DrawerStyle" xmi:id="_Jss88UaSEeOAhZ6b1CwEtg"/>
       <styles xmi:type="notation:SortingStyle" xmi:id="_Jss88kaSEeOAhZ6b1CwEtg"/>
       <styles xmi:type="notation:FilteringStyle" xmi:id="_Jss880aSEeOAhZ6b1CwEtg"/>

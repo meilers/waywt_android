@@ -30,7 +30,10 @@
             android:authorities="com.sobremesa.waywt.provider.Model"
             android:exported="false" />
 
-        <service android:name=".service.RedditPostDataService" >
+        <service android:name=".service.RedditPostService" >
+        </service>
+        
+        <service android:name=".service.RedditPostCommentService" >
         </service>
     </application>
 

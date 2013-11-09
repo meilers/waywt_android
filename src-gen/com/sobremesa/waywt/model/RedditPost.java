@@ -10,7 +10,7 @@ import com.sobremesa.waywt.database.tables.RedditPostTable;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.11.05	 
+ * @date 2013.11.08	 
  */
 public class RedditPost {
 
@@ -19,6 +19,7 @@ public class RedditPost {
 	private int downs;
 	private java.lang.String author;
 	private long created;
+	private java.lang.String permalink;
 
 	private final ContentValues values = new ContentValues();
 
@@ -33,6 +34,8 @@ public class RedditPost {
 				.getColumnIndex(RedditPostTable.AUTHOR)));
 		setCreated(cursor.getLong(cursor
 				.getColumnIndex(RedditPostTable.CREATED)));
+		setPermalink(cursor.getString(cursor
+				.getColumnIndex(RedditPostTable.PERMALINK)));
 
 	}
 
@@ -129,6 +132,25 @@ public class RedditPost {
 	 */
 	public long getCreated() {
 		return this.created;
+	}
+
+	/**
+	 * Set permalink and set content value
+	 *
+	 * @param permalink from type java.lang.String
+	 */
+	public void setPermalink(final java.lang.String permalink) {
+		this.permalink = permalink;
+		this.values.put(RedditPostTable.PERMALINK, permalink);
+	}
+
+	/**
+	 * Get permalink
+	 *
+	 * @return permalink from type java.lang.String				
+	 */
+	public java.lang.String getPermalink() {
+		return this.permalink;
 	}
 
 	/**

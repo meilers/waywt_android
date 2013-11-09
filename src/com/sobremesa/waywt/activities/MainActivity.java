@@ -1,15 +1,30 @@
 package com.sobremesa.waywt.activities;
 
+import java.sql.Date;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+
 import com.sobremesa.waywt.R;
+import com.sobremesa.waywt.contentprovider.Provider;
+import com.sobremesa.waywt.database.tables.RedditPostTable;
+import com.sobremesa.waywt.fragments.WaywtFragment;
 import com.sobremesa.waywt.service.RedditPostService;
 
 import android.app.ActionBar;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -19,7 +34,11 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-public class MainActivity extends FragmentActivity implements ActionBar.OnNavigationListener {
+public class MainActivity extends FragmentActivity implements ActionBar.OnNavigationListener, LoaderCallbacks<Cursor> {
+
+	private CursorLoader mLoader;
+	
+	private ArrayList<String> mPermalinks;
 
 	/**
 	 * The serialization (saved instance state) Bundle key representing the
@@ -37,13 +56,19 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		actionBar.setDisplayShowTitleEnabled(false);
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 
-		// Set up the dropdown list navigation in the action bar.
-		actionBar.setListNavigationCallbacks(
-		// Specify a SpinnerAdapter to populate the dropdown list.
-				new ArrayAdapter<String>(actionBar.getThemedContext(), android.R.layout.simple_list_item_1, android.R.id.text1, new String[] { getString(R.string.title_section1),
-						getString(R.string.title_section2), getString(R.string.title_section3), }), this);
 		
+		mPermalinks = new ArrayList<String>();
+		
+
+	}
+
+	@Override
+	protected void onStart() {
+		// TODO Auto-generated method stub
+		super.onStart();
+
 		fetchRedditPostData();
+		getSupportLoaderManager().initLoader(0, null, this);
 	}
 
 	@Override
@@ -71,9 +96,9 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 	public boolean onNavigationItemSelected(int position, long id) {
 		// When the given dropdown item is selected, show its contents in the
 		// container view.
-		Fragment fragment = new DummySectionFragment();
+		Fragment fragment = new WaywtFragment();
 		Bundle args = new Bundle();
-		args.putInt(DummySectionFragment.ARG_SECTION_NUMBER, position + 1);
+		args.putString(WaywtFragment.Extras.ARG_PERMALINK, mPermalinks.get(position));
 		fragment.setArguments(args);
 		getSupportFragmentManager().beginTransaction().replace(R.id.container, fragment).commit();
 		return true;
@@ -101,12 +126,58 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 			return rootView;
 		}
 	}
-	
+
 	private void fetchRedditPostData() {
 
 		Intent i = new Intent(this, RedditPostService.class);
 		i.setAction(Intent.ACTION_SYNC);
 		startService(i);
 	}
+
+	@Override
+	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
+		mLoader = new CursorLoader(this, Provider.REDDITPOST_CONTENT_URI, RedditPostTable.ALL_COLUMNS, null, null, null);
+
+		return mLoader;
+	}
+
+	@Override
+	public void onLoadFinished(Loader<Cursor> arg0, Cursor cursor) {
+		// TODO Auto-generated method stub
+		
+		final ActionBar actionBar = getActionBar();
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(actionBar.getThemedContext(), android.R.layout.simple_list_item_1);
+		
+		for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+		    // do what you need with the cursor here
+			SimpleDateFormat formatter=new SimpleDateFormat("DD-MMM-yyyy");  
+			
+			Date date = new Date(cursor.getLong(cursor.getColumnIndex(RedditPostTable.CREATED))*1000);
+			Calendar c = Calendar.getInstance();
+			c.setTime(date);
+			
+			String str = formatter.format(date);
+			
+			adapter.add(new SimpleDateFormat("MMM").format(c.getTime()) + " " + c.get(Calendar.DATE) + " " +  c.get(Calendar.YEAR));
+			mPermalinks.add(cursor.getString(cursor.getColumnIndex(RedditPostTable.PERMALINK))); 
+		}
+		
+		actionBar.setDisplayShowTitleEnabled(false);
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+		
+		// Set up the dropdown list navigation in the action bar.
+		actionBar.setListNavigationCallbacks(adapter, this);
+		
+	}
+
+	@Override
+	public void onLoaderReset(Loader<Cursor> arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+
 
 }

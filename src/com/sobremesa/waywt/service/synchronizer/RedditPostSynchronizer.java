@@ -44,35 +44,34 @@ public class RedditPostSynchronizer extends Synchronizer<RedditPostService.Remot
 
 	@Override
 	protected void performSynchronizationOperations(Context context, List<RemoteRedditPost> inserts, List<RemoteRedditPost> updates, List<Long> deletions) {
-//		ArrayList<ContentProviderOperation> operations = new ArrayList<ContentProviderOperation>();
-//
-//		for (RedditPostDataService.RemoteRedditPost w : inserts) {
-//			ContentValues values = this.getContentValuesForRemoteEntity(w);
-//			ContentProviderOperation op = ContentProviderOperation.newInsert(Provider.RECORDING_CONTENT_URI).withValues(values).build();
-//			operations.add(op);
-//		}
-//
-//		for (RedditPostDataService.RemoteRedditPost w : updates) {
-//			ContentValues values = this.getContentValuesForRemoteEntity(w);
-//			ContentProviderOperation op = ContentProviderOperation.newUpdate(Provider.RECORDING_CONTENT_URI).withSelection(RedditPostDataTable.RECORDINGID + " = ?", new String[] { w.id })
-//					.withValues(values).build();
-//			operations.add(op);
-//		}
-//
-//		for (Long id : deletions) {
-//			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.RECORDING_CONTENT_URI).withSelection(RedditPostDataTable.ID + " = ?", new String[] { String.valueOf(id) }).build();
-//			operations.add(op);
-//		}
-//
-//		try {
-//			context.getContentResolver().applyBatch(Provider.AUTHORITY, operations);
-//
-//			context.getContentResolver().notifyChange(Uri.withAppendedPath(Provider.RECORDING_CONTENT_URI, "/EN_NAME"), null);
-//		} catch (RemoteException e) {
-//			e.printStackTrace();
-//		} catch (OperationApplicationException e) {
-//			e.printStackTrace();
-//		}
+		ArrayList<ContentProviderOperation> operations = new ArrayList<ContentProviderOperation>();
+
+		for (RedditPostService.RemoteRedditPost w : inserts) {
+			ContentValues values = this.getContentValuesForRemoteEntity(w);
+			ContentProviderOperation op = ContentProviderOperation.newInsert(Provider.REDDITPOST_CONTENT_URI).withValues(values).build();
+			operations.add(op);
+		}
+
+		for (RedditPostService.RemoteRedditPost w : updates) {
+			ContentValues values = this.getContentValuesForRemoteEntity(w);
+			ContentProviderOperation op = ContentProviderOperation.newUpdate(Provider.REDDITPOST_CONTENT_URI).withSelection(RedditPostTable.PERMALINK + " = ?", new String[] { w.data.permalink })
+					.withValues(values).build();
+			operations.add(op);
+		}
+
+		for (Long id : deletions) {
+			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.REDDITPOST_CONTENT_URI).withSelection(RedditPostTable.ID + " = ?", new String[] { String.valueOf(id) }).build();
+			operations.add(op);
+		}
+
+		try {
+			context.getContentResolver().applyBatch(Provider.AUTHORITY, operations);
+
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (OperationApplicationException e) {
+			e.printStackTrace();
+		}
 
 	}
 
@@ -86,18 +85,12 @@ public class RedditPostSynchronizer extends Synchronizer<RedditPostService.Remot
 	@Override
 	protected ContentValues getContentValuesForRemoteEntity(RemoteRedditPost t) {
 		ContentValues values = new ContentValues();
-//		values.put(RedditPostDataTable.RECORDINGID, t.id);
-//		values.put(RedditPostDataTable.GEN, t.gen);
-//		values.put(RedditPostDataTable.SP, t.sp);
-//		values.put(RedditPostDataTable.EN, t.en);
-//		values.put(RedditPostDataTable.REC, t.rec);
-//		values.put(RedditPostDataTable.LOC, t.loc);
-//		values.put(RedditPostDataTable.CNT, t.cnt);
-//		values.put(RedditPostDataTable.LAT, t.lat);
-//		values.put(RedditPostDataTable.LNG, t.lng);
-//		values.put(RedditPostDataTable.TYPE, t.type);
-//		values.put(RedditPostDataTable.FILE, t.file);
-//		values.put(RedditPostDataTable.LIC, t.lic);
+		values.put(RedditPostTable.AUTHOR, t.data.author);
+		values.put(RedditPostTable.CREATED, t.data.created);
+		values.put(RedditPostTable.DOWNS, t.data.downs);
+		values.put(RedditPostTable.UPS, t.data.ups);
+		values.put(RedditPostTable.DOWNS, t.data.downs);
+		values.put(RedditPostTable.PERMALINK, t.data.permalink);
 
 
 		return values;
