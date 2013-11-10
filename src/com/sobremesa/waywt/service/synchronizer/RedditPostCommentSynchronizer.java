@@ -49,7 +49,7 @@ public class RedditPostCommentSynchronizer extends Synchronizer<RedditPostCommen
 
 		for (RedditPostCommentService.RemoteRedditPostComment w : inserts) {
 			ContentValues values = this.getContentValuesForRemoteEntity(w);
-			ContentProviderOperation op = ContentProviderOperation.newInsert(Provider.REDDITPOST_CONTENT_URI).withValues(values).build();
+			ContentProviderOperation op = ContentProviderOperation.newInsert(Provider.REDDITPOSTCOMMENT_CONTENT_URI).withValues(values).build();
 			operations.add(op);
 			
 			
@@ -57,14 +57,14 @@ public class RedditPostCommentSynchronizer extends Synchronizer<RedditPostCommen
 
 		for (RedditPostCommentService.RemoteRedditPostComment w : updates) {
 			ContentValues values = this.getContentValuesForRemoteEntity(w);
-			ContentProviderOperation op = ContentProviderOperation.newUpdate(Provider.REDDITPOST_CONTENT_URI).withSelection(RedditPostCommentTable.IDENTIFIER + " = ?", new String[] { w.data.getIdentifier() })
+			ContentProviderOperation op = ContentProviderOperation.newUpdate(Provider.REDDITPOSTCOMMENT_CONTENT_URI).withSelection(RedditPostCommentTable.IDENTIFIER + " = ?", new String[] { w.data.getIdentifier() })
 					.withValues(values).build();
 			operations.add(op);
 			
 		}
 
 		for (Long id : deletions) {
-			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.REDDITPOST_CONTENT_URI).withSelection(RedditPostCommentTable.ID + " = ?", new String[] { String.valueOf(id) }).build();
+			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.REDDITPOSTCOMMENT_CONTENT_URI).withSelection(RedditPostCommentTable.ID + " = ?", new String[] { String.valueOf(id) }).build();
 			operations.add(op);
 			
 		}
