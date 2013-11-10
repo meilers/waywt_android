@@ -6,9 +6,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -26,10 +29,17 @@ import android.database.Cursor;
 import android.util.Log;
 
 import com.sobremesa.waywt.contentprovider.Provider;
+import com.sobremesa.waywt.database.tables.ImageTable;
+import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
 import com.sobremesa.waywt.database.tables.RedditPostTable;
 import com.sobremesa.waywt.service.BaseService;
 import com.sobremesa.waywt.service.RemoteObject;
 import com.sobremesa.waywt.service.ServiceClient;
+import com.sobremesa.waywt.service.RedditPostService.RemoteRedditPost;
+import com.sobremesa.waywt.service.synchronizer.RedditPostCommentImagePreprocessor;
+import com.sobremesa.waywt.service.synchronizer.RedditPostCommentImageSynchronizer;
+import com.sobremesa.waywt.service.synchronizer.RedditPostCommentPreprocessor;
+import com.sobremesa.waywt.service.synchronizer.RedditPostCommentSynchronizer;
 import com.sobremesa.waywt.service.synchronizer.RedditPostPreprocessor;
 import com.sobremesa.waywt.service.synchronizer.RedditPostSynchronizer;
 import com.sobremesa.waywt.service.synchronizer.RemotePreProcessor;
@@ -41,22 +51,23 @@ public class RedditPostCommentService extends BaseService {
 
 	public final static class Extras
 	{
+		public static final String ARG_POST_ID = "arg_post_id";
 		public static final String ARG_PERMALINK = "arg_permalink";
 	}
 
-
-	private String mPermalink = "";
+	static public String mPostId = "";
+	static public String mPermalink = "";
 	
 	public class RemoteResponse {
 		
 		
 		public String kind;
-//		public RemoteData data;
+		public RemoteData data;
 	}
 
 	public class RemoteData extends RemoteObject {
 		public String modhash;
-		public List<RemoteRedditPost> children;
+		public List<RemoteRedditPostComment> children;
 		
 		@Override
 		public String getIdentifier() {
@@ -64,9 +75,9 @@ public class RedditPostCommentService extends BaseService {
 		}
 	}
 	
-	public class RemoteRedditPost extends RemoteObject {
+	public class RemoteRedditPostComment extends RemoteObject {
 		public String kind;
-		public RemoteRedditPostData data;
+		public RemoteRedditPostCommentData data;
 		
 		@Override
 		public String getIdentifier() {
@@ -74,8 +85,10 @@ public class RedditPostCommentService extends BaseService {
 		}
 	}
 
-	public class RemoteRedditPostData extends RemoteObject {
+	public class RemoteRedditPostCommentData extends RemoteObject {
 
+		public String postId; //parent
+		
 		public String id; // unique
 		
 		public String author;
@@ -91,6 +104,19 @@ public class RedditPostCommentService extends BaseService {
 		}
 	}
 	  
+	
+	public class RemoteImage extends RemoteObject {
+		
+		public String commentId; //parent
+		public String url;
+		
+		@Override
+		public String getIdentifier() {
+			return url;
+		}
+	}
+	
+	
 	// Interfaces
 	
 	public interface RedditPostCommentClient {
@@ -109,11 +135,13 @@ public class RedditPostCommentService extends BaseService {
 	public RedditPostCommentService(Context c) {
 		super("RedditPostCommentService", c);
 	}
+	
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
 		if (intent.getAction().equals(Intent.ACTION_SYNC)) 
 		{
+			mPostId = intent.getStringExtra(Extras.ARG_POST_ID); 
 			mPermalink = intent.getStringExtra(Extras.ARG_PERMALINK); 
 			
 			RedditPostCommentClient client = ServiceClient.getInstance().getClient(getContext(), RedditPostCommentClient.class);
@@ -125,16 +153,91 @@ public class RedditPostCommentService extends BaseService {
 				
 				List<RemoteResponse> response = client.getComments( uploadUrlEncoded.substring(1));
 				
-				
-				if (response != null && response.size() > 0) {
-					// synchronize!
-					Cursor localRecCursor = getContext().getContentResolver().query(Provider.REDDITPOSTCOMMENT_CONTENT_URI, null, null, null, null);
-					localRecCursor.moveToFirst();
-//					synchronizeRemoteRecords(posts, localRecCursor, localRecCursor.getColumnIndex(RedditPostTable.PERMALINK), new RedditPostSynchronizer(getContext()), new RedditPostPreprocessor());
-					
-					//
-				} else {
+				if( response.size() > 0 )
+				{
+					List<RemoteRedditPostComment> comments = response.get(1).data.children;
+							
+					Iterator<RemoteRedditPostComment> iter = comments.iterator();
+					while (iter.hasNext()) {
+						RemoteRedditPostComment comment = iter.next();
+						
+						// set parent
+						comment.data.postId = mPostId;
+						comment.data.id = mPermalink + comment.data.id;
+						
+						String bodyHtml = comment.data.body_html;
+						
+						if (bodyHtml == null || (!bodyHtml.contains("imgur.com") && !bodyHtml.contains("dressed.so")) ) {
+							iter.remove();
+						}
+					}
+					    
+					if (comments != null && comments.size() > 0) {
+						// synchronize!
+						Cursor localRecCursor = getContext().getContentResolver().query(Provider.REDDITPOSTCOMMENT_CONTENT_URI, null, null, null, null);
+						localRecCursor.moveToFirst();
+						synchronizeCommentRecords(comments, localRecCursor, localRecCursor.getColumnIndex(RedditPostCommentTable.IDENTIFIER), new RedditPostCommentSynchronizer(getContext()), new RedditPostCommentPreprocessor());
+						localRecCursor.close();
+						
+						// Get images
+						List<RemoteImage> images = new ArrayList<RemoteImage>();
+						localRecCursor = getContext().getContentResolver().query(Provider.REDDITPOSTCOMMENT_CONTENT_URI, null, null, null, null);
+						
+						for (localRecCursor.moveToFirst(); !localRecCursor.isAfterLast(); localRecCursor.moveToNext()) {
+						    String commentId = localRecCursor.getString(localRecCursor.getColumnIndex(RedditPostCommentTable.ID));
+						    String bodyHtml = localRecCursor.getString(localRecCursor.getColumnIndex(RedditPostCommentTable.BODY_HTML));
+						    
+						    if( bodyHtml != null )
+							{
+								Pattern pattern = Pattern.compile("href=\\\"(.*?)\"");
+								Matcher matcher = pattern.matcher(bodyHtml);
+								
+								String url = "";
+								
+								while (matcher.find()) {
+									url = matcher.group(1);
+									
+									if( url.contains("imgur.com"))
+									{
+										if( !url.contains("i.imgur.com"))
+											url.replace("imgur", "i.imgur");
+										
+										RemoteImage image = new RemoteImage();
+										image.url = url;
+										image.commentId = commentId;
+										images.add(image);
+									}
+									
+									else if( url.contains("dressed.so"))
+									{
+										if( !url.contains("cdn.dressed.so") )
+										{
+											url.replace("dressed.so/post/view", "http://cdn.dressed.so/i");
+											url.replace(".jpg", "m.jpg");
+										}
+										
+										RemoteImage image = new RemoteImage();
+										image.url = url;
+										image.commentId = commentId;
+										images.add(image);
+									}
+								}
+									
+							}
+							
+						} 
+						localRecCursor.close();
+						
+						if (images != null && images.size() > 0) {
+							Cursor localImageCursor = getContext().getContentResolver().query(Provider.IMAGE_CONTENT_URI, null, null, null, null);
+							localImageCursor.moveToFirst();
+							synchronizeImageRecords(images, localImageCursor, localImageCursor.getColumnIndex(ImageTable.URL), new RedditPostCommentImageSynchronizer(getContext()), new RedditPostCommentImagePreprocessor());
+							localImageCursor.close();
+						}
+					}
+					else {
 //					EventBus.getDefault().post(new RecordingServiceEvent(false, "There where no representatives for this zip code"));
+					}
 				}
 			} catch (UnsupportedEncodingException e) {
 				// TODO Auto-generated catch block
@@ -160,7 +263,12 @@ public class RedditPostCommentService extends BaseService {
 	}
 
 
-	public void synchronizeRemoteRecords(List<RemoteRedditPost> remoteReps, Cursor localReps, int remoteIdentifierColumn, Synchronizer<RemoteRedditPost> synchronizer, RemotePreProcessor<RemoteRedditPost> preProcessor) {
+	public void synchronizeCommentRecords(List<RemoteRedditPostComment> remoteReps, Cursor localReps, int remoteIdentifierColumn, Synchronizer<RemoteRedditPostComment> synchronizer, RemotePreProcessor<RemoteRedditPostComment> preProcessor) {
+		preProcessor.preProcessRemoteRecords(remoteReps);
+		synchronizer.synchronize(getContext(), remoteReps, localReps, remoteIdentifierColumn);
+	}
+	
+	public void synchronizeImageRecords(List<RemoteImage> remoteReps, Cursor localReps, int remoteIdentifierColumn, Synchronizer<RemoteImage> synchronizer, RemotePreProcessor<RemoteImage> preProcessor) {
 		preProcessor.preProcessRemoteRecords(remoteReps);
 		synchronizer.synchronize(getContext(), remoteReps, localReps, remoteIdentifierColumn);
 	}

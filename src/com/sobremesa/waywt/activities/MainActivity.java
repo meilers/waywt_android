@@ -36,9 +36,16 @@ import android.widget.TextView;
 
 public class MainActivity extends FragmentActivity implements ActionBar.OnNavigationListener, LoaderCallbacks<Cursor> {
 
+	public static class PostPermalink
+	{
+		public String mId;
+		public String mPermalink;
+	}
 	private CursorLoader mLoader;
 	
-	private ArrayList<String> mPermalinks;
+	
+	
+	private ArrayList<PostPermalink> mPermalinks;
 
 	/**
 	 * The serialization (saved instance state) Bundle key representing the
@@ -57,7 +64,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 
 		
-		mPermalinks = new ArrayList<String>();
+		mPermalinks = new ArrayList<PostPermalink>();
 		
 
 	}
@@ -98,7 +105,9 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		// container view.
 		Fragment fragment = new WaywtFragment();
 		Bundle args = new Bundle();
-		args.putString(WaywtFragment.Extras.ARG_PERMALINK, mPermalinks.get(position));
+		PostPermalink p = mPermalinks.get(position);
+		args.putString(WaywtFragment.Extras.ARG_POST_ID,p.mId);
+		args.putString(WaywtFragment.Extras.ARG_PERMALINK,p.mPermalink);
 		fragment.setArguments(args);
 		getSupportFragmentManager().beginTransaction().replace(R.id.container, fragment).commit();
 		return true;
@@ -159,7 +168,11 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 			String str = formatter.format(date);
 			
 			adapter.add(new SimpleDateFormat("MMM").format(c.getTime()) + " " + c.get(Calendar.DATE) + " " +  c.get(Calendar.YEAR));
-			mPermalinks.add(cursor.getString(cursor.getColumnIndex(RedditPostTable.PERMALINK))); 
+			
+			PostPermalink p = new PostPermalink();
+			p.mId = cursor.getString(cursor.getColumnIndex(RedditPostTable.ID));
+			p.mPermalink = cursor.getString(cursor.getColumnIndex(RedditPostTable.PERMALINK));
+			mPermalinks.add(p); 
 		}
 		
 		actionBar.setDisplayShowTitleEnabled(false);

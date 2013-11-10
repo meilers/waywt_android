@@ -10,7 +10,7 @@ import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.11.08	 
+ * @date 2013.11.09	 
  */
 public class RedditPostComment {
 
@@ -19,6 +19,8 @@ public class RedditPostComment {
 	private int ups;
 	private int downs;
 	private long created;
+	private java.lang.String body_html;
+	private java.lang.String identifier;
 
 	private final ContentValues values = new ContentValues();
 
@@ -34,6 +36,10 @@ public class RedditPostComment {
 				.getColumnIndex(RedditPostCommentTable.DOWNS)));
 		setCreated(cursor.getLong(cursor
 				.getColumnIndex(RedditPostCommentTable.CREATED)));
+		setBody_html(cursor.getString(cursor
+				.getColumnIndex(RedditPostCommentTable.BODY_HTML)));
+		setIdentifier(cursor.getString(cursor
+				.getColumnIndex(RedditPostCommentTable.IDENTIFIER)));
 
 	}
 
@@ -130,6 +136,44 @@ public class RedditPostComment {
 	 */
 	public long getCreated() {
 		return this.created;
+	}
+
+	/**
+	 * Set body_html and set content value
+	 *
+	 * @param body_html from type java.lang.String
+	 */
+	public void setBody_html(final java.lang.String body_html) {
+		this.body_html = body_html;
+		this.values.put(RedditPostCommentTable.BODY_HTML, body_html);
+	}
+
+	/**
+	 * Get body_html
+	 *
+	 * @return body_html from type java.lang.String				
+	 */
+	public java.lang.String getBody_html() {
+		return this.body_html;
+	}
+
+	/**
+	 * Set identifier and set content value
+	 *
+	 * @param identifier from type java.lang.String
+	 */
+	public void setIdentifier(final java.lang.String identifier) {
+		this.identifier = identifier;
+		this.values.put(RedditPostCommentTable.IDENTIFIER, identifier);
+	}
+
+	/**
+	 * Get identifier
+	 *
+	 * @return identifier from type java.lang.String				
+	 */
+	public java.lang.String getIdentifier() {
+		return this.identifier;
 	}
 
 	/**

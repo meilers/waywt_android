@@ -16,6 +16,7 @@ public class WaywtFragment extends Fragment {
 	
 	public static class Extras
 	{
+		public static String ARG_POST_ID = "post_id";
 		public static String ARG_PERMALINK = "permalink";
 	}
 	
@@ -37,6 +38,7 @@ public class WaywtFragment extends Fragment {
 
 		Intent i = new Intent(getActivity(), RedditPostCommentService.class);
 		i.setAction(Intent.ACTION_SYNC);
+		i.putExtra(RedditPostCommentService.Extras.ARG_POST_ID, getArguments().getString(Extras.ARG_POST_ID));
 		i.putExtra(RedditPostCommentService.Extras.ARG_PERMALINK, getArguments().getString(Extras.ARG_PERMALINK));
 		getActivity().startService(i);
 	}

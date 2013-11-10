@@ -10,7 +10,7 @@ import com.sobremesa.waywt.database.tables.RedditPostTable;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.11.08	 
+ * @date 2013.11.09	 
  */
 public class RedditPost {
 
