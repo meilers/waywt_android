@@ -43,7 +43,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 	}
 	private CursorLoader mLoader; 
 	
-	
+	ArrayAdapter<String> mNavAdapter;
 	
 	private ArrayList<PostPermalink> mPermalinks;
 
@@ -58,13 +58,21 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+		mPermalinks = new ArrayList<PostPermalink>();
+
+		
 		// Set up the action bar to show a dropdown list.
 		final ActionBar actionBar = getActionBar();
 		actionBar.setDisplayShowTitleEnabled(false);
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 
+		mNavAdapter = new ArrayAdapter<String>(actionBar.getThemedContext(), android.R.layout.simple_list_item_1);
+		actionBar.setDisplayShowTitleEnabled(false);
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 		
-		mPermalinks = new ArrayList<PostPermalink>();
+		// Set up the dropdown list navigation in the action bar.
+		actionBar.setListNavigationCallbacks(mNavAdapter, this);
+		
 		
 
 	}
@@ -154,10 +162,9 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 	public void onLoadFinished(Loader<Cursor> arg0, Cursor cursor) {
 		// TODO Auto-generated method stub
 		
-		final ActionBar actionBar = getActionBar();
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(actionBar.getThemedContext(), android.R.layout.simple_list_item_1);
+		mNavAdapter.clear();
 		
-		for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+		for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) { 
 		    // do what you need with the cursor here
 			SimpleDateFormat formatter=new SimpleDateFormat("DD-MMM-yyyy");  
 			
@@ -167,7 +174,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 			
 			String str = formatter.format(date);
 			
-			adapter.add(new SimpleDateFormat("MMM").format(c.getTime()) + " " + c.get(Calendar.DATE) + " " +  c.get(Calendar.YEAR));
+			mNavAdapter.add(new SimpleDateFormat("MMM").format(c.getTime()) + " " + c.get(Calendar.DATE) + " " +  c.get(Calendar.YEAR));
 			
 			PostPermalink p = new PostPermalink();
 			String id = cursor.getString(cursor.getColumnIndex(RedditPostTable.ID));
@@ -176,11 +183,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 			mPermalinks.add(p); 
 		}
 		
-		actionBar.setDisplayShowTitleEnabled(false);
-		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-		
-		// Set up the dropdown list navigation in the action bar.
-		actionBar.setListNavigationCallbacks(adapter, this);
+		mNavAdapter.notifyDataSetChanged();
+
 		
 	}
 

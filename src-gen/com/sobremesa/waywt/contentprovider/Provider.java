@@ -29,7 +29,7 @@ import android.util.Log;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.11.09
+ * @date 2013.11.11
  */
 public class Provider extends ContentProvider {
 	private static final String TAG = "com.sobremesa.waywt.contentprovider.Provider";

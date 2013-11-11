@@ -23,10 +23,11 @@ import android.database.Cursor;
 import android.util.Log;
 
 import com.sobremesa.waywt.contentprovider.Provider;
+import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
 import com.sobremesa.waywt.database.tables.RedditPostTable;
 import com.sobremesa.waywt.service.BaseService;
 import com.sobremesa.waywt.service.RemoteObject;
-import com.sobremesa.waywt.service.ServiceClient;
+import com.sobremesa.waywt.service.RedditServiceClient;
 import com.sobremesa.waywt.service.synchronizer.RedditPostPreprocessor;
 import com.sobremesa.waywt.service.synchronizer.RedditPostSynchronizer;
 import com.sobremesa.waywt.service.synchronizer.RemotePreProcessor;
@@ -78,7 +79,7 @@ public class RedditPostService extends BaseService {
 		
 		@Override
 		public String getIdentifier() {
-			return permalink;
+			return permalink; 
 		}
 	}
 	
@@ -86,7 +87,7 @@ public class RedditPostService extends BaseService {
 	
 	public interface RedditMaleFashionAdvicePostClient {
 		@GET("/r/malefashionadvice/top.json")
-		RemoteResponse getPosts(@Query("t")String time, @Query("q")String query);
+		RemoteResponse getPosts(@Query("t")String time, @Query("q")String query);  
 	}
 	
 	
@@ -95,7 +96,7 @@ public class RedditPostService extends BaseService {
 
 	public RedditPostService() {
 		super("RedditPostService");
-	}
+	} 
 
 	public RedditPostService(Context c) {
 		super("RedditPostService", c);
@@ -107,7 +108,7 @@ public class RedditPostService extends BaseService {
 		{
 			
 			
-			RedditMaleFashionAdvicePostClient client = ServiceClient.getInstance().getClient(getContext(), RedditMaleFashionAdvicePostClient.class); 
+			RedditMaleFashionAdvicePostClient client = RedditServiceClient.getInstance().getClient(getContext(), RedditMaleFashionAdvicePostClient.class); 
 			
 			RemoteResponse response = client.getPosts("week", "waywt");
 			RemoteData remoteData = response.data;
@@ -124,9 +125,9 @@ public class RedditPostService extends BaseService {
 			}
 
 			
-			if (posts != null && posts.size() > 0) {
+			if (posts != null && posts.size() > 0) { 
 				// synchronize!
-				Cursor localRecCursor = getContext().getContentResolver().query(Provider.REDDITPOST_CONTENT_URI, null, null, null, null);
+				Cursor localRecCursor = getContext().getContentResolver().query(Provider.REDDITPOST_CONTENT_URI, RedditPostTable.ALL_COLUMNS, null, null, null);
 				localRecCursor.moveToFirst();
 				synchronizeRemoteRecords(posts, localRecCursor, localRecCursor.getColumnIndex(RedditPostTable.PERMALINK), new RedditPostSynchronizer(getContext()), new RedditPostPreprocessor());
 				

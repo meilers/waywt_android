@@ -25,6 +25,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class CommentImagesFragment extends Fragment implements LoaderCallbacks<Cursor>
@@ -77,15 +78,17 @@ public class CommentImagesFragment extends Fragment implements LoaderCallbacks<C
 		// TODO Auto-generated method stub
 		cursor.moveToFirst();
 		
-		Log.d("image", cursor.getString(cursor.getColumnIndex(ImageTable.URL)));
 		
 		if( cursor.getCount() > 0)
 		{
+			Log.d("image", cursor.getString(cursor.getColumnIndex(ImageTable.URL)));
+			
+			final String str = cursor.getString(cursor.getColumnIndex(ImageTable.URL));
 			mImageLoader.loadImage(mMainIv, cursor.getString(cursor.getColumnIndex(ImageTable.URL)), new ImageLoaderListener() {
 				@Override
 				public void onImageLoadError(String arg0) {
-					if( getActivity() != null)
-					Toast.makeText(getActivity(), "IMAGE ERROR", Toast.LENGTH_SHORT).show();
+	
+					Log.d("fail", str);
 				}
 				
 				@Override
@@ -107,7 +110,7 @@ public class CommentImagesFragment extends Fragment implements LoaderCallbacks<C
 			
 		}
 		else
-			Toast.makeText(getActivity(), "NO IMAGE", Toast.LENGTH_LONG).show();
+			Toast.makeText(getActivity(), getArguments().getString(Extras.ARG_COMMENT_ID), Toast.LENGTH_LONG).show();
 		
 	}
 

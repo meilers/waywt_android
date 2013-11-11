@@ -12,7 +12,7 @@ import android.content.Context;
 import android.database.Cursor;
 
 public abstract class Synchronizer<T extends RemoteObject> {
-	
+
 	protected Context mContext;
 
 	public Synchronizer(Context context) {

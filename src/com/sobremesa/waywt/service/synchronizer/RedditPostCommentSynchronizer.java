@@ -35,6 +35,8 @@ import android.widget.Toast;
 
 public class RedditPostCommentSynchronizer extends Synchronizer<RedditPostCommentService.RemoteRedditPostComment> {
 
+	public String mPostId = "";
+	
 	HashMap<String, String> mImageUrlMap;
 	
 	public RedditPostCommentSynchronizer(Context context) {
@@ -64,7 +66,7 @@ public class RedditPostCommentSynchronizer extends Synchronizer<RedditPostCommen
 		}
 
 		for (Long id : deletions) {
-			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.REDDITPOSTCOMMENT_CONTENT_URI).withSelection(RedditPostCommentTable.ID + " = ?", new String[] { String.valueOf(id) }).build();
+			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.REDDITPOSTCOMMENT_CONTENT_URI).withSelection(RedditPostCommentTable.ID + " = ? AND " + RedditPostCommentTable.REDDITPOST_ID + " = ?", new String[] { String.valueOf(id), mPostId }).build();
 			operations.add(op);
 			
 		}
@@ -102,6 +104,12 @@ public class RedditPostCommentSynchronizer extends Synchronizer<RedditPostCommen
 		values.put(RedditPostCommentTable.BODY_HTML, t.data.body_html);
 
 		return values;
+	}
+	
+	@Override
+	public void synchronize(Context context, List<RemoteRedditPostComment> items, Cursor localItems, int remoteIdentifierColumn) {
+		// TODO Auto-generated method stub
+		super.synchronize(context, items, localItems, remoteIdentifierColumn);
 	}
 
 }

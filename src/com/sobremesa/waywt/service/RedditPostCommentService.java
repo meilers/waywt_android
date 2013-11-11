@@ -5,6 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,6 +25,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
 import retrofit.http.EncodedPath;
 import retrofit.http.GET;
+import retrofit.http.Header;
 import retrofit.http.Path;
 import retrofit.http.Query;
 import android.content.Context;
@@ -34,7 +39,7 @@ import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
 import com.sobremesa.waywt.database.tables.RedditPostTable;
 import com.sobremesa.waywt.service.BaseService;
 import com.sobremesa.waywt.service.RemoteObject;
-import com.sobremesa.waywt.service.ServiceClient;
+import com.sobremesa.waywt.service.RedditServiceClient;
 import com.sobremesa.waywt.service.RedditPostService.RemoteRedditPost;
 import com.sobremesa.waywt.service.synchronizer.RedditPostCommentImagePreprocessor;
 import com.sobremesa.waywt.service.synchronizer.RedditPostCommentImageSynchronizer;
@@ -68,7 +73,7 @@ public class RedditPostCommentService extends BaseService {
 	public class RemoteData extends RemoteObject {
 		public String modhash;
 		public List<RemoteRedditPostComment> children;
-		
+		 
 		@Override
 		public String getIdentifier() {
 			return "";
@@ -81,7 +86,7 @@ public class RedditPostCommentService extends BaseService {
 		
 		@Override
 		public String getIdentifier() {
-			return mPermalink + data.id;
+			return data.id;
 		}
 	}
 
@@ -99,14 +104,14 @@ public class RedditPostCommentService extends BaseService {
 		public String body_html;
 		
 		@Override 
-		public String getIdentifier() {
-			return mPermalink + id;
+		public String getIdentifier() {  
+			return id;
 		}
 	}
 	  
 	
 	public class RemoteImage extends RemoteObject {
-		
+		public String postId; //parent
 		public String commentId; //parent
 		public String url;
 		
@@ -117,11 +122,39 @@ public class RedditPostCommentService extends BaseService {
 	}
 	
 	
+	
+	// imgur
+	
+	public class RemoteImgurResponse {
+		
+		public RemoteImgurAlbum data;
+	}
+	
+
+	public class RemoteImgurAlbum {
+		
+		
+		public List<RemoteImgurAlbumImage> images;
+	}
+	
+	public class RemoteImgurAlbumImage {
+		
+		
+		public String link;
+	}
+
+
+	
 	// Interfaces
 	
 	public interface RedditPostCommentClient {
 		@GET("/{path}")
 		List<RemoteResponse> getComments(@EncodedPath("path") String path);
+	}
+	
+	public interface ImgurClient {
+		@GET("/3/album/{path}")
+		RemoteImgurResponse getAlbum(@Header("Authorization") String auth, @EncodedPath("path") String path);
 	}
 	
 	
@@ -133,7 +166,7 @@ public class RedditPostCommentService extends BaseService {
 	}
 
 	public RedditPostCommentService(Context c) {
-		super("RedditPostCommentService", c);
+		super("RedditPostCommentService", c); 
 	}
 	
 
@@ -144,7 +177,7 @@ public class RedditPostCommentService extends BaseService {
 			mPostId = intent.getStringExtra(Extras.ARG_POST_ID); 
 			mPermalink = intent.getStringExtra(Extras.ARG_PERMALINK); 
 			
-			RedditPostCommentClient client = ServiceClient.getInstance().getClient(getContext(), RedditPostCommentClient.class);
+			RedditPostCommentClient client = RedditServiceClient.getInstance().getClient(getContext(), RedditPostCommentClient.class);
 			
 			try {
 				String encodedValue = URLEncoder.encode(String.valueOf(mPermalink.toLowerCase() + "search.json"), "UTF-8");
@@ -157,24 +190,43 @@ public class RedditPostCommentService extends BaseService {
 				{
 					List<RemoteRedditPostComment> comments = response.get(1).data.children;
 							
+					int size = comments.size();
+					
 					Iterator<RemoteRedditPostComment> iter = comments.iterator();
 					while (iter.hasNext()) {
 						RemoteRedditPostComment comment = iter.next();
 						
 						// set parent
 						comment.data.postId = mPostId;
-						comment.data.id = mPermalink + comment.data.id;
 						
 						String bodyHtml = comment.data.body_html;
 						
-						if (bodyHtml == null || (!bodyHtml.contains("imgur.com") && !bodyHtml.contains("dressed.so")) ) {
-							iter.remove();
+						if( bodyHtml != null )
+						{
+							Pattern pattern1 = Pattern.compile("href=\\\".*?imgur.com.*?\"");
+							Matcher matcher1 = pattern1.matcher(bodyHtml);
+							
+							Pattern pattern2 = Pattern.compile("href=\\\".*?dressed.so.*?\"");
+							Matcher matcher2 = pattern2.matcher(bodyHtml);
+							
+							Pattern pattern3 = Pattern.compile("href=\\\".*?drsd.so.*?\"");
+							Matcher matcher3 = pattern3.matcher(bodyHtml);
+							
+							if (!matcher1.find() && !matcher2.find() && !matcher3.find())  {
+								iter.remove();
+							}
+							else
+								Log.d("oui", bodyHtml);
 						}
+						else
+							iter.remove();
 					}
+					
+					size = comments.size();
 					    
 					if (comments != null && comments.size() > 0) {
 						// synchronize!
-						Cursor localRecCursor = getContext().getContentResolver().query(Provider.REDDITPOSTCOMMENT_CONTENT_URI, null, null, null, null);
+						Cursor localRecCursor = getContext().getContentResolver().query(Provider.REDDITPOSTCOMMENT_CONTENT_URI, RedditPostCommentTable.ALL_COLUMNS, RedditPostCommentTable.REDDITPOST_ID + "=?", new String[]{mPostId}, null);
 						localRecCursor.moveToFirst();
 						synchronizeCommentRecords(comments, localRecCursor, localRecCursor.getColumnIndex(RedditPostCommentTable.IDENTIFIER), new RedditPostCommentSynchronizer(getContext()), new RedditPostCommentPreprocessor());
 						localRecCursor.close();
@@ -194,45 +246,127 @@ public class RedditPostCommentService extends BaseService {
 								
 								String url = "";
 								
+								
 								while (matcher.find()) {
 									url = matcher.group(1);
 									
 									if( url.contains("imgur.com"))
 									{
 										if( !url.contains("i.imgur.com"))
-											url = url.replace("imgur", "i.imgur");
-										
-										RemoteImage image = new RemoteImage();
-										image.url = url;
-										image.commentId = commentId;
-										images.add(image);
+										{
+											if( url.contains("imgur.com/a/"))
+											{
+												ImgurClient imgurClient = ImgurServiceClient.getInstance().getClient(getContext(), ImgurClient.class);  
+												
+												
+												RemoteImgurResponse imgurResponse = imgurClient.getAlbum( "Client-ID " + "e52e554e5972395", "yu7Sp");  
+												RemoteImgurAlbum imgurAlbum = imgurResponse.data;
+												List<RemoteImgurAlbumImage> imgs = imgurAlbum.images;
+												
+												for( RemoteImgurAlbumImage img : imgs)
+												{
+													url = img.link;
+													
+													url = url.replace("imgur", "i.imgur");
+													url += "m.jpg";
+													
+													RemoteImage image = new RemoteImage();
+													image.url = url;
+													image.postId = mPostId;
+													image.commentId = commentId;
+													images.add(image);
+												}
+											
+											}
+											else
+											{
+												url = url.replace("imgur", "i.imgur");
+												url += "m.jpg";
+												RemoteImage image = new RemoteImage();
+												image.url = url;
+												image.postId = mPostId;
+												image.commentId = commentId;
+												images.add(image);
+											}
+										}
+										else
+										{
+											if( !url.contains(".jpg"))
+												url += "m.jpg";
+											else
+											{
+												url = url.replace("s.jpg", ".jpg");
+												url = url.replace("l.jpg", ".jpg");
+												
+												url = url.replace(".jpg", "m.jpg");
+											}
+											
+											RemoteImage image = new RemoteImage();
+											image.url = url;
+											image.postId = mPostId;
+											image.commentId = commentId;
+											images.add(image); 
+											
+										}
 									}
 									
-									else if( url.contains("dressed.so"))
+									else if( url.contains("drsd.so") || url.contains("dressed.so"))
 									{
+										if( url.contains("drsd.so") )
+										{
+											URL u;
+											try {
+												u = new URL(url);
+												HttpURLConnection ucon = (HttpURLConnection) u.openConnection();
+												ucon.setInstanceFollowRedirects(false);
+												URL secondURL = new URL(ucon.getHeaderField("Location"));
+												
+												url = secondURL.toString(); 
+												
+												
+												
+											} catch (MalformedURLException e) {
+												// TODO Auto-generated catch block
+												Log.d("exc", url);  
+												e.printStackTrace();
+											} catch (IOException e) {
+												// TODO Auto-generated catch block
+												Log.d("exc", url);  
+												e.printStackTrace();
+											}
+										}
+										
 										if( !url.contains("cdn.dressed.so") )
 										{
-											url = url.replace("dressed.so/post/view", "http://cdn.dressed.so/i");
-											url = url.replace(".jpg", "m.jpg");
+											url = url.replace("dressed.so/post/view", "cdn.dressed.so/i");
+											
+
+											
+											url += "m.jpg";
 										}
 										
 										RemoteImage image = new RemoteImage();
 										image.url = url;
+										image.postId = mPostId;
 										image.commentId = commentId;
 										images.add(image);
 									}
+									
+									else
+										Log.d("wtf", url);  
+								
 								}
 									
 							}
 							
 						} 
-						localRecCursor.close();
+						localRecCursor.close(); 
 						
 						if (images != null && images.size() > 0) {
-							Cursor localImageCursor = getContext().getContentResolver().query(Provider.IMAGE_CONTENT_URI, null, null, null, null);
+							Cursor localImageCursor = getContext().getContentResolver().query(Provider.IMAGE_CONTENT_URI, ImageTable.ALL_COLUMNS, ImageTable.REDDITPOST_ID + "=?", new String[] {mPostId}, null);
 							localImageCursor.moveToFirst();
 							synchronizeImageRecords(images, localImageCursor, localImageCursor.getColumnIndex(ImageTable.URL), new RedditPostCommentImageSynchronizer(getContext()), new RedditPostCommentImagePreprocessor());
-							localImageCursor.close();
+							localImageCursor.close(); 
 						}
 					}
 					else {

@@ -35,6 +35,7 @@ import android.widget.Toast;
 
 public class RedditPostCommentImageSynchronizer extends Synchronizer<RedditPostCommentService.RemoteImage> {
 
+	
 	HashMap<String, String> mImageUrlMap;
 	
 	public RedditPostCommentImageSynchronizer(Context context) {
@@ -50,7 +51,7 @@ public class RedditPostCommentImageSynchronizer extends Synchronizer<RedditPostC
 		for (RedditPostCommentService.RemoteImage w : inserts) {
 			ContentValues values = this.getContentValuesForRemoteEntity(w);
 			ContentProviderOperation op = ContentProviderOperation.newInsert(Provider.IMAGE_CONTENT_URI).withValues(values).build();
-			operations.add(op);
+			operations.add(op); 
 			
 			
 		}
@@ -64,7 +65,8 @@ public class RedditPostCommentImageSynchronizer extends Synchronizer<RedditPostC
 		}
 
 		for (Long id : deletions) {
-			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.REDDITPOST_CONTENT_URI).withSelection(ImageTable.ID + " = ?", new String[] { String.valueOf(id) }).build();
+			
+			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.IMAGE_CONTENT_URI).withSelection(ImageTable.ID + " = ?", new String[] { String.valueOf(id) }).build();
 			operations.add(op);
 			
 		}
@@ -91,6 +93,7 @@ public class RedditPostCommentImageSynchronizer extends Synchronizer<RedditPostC
 	protected ContentValues getContentValuesForRemoteEntity(RemoteImage t) {
 		ContentValues values = new ContentValues();
 		
+		values.put(ImageTable.REDDITPOST_ID, t.postId);
 		values.put(ImageTable.REDDITPOSTCOMMENT_ID, t.commentId);
 		values.put(ImageTable.URL, t.getIdentifier());
 

@@ -7,8 +7,8 @@ import retrofit.RestAdapter;
 import retrofit.Server;
 import android.content.Context;
 
-public class ServiceClient {
-	private static ServiceClient instance;
+public class RedditServiceClient {
+	private static RedditServiceClient instance;
 	public static final String BASE_URL_PROD = "http://www.reddit.com";
 	public static final String BASE_URL_TEST = BASE_URL_PROD;
 	public static final String BASE_URL_DEV = BASE_URL_PROD;
@@ -18,13 +18,14 @@ public class ServiceClient {
 	
 	private String mBaseUrl = BASE_URL_PROD;
 
-	private ServiceClient() {
+	private RedditServiceClient() {
 	}
 	
-	public static ServiceClient getInstance() {
+	public static RedditServiceClient getInstance() {
 		if (null == instance) {
-			instance = new ServiceClient();
+			instance = new RedditServiceClient();
 		}
+		
 		return instance;
 	}
 

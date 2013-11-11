@@ -94,7 +94,7 @@
     </children>
     <styles xmi:type="notation:ShapeStyle" xmi:id="_T0SCMUaYEeOAxPjgSvgFCQ" fontColor="4210752" fontName="Lucida Grande" fontHeight="10" fillColor="13761016" lineColor="8421504"/>
     <element xmi:type="ecore:EClass" href="model.ecore#//RedditPostComment"/>
-    <layoutConstraint xmi:type="notation:Bounds" xmi:id="_T0SCMkaYEeOAxPjgSvgFCQ" x="671" y="174"/>
+    <layoutConstraint xmi:type="notation:Bounds" xmi:id="_T0SCMkaYEeOAxPjgSvgFCQ" x="522" y="585"/>
   </children>
   <styles xmi:type="notation:DiagramStyle" xmi:id="_bHOQIOqPEd-cf4p1YNxwtA"/>
   <element xmi:type="ecore:EPackage" href="model.ecore#/"/>
@@ -124,5 +124,19 @@
     <bendpoints xmi:type="notation:RelativeBendpoints" xmi:id="_reLrs0aYEeOAxPjgSvgFCQ" points="[22, 13, -142, -91]$[165, 103, 1, -1]"/>
     <sourceAnchor xmi:type="notation:IdentityAnchor" xmi:id="_reOH8EaYEeOAxPjgSvgFCQ" id="(0.8166666666666667,0.4020618556701031)"/>
     <targetAnchor xmi:type="notation:IdentityAnchor" xmi:id="_reOH8UaYEeOAxPjgSvgFCQ" id="(0.049019607843137254,0.04081632653061224)"/>
+  </edges>
+  <edges xmi:type="notation:Edge" xmi:id="_kHkwwEqZEeOlZPkvmgljEg" type="3002" source="_JspSkEaSEeOAhZ6b1CwEtg" target="_bUBY8EaSEeOAhZ6b1CwEtg">
+    <children xmi:type="notation:Node" xmi:id="_kHnNAEqZEeOlZPkvmgljEg" type="4011">
+      <layoutConstraint xmi:type="notation:Location" xmi:id="_kHnNAUqZEeOlZPkvmgljEg" x="-10" y="-10"/>
+    </children>
+    <children xmi:type="notation:Node" xmi:id="_kHnNAkqZEeOlZPkvmgljEg" type="4012">
+      <layoutConstraint xmi:type="notation:Location" xmi:id="_kHnNA0qZEeOlZPkvmgljEg" x="10" y="10"/>
+    </children>
+    <styles xmi:type="notation:ConnectorStyle" xmi:id="_kHkwwUqZEeOlZPkvmgljEg" lineColor="4210752"/>
+    <styles xmi:type="notation:FontStyle" xmi:id="_kHkwwkqZEeOlZPkvmgljEg" fontColor="4210752" fontName="Lucida Grande" fontHeight="10"/>
+    <element xmi:type="ecore:EReference" href="model.ecore#//RedditPost/EReference1"/>
+    <bendpoints xmi:type="notation:RelativeBendpoints" xmi:id="_kHkww0qZEeOlZPkvmgljEg" points="[23, 4, -635, -93]$[659, 91, 1, -6]"/>
+    <sourceAnchor xmi:type="notation:IdentityAnchor" xmi:id="_kHppQEqZEeOlZPkvmgljEg" id="(0.8145161290322581,0.5221238938053098)"/>
+    <targetAnchor xmi:type="notation:IdentityAnchor" xmi:id="_kHppQUqZEeOlZPkvmgljEg" id="(0.17647058823529413,0.14285714285714285)"/>
   </edges>
 </notation:Diagram>
