@@ -1,0 +1,15 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    tools:ignore="MergeRootFrame" >
+
+    <com.sobremesa.waywt.views.AspectRatioImageView 
+        android:id="@+id/comment_image_iv"
+        android:layout_width="wrap_content"  
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        tools:ignore="ContentDescription" />
+</LinearLayout>

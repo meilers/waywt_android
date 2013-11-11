@@ -200,7 +200,7 @@ public class RedditPostCommentService extends BaseService {
 									if( url.contains("imgur.com"))
 									{
 										if( !url.contains("i.imgur.com"))
-											url.replace("imgur", "i.imgur");
+											url = url.replace("imgur", "i.imgur");
 										
 										RemoteImage image = new RemoteImage();
 										image.url = url;
@@ -212,8 +212,8 @@ public class RedditPostCommentService extends BaseService {
 									{
 										if( !url.contains("cdn.dressed.so") )
 										{
-											url.replace("dressed.so/post/view", "http://cdn.dressed.so/i");
-											url.replace(".jpg", "m.jpg");
+											url = url.replace("dressed.so/post/view", "http://cdn.dressed.so/i");
+											url = url.replace(".jpg", "m.jpg");
 										}
 										
 										RemoteImage image = new RemoteImage();

@@ -41,7 +41,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		public String mId;
 		public String mPermalink;
 	}
-	private CursorLoader mLoader;
+	private CursorLoader mLoader; 
 	
 	
 	
@@ -170,6 +170,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 			adapter.add(new SimpleDateFormat("MMM").format(c.getTime()) + " " + c.get(Calendar.DATE) + " " +  c.get(Calendar.YEAR));
 			
 			PostPermalink p = new PostPermalink();
+			String id = cursor.getString(cursor.getColumnIndex(RedditPostTable.ID));
 			p.mId = cursor.getString(cursor.getColumnIndex(RedditPostTable.ID));
 			p.mPermalink = cursor.getString(cursor.getColumnIndex(RedditPostTable.PERMALINK));
 			mPermalinks.add(p); 
