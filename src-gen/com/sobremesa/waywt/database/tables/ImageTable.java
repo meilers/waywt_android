@@ -14,20 +14,21 @@ public interface ImageTable {
 
 	String ID = "_id";
 	String URL = "url";
+	String IDENTIFIER = "identifier";
 	String REDDITPOST_ID = "redditpostid";
 	String REDDITPOSTCOMMENT_ID = "redditpostcommentid";
 
-	String[] ALL_COLUMNS = new String[]{ID, URL, REDDITPOST_ID,
+	String[] ALL_COLUMNS = new String[]{ID, URL, IDENTIFIER, REDDITPOST_ID,
 			REDDITPOSTCOMMENT_ID};
 
 	String SQL_CREATE = "CREATE TABLE " + TABLE_NAME + " ( " + ID
 			+ " INTEGER PRIMARY KEY AUTOINCREMENT" + "," + URL + " TEXT" + ","
-			+ REDDITPOST_ID + " INTEGER" + "," + REDDITPOSTCOMMENT_ID
-			+ " INTEGER" + " )";
+			+ IDENTIFIER + " TEXT" + "," + REDDITPOST_ID + " INTEGER" + ","
+			+ REDDITPOSTCOMMENT_ID + " INTEGER" + " )";
 
-	String SQL_INSERT = "INSERT INTO " + TABLE_NAME + " (" + URL
-			+ REDDITPOST_ID + "," + REDDITPOSTCOMMENT_ID
-			+ ") VALUES ( ?, ?, ? )";
+	String SQL_INSERT = "INSERT INTO " + TABLE_NAME + " (" + URL + ","
+			+ IDENTIFIER + REDDITPOST_ID + "," + REDDITPOSTCOMMENT_ID
+			+ ") VALUES ( ?, ?, ?, ? )";
 
 	String SQL_DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
 

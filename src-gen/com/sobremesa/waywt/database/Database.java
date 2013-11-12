@@ -26,7 +26,7 @@ import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
  */
 public class Database extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "mdsdacpdatabase.db";
-	private static final int DATABASE_VERSION = 7;
+	private static final int DATABASE_VERSION = 9;
 
 	public Database(final Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);

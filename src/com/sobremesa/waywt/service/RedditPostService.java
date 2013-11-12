@@ -110,16 +110,17 @@ public class RedditPostService extends BaseService {
 			
 			RedditMaleFashionAdvicePostClient client = RedditServiceClient.getInstance().getClient(getContext(), RedditMaleFashionAdvicePostClient.class); 
 			
-			RemoteResponse response = client.getPosts("week", "waywt");
+			RemoteResponse response = client.getPosts("week", "waywt");  
 			RemoteData remoteData = response.data;
 			
-			List<RemoteRedditPost> posts = remoteData.children;
+			List<RemoteRedditPost> posts = remoteData.children;  
 			
 			Iterator<RemoteRedditPost> iter = posts.iterator();
 			while (iter.hasNext()) {
 				RemoteRedditPost post = iter.next();
 				
 			    if (!post.data.domain.equals("self.malefashionadvice") || post.data.author_flair_text == null || !post.data.author_flair_text.equals("Automated Robo-Mod") || !post.data.title.startsWith("WAYWT")) {
+//				if (!post.data.domain.equals("self.malefashionadvice") || !post.data.title.contains("WAYWT")) {
 			        iter.remove();
 			    }
 			}

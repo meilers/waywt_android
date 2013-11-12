@@ -58,7 +58,7 @@ public class RedditPostCommentImageSynchronizer extends Synchronizer<RedditPostC
 
 		for (RedditPostCommentService.RemoteImage w : updates) {
 			ContentValues values = this.getContentValuesForRemoteEntity(w);
-			ContentProviderOperation op = ContentProviderOperation.newUpdate(Provider.IMAGE_CONTENT_URI).withSelection(ImageTable.URL + " = ?", new String[] { w.getIdentifier() })
+			ContentProviderOperation op = ContentProviderOperation.newUpdate(Provider.IMAGE_CONTENT_URI).withSelection(ImageTable.IDENTIFIER + " = ?", new String[] { w.getIdentifier() })
 					.withValues(values).build();
 			operations.add(op);
 			
@@ -95,7 +95,8 @@ public class RedditPostCommentImageSynchronizer extends Synchronizer<RedditPostC
 		
 		values.put(ImageTable.REDDITPOST_ID, t.postId);
 		values.put(ImageTable.REDDITPOSTCOMMENT_ID, t.commentId);
-		values.put(ImageTable.URL, t.getIdentifier());
+		values.put(ImageTable.URL, t.url);
+		values.put(ImageTable.IDENTIFIER, t.getIdentifier());
 
 		return values;
 	}

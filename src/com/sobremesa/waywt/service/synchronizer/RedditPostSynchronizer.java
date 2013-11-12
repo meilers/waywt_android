@@ -18,6 +18,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import com.sobremesa.waywt.contentprovider.Provider;
+import com.sobremesa.waywt.database.tables.ImageTable;
+import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
 import com.sobremesa.waywt.database.tables.RedditPostTable;
 import com.sobremesa.waywt.service.RedditPostService;
 import com.sobremesa.waywt.service.RedditPostService.RemoteRedditPost;
@@ -62,6 +64,12 @@ public class RedditPostSynchronizer extends Synchronizer<RedditPostService.Remot
 		for (Long id : deletions) {
 			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.REDDITPOST_CONTENT_URI).withSelection(RedditPostTable.ID + " = ?", new String[] { String.valueOf(id) }).build();
 			operations.add(op);
+			
+			op = ContentProviderOperation.newDelete(Provider.REDDITPOSTCOMMENT_CONTENT_URI).withSelection(RedditPostCommentTable.REDDITPOST_ID + " = ?", new String[] { String.valueOf(id) }).build();
+			operations.add(op);
+			
+			op = ContentProviderOperation.newDelete(Provider.REDDITPOSTCOMMENT_CONTENT_URI).withSelection(ImageTable.REDDITPOST_ID + " = ?", new String[] { String.valueOf(id) }).build();
+			operations.add(op);
 		}
 
 		try {
@@ -91,7 +99,7 @@ public class RedditPostSynchronizer extends Synchronizer<RedditPostService.Remot
 		values.put(RedditPostTable.UPS, t.data.ups);
 		values.put(RedditPostTable.DOWNS, t.data.downs);
 		values.put(RedditPostTable.PERMALINK, t.data.permalink);
-
+		values.put(RedditPostTable.TITLE, t.data.title);
 
 		return values;
 	}

@@ -31,6 +31,7 @@ import retrofit.http.Query;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.text.Html;
 import android.util.Log;
 
 import com.sobremesa.waywt.contentprovider.Provider;
@@ -117,7 +118,7 @@ public class RedditPostCommentService extends BaseService {
 		
 		@Override
 		public String getIdentifier() {
-			return url;
+			return postId+commentId+url;
 		}
 	}
 	
@@ -188,6 +189,10 @@ public class RedditPostCommentService extends BaseService {
 				
 				if( response.size() > 0 )
 				{
+					Pattern pattern1 = Pattern.compile("href=\"[^\"]+?imgur.com[^\"]+?\"");
+					Pattern pattern2 = Pattern.compile("href=\"[^\"]+?dressed.so[^\"]+?\"");
+					Pattern pattern3 = Pattern.compile("href=\"[^\"]+?drsd.so[^\"]+?\""); 
+					
 					List<RemoteRedditPostComment> comments = response.get(1).data.children;
 							
 					int size = comments.size();
@@ -199,27 +204,44 @@ public class RedditPostCommentService extends BaseService {
 						// set parent
 						comment.data.postId = mPostId;
 						
+						if( comment.data.body_html != null )
+							comment.data.body_html = Html.fromHtml(comment.data.body_html).toString();
+						
 						String bodyHtml = comment.data.body_html;
 						
 						if( bodyHtml != null )
 						{
-							Pattern pattern1 = Pattern.compile("href=\\\".*?imgur.com.*?\"");
 							Matcher matcher1 = pattern1.matcher(bodyHtml);
-							
-							Pattern pattern2 = Pattern.compile("href=\\\".*?dressed.so.*?\"");
 							Matcher matcher2 = pattern2.matcher(bodyHtml);
-							
-							Pattern pattern3 = Pattern.compile("href=\\\".*?drsd.so.*?\"");
 							Matcher matcher3 = pattern3.matcher(bodyHtml);
 							
-							if (!matcher1.find() && !matcher2.find() && !matcher3.find())  {
+							boolean one = matcher1.find();
+							boolean two = matcher2.find();
+							boolean three = matcher3.find();
+									
+							
+							if (!one && !two && !three)  {
 								iter.remove();
+								
+
+								Log.d("fuck", bodyHtml);
 							}
 							else
-								Log.d("oui", bodyHtml);
+							{
+								if( bodyHtml.contains("contrapaul") )
+								{
+									if( one )
+										Log.d("abc", "1");
+									if( two )
+										Log.d("abc", "2");
+									if( three )
+										Log.d("abc", "3");
+								}
+							}
+								Log.d("blah", bodyHtml); 
 						}
 						else
-							iter.remove();
+							iter.remove(); 
 					}
 					
 					size = comments.size();
@@ -233,7 +255,7 @@ public class RedditPostCommentService extends BaseService {
 						
 						// Get images
 						List<RemoteImage> images = new ArrayList<RemoteImage>();
-						localRecCursor = getContext().getContentResolver().query(Provider.REDDITPOSTCOMMENT_CONTENT_URI, null, null, null, null);
+						localRecCursor = getContext().getContentResolver().query(Provider.REDDITPOSTCOMMENT_CONTENT_URI, RedditPostCommentTable.ALL_COLUMNS, RedditPostCommentTable.REDDITPOST_ID + "=?", new String[]{mPostId}, null);
 						
 						for (localRecCursor.moveToFirst(); !localRecCursor.isAfterLast(); localRecCursor.moveToNext()) {
 						    String commentId = localRecCursor.getString(localRecCursor.getColumnIndex(RedditPostCommentTable.ID));
@@ -241,12 +263,12 @@ public class RedditPostCommentService extends BaseService {
 						    
 						    if( bodyHtml != null )
 							{
-								Pattern pattern = Pattern.compile("href=\\\"(.*?)\"");
+								Pattern pattern = Pattern.compile("href=\"(.*?)\"");
 								Matcher matcher = pattern.matcher(bodyHtml);
 								
 								String url = "";
 								
-								
+									
 								while (matcher.find()) {
 									url = matcher.group(1);
 									
@@ -342,7 +364,7 @@ public class RedditPostCommentService extends BaseService {
 											
 
 											
-											url += "m.jpg";
+											url += "m.jpg";  
 										}
 										
 										RemoteImage image = new RemoteImage();
@@ -365,7 +387,7 @@ public class RedditPostCommentService extends BaseService {
 						if (images != null && images.size() > 0) {
 							Cursor localImageCursor = getContext().getContentResolver().query(Provider.IMAGE_CONTENT_URI, ImageTable.ALL_COLUMNS, ImageTable.REDDITPOST_ID + "=?", new String[] {mPostId}, null);
 							localImageCursor.moveToFirst();
-							synchronizeImageRecords(images, localImageCursor, localImageCursor.getColumnIndex(ImageTable.URL), new RedditPostCommentImageSynchronizer(getContext()), new RedditPostCommentImagePreprocessor());
+							synchronizeImageRecords(images, localImageCursor, localImageCursor.getColumnIndex(ImageTable.IDENTIFIER), new RedditPostCommentImageSynchronizer(getContext()), new RedditPostCommentImagePreprocessor());
 							localImageCursor.close(); 
 						}
 					}

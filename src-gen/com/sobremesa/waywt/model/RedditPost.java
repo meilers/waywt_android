@@ -20,6 +20,7 @@ public class RedditPost {
 	private java.lang.String author;
 	private long created;
 	private java.lang.String permalink;
+	private java.lang.String title;
 
 	private final ContentValues values = new ContentValues();
 
@@ -36,6 +37,7 @@ public class RedditPost {
 				.getColumnIndex(RedditPostTable.CREATED)));
 		setPermalink(cursor.getString(cursor
 				.getColumnIndex(RedditPostTable.PERMALINK)));
+		setTitle(cursor.getString(cursor.getColumnIndex(RedditPostTable.TITLE)));
 
 	}
 
@@ -151,6 +153,25 @@ public class RedditPost {
 	 */
 	public java.lang.String getPermalink() {
 		return this.permalink;
+	}
+
+	/**
+	 * Set title and set content value
+	 *
+	 * @param title from type java.lang.String
+	 */
+	public void setTitle(final java.lang.String title) {
+		this.title = title;
+		this.values.put(RedditPostTable.TITLE, title);
+	}
+
+	/**
+	 * Get title
+	 *
+	 * @return title from type java.lang.String				
+	 */
+	public java.lang.String getTitle() {
+		return this.title;
 	}
 
 	/**

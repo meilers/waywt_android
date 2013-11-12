@@ -16,6 +16,7 @@ public class Image {
 
 	private Long id;
 	private java.lang.String url;
+	private java.lang.String identifier;
 
 	private final ContentValues values = new ContentValues();
 
@@ -25,6 +26,8 @@ public class Image {
 	public Image(final Cursor cursor) {
 		setId(cursor.getLong(cursor.getColumnIndex(ImageTable.ID)));
 		setUrl(cursor.getString(cursor.getColumnIndex(ImageTable.URL)));
+		setIdentifier(cursor.getString(cursor
+				.getColumnIndex(ImageTable.IDENTIFIER)));
 
 	}
 
@@ -64,6 +67,25 @@ public class Image {
 	 */
 	public java.lang.String getUrl() {
 		return this.url;
+	}
+
+	/**
+	 * Set identifier and set content value
+	 *
+	 * @param identifier from type java.lang.String
+	 */
+	public void setIdentifier(final java.lang.String identifier) {
+		this.identifier = identifier;
+		this.values.put(ImageTable.IDENTIFIER, identifier);
+	}
+
+	/**
+	 * Get identifier
+	 *
+	 * @return identifier from type java.lang.String				
+	 */
+	public java.lang.String getIdentifier() {
+		return this.identifier;
 	}
 
 	/**

@@ -23,6 +23,10 @@
         <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPost/permalink"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_BSQUcUjoEeOAxPjgSvgFCQ"/>
       </children>
+      <children xmi:type="notation:Node" xmi:id="_BBmekEszEeOYTZMdEDikXQ" type="2001">
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPost/title"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_BBnFoEszEeOYTZMdEDikXQ"/>
+      </children>
       <styles xmi:type="notation:DrawerStyle" xmi:id="_Jss88UaSEeOAhZ6b1CwEtg"/>
       <styles xmi:type="notation:SortingStyle" xmi:id="_Jss88kaSEeOAhZ6b1CwEtg"/>
       <styles xmi:type="notation:FilteringStyle" xmi:id="_Jss880aSEeOAhZ6b1CwEtg"/>
@@ -42,6 +46,10 @@
       <children xmi:type="notation:Node" xmi:id="_cZaTsEaSEeOAhZ6b1CwEtg" type="2001">
         <element xmi:type="ecore:EAttribute" href="model.ecore#//Image/url"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_cZaTsUaSEeOAhZ6b1CwEtg"/>
+      </children>
+      <children xmi:type="notation:Node" xmi:id="_hcL1YEtFEeOYTZMdEDikXQ" type="2001">
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Image/identifier"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_hcL1YUtFEeOYTZMdEDikXQ"/>
       </children>
       <styles xmi:type="notation:DrawerStyle" xmi:id="_bUCAAUaSEeOAhZ6b1CwEtg"/>
       <styles xmi:type="notation:SortingStyle" xmi:id="_bUCAAkaSEeOAhZ6b1CwEtg"/>

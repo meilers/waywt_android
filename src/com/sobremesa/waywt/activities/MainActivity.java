@@ -165,16 +165,17 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		mNavAdapter.clear();
 		
 		for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) { 
-		    // do what you need with the cursor here
-			SimpleDateFormat formatter=new SimpleDateFormat("DD-MMM-yyyy");  
+//			SimpleDateFormat formatter=new SimpleDateFormat("DD-MMM-yyyy");  
+//			
+//			Date date = new Date(cursor.getLong(cursor.getColumnIndex(RedditPostTable.CREATED))*1000);
+//			Calendar c = Calendar.getInstance();
+//			c.setTime(date);
+//			
+//			String str = formatter.format(date);
+//			
+//			mNavAdapter.add(new SimpleDateFormat("MMM").format(c.getTime()) + " " + c.get(Calendar.DATE) + " " +  c.get(Calendar.YEAR));
 			
-			Date date = new Date(cursor.getLong(cursor.getColumnIndex(RedditPostTable.CREATED))*1000);
-			Calendar c = Calendar.getInstance();
-			c.setTime(date);
-			
-			String str = formatter.format(date);
-			
-			mNavAdapter.add(new SimpleDateFormat("MMM").format(c.getTime()) + " " + c.get(Calendar.DATE) + " " +  c.get(Calendar.YEAR));
+			mNavAdapter.add( cursor.getString(cursor.getColumnIndex(RedditPostTable.TITLE)));
 			
 			PostPermalink p = new PostPermalink();
 			String id = cursor.getString(cursor.getColumnIndex(RedditPostTable.ID));

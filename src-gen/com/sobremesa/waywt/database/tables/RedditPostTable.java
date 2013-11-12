@@ -18,18 +18,20 @@ public interface RedditPostTable {
 	String AUTHOR = "author";
 	String CREATED = "created";
 	String PERMALINK = "permalink";
+	String TITLE = "title";
 
 	String[] ALL_COLUMNS = new String[]{ID, UPS, DOWNS, AUTHOR, CREATED,
-			PERMALINK};
+			PERMALINK, TITLE};
 
 	String SQL_CREATE = "CREATE TABLE " + TABLE_NAME + " ( " + ID
 			+ " INTEGER PRIMARY KEY AUTOINCREMENT" + "," + UPS + " INTEGER"
 			+ "," + DOWNS + " INTEGER" + "," + AUTHOR + " TEXT" + "," + CREATED
-			+ " INTEGER" + "," + PERMALINK + " TEXT" + " )";
+			+ " INTEGER" + "," + PERMALINK + " TEXT" + "," + TITLE + " TEXT"
+			+ " )";
 
 	String SQL_INSERT = "INSERT INTO " + TABLE_NAME + " (" + UPS + "," + DOWNS
-			+ "," + AUTHOR + "," + CREATED + "," + PERMALINK
-			+ ") VALUES ( ?, ?, ?, ?, ? )";
+			+ "," + AUTHOR + "," + CREATED + "," + PERMALINK + "," + TITLE
+			+ ") VALUES ( ?, ?, ?, ?, ?, ? )";
 
 	String SQL_DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
 
