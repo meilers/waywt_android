@@ -222,23 +222,7 @@ public class RedditPostCommentService extends BaseService {
 							
 							if (!one && !two && !three)  {
 								iter.remove();
-								
-
-								Log.d("fuck", bodyHtml);
 							}
-							else
-							{
-								if( bodyHtml.contains("contrapaul") )
-								{
-									if( one )
-										Log.d("abc", "1");
-									if( two )
-										Log.d("abc", "2");
-									if( three )
-										Log.d("abc", "3");
-								}
-							}
-								Log.d("blah", bodyHtml); 
 						}
 						else
 							iter.remove(); 
@@ -274,14 +258,16 @@ public class RedditPostCommentService extends BaseService {
 									
 									if( url.contains("imgur.com"))
 									{
+										url = url.replace("gallery/", "");
+										
 										if( !url.contains("i.imgur.com"))
 										{
 											if( url.contains("imgur.com/a/"))
 											{
 												ImgurClient imgurClient = ImgurServiceClient.getInstance().getClient(getContext(), ImgurClient.class);  
 												
-												
-												RemoteImgurResponse imgurResponse = imgurClient.getAlbum( "Client-ID " + "e52e554e5972395", "yu7Sp");  
+												String albumId = url.split("/a/")[1];
+												RemoteImgurResponse imgurResponse = imgurClient.getAlbum( "Client-ID " + "e52e554e5972395", albumId);  
 												RemoteImgurAlbum imgurAlbum = imgurResponse.data;
 												List<RemoteImgurAlbumImage> imgs = imgurAlbum.images;
 												
@@ -374,8 +360,6 @@ public class RedditPostCommentService extends BaseService {
 										images.add(image);
 									}
 									
-									else
-										Log.d("wtf", url);  
 								
 								}
 									

@@ -11,6 +11,8 @@ import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
 import com.sobremesa.waywt.database.tables.RedditPostTable;
 import com.sobremesa.waywt.service.RedditPostCommentService;
 import com.sobremesa.waywt.service.RedditPostService;
+import com.viewpagerindicator.TabPageIndicator;
+import com.viewpagerindicator.TitlePageIndicator;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -39,7 +41,7 @@ public class WaywtFragment extends Fragment implements LoaderCallbacks<Cursor> {
 	
 	private ViewPager mPager;
 	private CommentPagerAdapter mPagerAdapter;
-	
+	TitlePageIndicator mindicator;
 	
 	
 	@Override
@@ -48,9 +50,11 @@ public class WaywtFragment extends Fragment implements LoaderCallbacks<Cursor> {
 		View view = inflater.inflate(R.layout.fragment_waywt, null, false);
 		
 		mPager = (ViewPager)view.findViewById(R.id.pager);
-		mPagerAdapter = new CommentPagerAdapter(getChildFragmentManager(), new ArrayList<String>());
+		mPagerAdapter = new CommentPagerAdapter(getChildFragmentManager(), new ArrayList<String>(),new ArrayList<String>());
 		mPager.setAdapter(mPagerAdapter);
 		
+		mindicator = (TitlePageIndicator)view.findViewById(R.id.page_indicator);
+		mindicator.setViewPager(mPager);
 		return view;
 	}
 	
@@ -81,22 +85,24 @@ public class WaywtFragment extends Fragment implements LoaderCallbacks<Cursor> {
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		mLoader = new CursorLoader(getActivity(), Provider.REDDITPOSTCOMMENT_CONTENT_URI, RedditPostCommentTable.ALL_COLUMNS, RedditPostCommentTable.REDDITPOST_ID + "=?", new String[] { getArguments().getString(Extras.ARG_POST_ID) }, null);
+		mLoader = new CursorLoader(getActivity(), Provider.REDDITPOSTCOMMENT_CONTENT_URI, new String[] {RedditPostCommentTable.ID, RedditPostCommentTable.REDDITPOST_ID, RedditPostCommentTable.AUTHOR, RedditPostCommentTable.UPS + " - " + RedditPostCommentTable.DOWNS + " AS `difference`" }, RedditPostCommentTable.REDDITPOST_ID + "=?", new String[] { getArguments().getString(Extras.ARG_POST_ID) }, "`difference` DESC");
 
 		return mLoader;
 	}
 
 	@Override
-	public void onLoadFinished(Loader<Cursor> arg0, Cursor cursor) {
+	public void onLoadFinished(Loader<Cursor> arg0, Cursor cursor) { 
 		// TODO Auto-generated method stub
 		List<String> commentIds = new ArrayList<String>();
+		List<String> usernames = new ArrayList<String>();
 		
 		for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
 			commentIds.add(cursor.getString(cursor.getColumnIndex(RedditPostCommentTable.ID)));
+			usernames.add(cursor.getString(cursor.getColumnIndex(RedditPostCommentTable.AUTHOR)));
 		}
 		
-		mPagerAdapter.setCommentIds(commentIds);
-
+		mPagerAdapter.setInfo(commentIds, usernames);
+		mindicator.notifyDataSetChanged();
 
 	}
 

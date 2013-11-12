@@ -153,7 +153,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		mLoader = new CursorLoader(this, Provider.REDDITPOST_CONTENT_URI, RedditPostTable.ALL_COLUMNS, null, null, null);
+		mLoader = new CursorLoader(this, Provider.REDDITPOST_CONTENT_URI, RedditPostTable.ALL_COLUMNS, null, null, RedditPostTable.CREATED + " DESC");
 
 		return mLoader;
 	}

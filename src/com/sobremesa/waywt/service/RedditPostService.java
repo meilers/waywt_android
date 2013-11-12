@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -45,6 +46,7 @@ public class RedditPostService extends BaseService {
 
 	public class RemoteData extends RemoteObject {
 		public String modhash;
+		public String after;
 		public List<RemoteRedditPost> children;
 		
 		@Override
@@ -87,7 +89,7 @@ public class RedditPostService extends BaseService {
 	
 	public interface RedditMaleFashionAdvicePostClient {
 		@GET("/r/malefashionadvice/top.json")
-		RemoteResponse getPosts(@Query("t")String time, @Query("q")String query);  
+		RemoteResponse getPosts(@Query("t")String time, @Query("after")String after);  
 	}
 	
 	
@@ -106,31 +108,75 @@ public class RedditPostService extends BaseService {
 	protected void onHandleIntent(Intent intent) {
 		if (intent.getAction().equals(Intent.ACTION_SYNC)) 
 		{
-			
+			List<RemoteRedditPost> totalPosts = new ArrayList<RemoteRedditPost>();
+			String after = "";
+			int i = 0;
 			
 			RedditMaleFashionAdvicePostClient client = RedditServiceClient.getInstance().getClient(getContext(), RedditMaleFashionAdvicePostClient.class); 
 			
-			RemoteResponse response = client.getPosts("week", "waywt");  
-			RemoteData remoteData = response.data;
+			// today
+			RemoteResponse response; 
+			RemoteData remoteData;
 			
-			List<RemoteRedditPost> posts = remoteData.children;  
+			List<RemoteRedditPost> posts;
 			
-			Iterator<RemoteRedditPost> iter = posts.iterator();
-			while (iter.hasNext()) {
-				RemoteRedditPost post = iter.next();
+			Iterator<RemoteRedditPost> iter;
+			
+			while( after != null && i < 3)
+			{
+				response = client.getPosts("today", after);  
+				remoteData = response.data;
 				
-			    if (!post.data.domain.equals("self.malefashionadvice") || post.data.author_flair_text == null || !post.data.author_flair_text.equals("Automated Robo-Mod") || !post.data.title.startsWith("WAYWT")) {
-//				if (!post.data.domain.equals("self.malefashionadvice") || !post.data.title.contains("WAYWT")) {
-			        iter.remove();
-			    }
+				posts = remoteData.children;  
+				
+				iter = posts.iterator();
+				while (iter.hasNext()) {
+					RemoteRedditPost post = iter.next();
+					
+				    if (!post.data.domain.equals("self.malefashionadvice") || post.data.author_flair_text == null || !post.data.author_flair_text.equals("Automated Robo-Mod") || !post.data.title.contains("WAYWT")) {
+				        iter.remove(); 
+				    }
+				}
+				
+				totalPosts.addAll(posts);
+				after = response.data.after;
+				
+				++i;
+			}
+			
+			
+			// month
+			after = "";
+			i = 0;
+			
+			while( after != null && i < 10)
+			{
+				response = client.getPosts("month", after);  
+				remoteData = response.data;
+				
+				posts = remoteData.children;  
+				
+				iter = posts.iterator();
+				while (iter.hasNext()) {
+					RemoteRedditPost post = iter.next();
+					
+				    if (!post.data.domain.equals("self.malefashionadvice") || post.data.author_flair_text == null || !post.data.author_flair_text.equals("Automated Robo-Mod") || !post.data.title.contains("WAYWT")) {
+				        iter.remove(); 
+				    }
+				}
+				
+				totalPosts.addAll(posts);
+				after = response.data.after;
+				
+				++i;
 			}
 
 			
-			if (posts != null && posts.size() > 0) { 
+			if (totalPosts != null && totalPosts.size() > 0) { 
 				// synchronize!
 				Cursor localRecCursor = getContext().getContentResolver().query(Provider.REDDITPOST_CONTENT_URI, RedditPostTable.ALL_COLUMNS, null, null, null);
 				localRecCursor.moveToFirst();
-				synchronizeRemoteRecords(posts, localRecCursor, localRecCursor.getColumnIndex(RedditPostTable.PERMALINK), new RedditPostSynchronizer(getContext()), new RedditPostPreprocessor());
+				synchronizeRemoteRecords(totalPosts, localRecCursor, localRecCursor.getColumnIndex(RedditPostTable.PERMALINK), new RedditPostSynchronizer(getContext()), new RedditPostPreprocessor());
 				
 				//
 			} else {

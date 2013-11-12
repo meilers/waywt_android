@@ -7,21 +7,27 @@ import com.sobremesa.waywt.fragments.CommentFragment;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import com.viewpagerindicator.TitlePageIndicator;
 
 public class CommentPagerAdapter extends FragmentStatePagerAdapter {
 	List<String> mCommentIds;
+	List<String> mAuthors;
 
-	public CommentPagerAdapter(FragmentManager fragmentManager,  List<String> commentIds) {
+	public CommentPagerAdapter(FragmentManager fragmentManager,  List<String> commentIds, List<String> authors) {
 		super(fragmentManager);
 		mCommentIds = commentIds;
+		mAuthors = authors;
 	}
 	
-	public void setCommentIds(List<String> commentIds)
+	public void setInfo(List<String> commentIds,  List<String> authors)
 	{
 		mCommentIds = commentIds;
+		mAuthors = authors;
 		notifyDataSetChanged();
 	}
+	
 
 	@Override
 	public Fragment getItem(int position) {
@@ -40,4 +46,11 @@ public class CommentPagerAdapter extends FragmentStatePagerAdapter {
 	public int getCount() {
 		return mCommentIds.size();
 	}
+	
+	@Override
+    public CharSequence getPageTitle(int position) {
+      return mAuthors.get(position);
+    }
+	
+	
 }
