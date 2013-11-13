@@ -63,6 +63,20 @@ public class RedditPostService extends BaseService {
 		public String getIdentifier() {
 			return data.permalink;
 		}
+		
+		
+		@Override
+	    public boolean equals(Object object)
+	    {
+	        boolean sameSame = false;
+
+	        if (object != null && object instanceof RemoteRedditPost)
+	        {
+	            sameSame = this.data.permalink == ((RemoteRedditPost) object).data.permalink;
+	        }
+
+	        return sameSame;
+	    }
 	}
 
 	public class RemoteRedditPostData extends RemoteObject {
@@ -122,7 +136,7 @@ public class RedditPostService extends BaseService {
 			
 			Iterator<RemoteRedditPost> iter;
 			
-			while( after != null && i < 3)
+			while( after != null && i < 2)
 			{
 				response = client.getPosts("today", after);  
 				remoteData = response.data;
@@ -144,12 +158,38 @@ public class RedditPostService extends BaseService {
 				++i;
 			}
 			
+			// week 
+			after = "";
+			i = 0;
+			
+			while( after != null && i < 2)
+			{
+				response = client.getPosts("week", after);  
+				remoteData = response.data;
+				
+				posts = remoteData.children;  
+				
+				iter = posts.iterator();
+				while (iter.hasNext()) {
+					RemoteRedditPost post = iter.next();
+					
+				    if (!post.data.domain.equals("self.malefashionadvice") || post.data.author_flair_text == null || !post.data.author_flair_text.equals("Automated Robo-Mod") || !post.data.title.contains("WAYWT") || totalPosts.contains(post)) {
+				        iter.remove(); 
+				    }
+				}
+				
+				totalPosts.addAll(posts);
+				after = response.data.after;
+				
+				++i;
+			}
+			
 			
 			// month
 			after = "";
 			i = 0;
 			
-			while( after != null && i < 10)
+			while( after != null && i < 5)
 			{
 				response = client.getPosts("month", after);  
 				remoteData = response.data;
@@ -160,7 +200,7 @@ public class RedditPostService extends BaseService {
 				while (iter.hasNext()) {
 					RemoteRedditPost post = iter.next();
 					
-				    if (!post.data.domain.equals("self.malefashionadvice") || post.data.author_flair_text == null || !post.data.author_flair_text.equals("Automated Robo-Mod") || !post.data.title.contains("WAYWT")) {
+				    if (!post.data.domain.equals("self.malefashionadvice") || post.data.author_flair_text == null || !post.data.author_flair_text.equals("Automated Robo-Mod") || !post.data.title.contains("WAYWT") || totalPosts.contains(post)) {
 				        iter.remove(); 
 				    }
 				}

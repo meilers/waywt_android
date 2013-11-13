@@ -6,13 +6,19 @@
         res/values-v11/styles.xml on API 14+ devices.
     -->
     <style name="AppBaseTheme" parent="android:Theme.Holo.Light.DarkActionBar">
-       <item name="vpiTabPageIndicatorStyle">@style/CustomTabPageIndicator</item>
+        <item name="vpiTabPageIndicatorStyle">@style/CustomTabPageIndicator</item>
+        <item name="android:actionBarStyle">@style/MyActionBarStyle</item>
     </style>
 
+    <style name="MyActionBarStyle" parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
+        <item name="android:displayOptions">showTitle</item>
+        <item name="android:icon">@android:color/transparent</item>
+        <item name="android:background">@drawable/actionbar</item>
+    </style>
 
-    <style name="CustomTabPageIndicator" >
+    <style name="CustomTabPageIndicator">
         <item name="android:gravity">center</item>
-        <item name="android:background">@drawable/vpi__tab_indicator</item>        
+        <item name="android:background">@drawable/vpi__tab_indicator</item>
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>
         <item name="android:textAppearance">@style/TextAppearance.TabPageIndicator</item>
@@ -20,4 +26,5 @@
         <item name="android:maxLines">1</item>
         <item name="android:textColor">#FF555555</item>
     </style>
+
 </resources>

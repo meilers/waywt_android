@@ -6,17 +6,27 @@
     android:orientation="vertical"
     tools:ignore="MergeRootFrame" >
 
-    <com.sobremesa.waywt.views.AspectRatioImageView 
+    <com.sobremesa.waywt.views.AspectRatioImageView
         android:id="@+id/comment_image_iv"
-        android:layout_width="wrap_content"  
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:adjustViewBounds="true"
         tools:ignore="ContentDescription" />
-    
-    <TextView 
-        android:id="@+id/tv"
+
+    <com.sobremesa.waywt.views.ExpandableHeightGridView
+        android:id="@+id/comment_images_gv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        
-        />
+        android:gravity="center"
+        android:horizontalSpacing="0dp"
+        android:isScrollContainer="false"
+        android:numColumns="2"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="0dp" />
+
+    <TextView
+        android:id="@+id/tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
 </LinearLayout>

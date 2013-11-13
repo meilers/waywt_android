@@ -87,7 +87,7 @@ public class RedditPostCommentService extends BaseService {
 		
 		@Override
 		public String getIdentifier() {
-			return data.id;
+			return mPermalink + data.id;
 		}
 	}
 
@@ -106,7 +106,7 @@ public class RedditPostCommentService extends BaseService {
 		
 		@Override 
 		public String getIdentifier() {  
-			return id;
+			return mPermalink + id;
 		}
 	}
 	  
