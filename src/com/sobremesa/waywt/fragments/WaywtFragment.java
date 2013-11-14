@@ -9,6 +9,7 @@ import com.sobremesa.waywt.adapters.CommentPagerAdapter;
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
 import com.sobremesa.waywt.database.tables.RedditPostTable;
+import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.service.RedditPostCommentService;
 import com.sobremesa.waywt.service.RedditPostService;
 import com.viewpagerindicator.TabPageIndicator;
@@ -55,6 +56,7 @@ public class WaywtFragment extends Fragment implements LoaderCallbacks<Cursor> {
 		
 		mindicator = (TitlePageIndicator)view.findViewById(R.id.page_indicator);
 		mindicator.setViewPager(mPager);
+		mindicator.setTypeface(FontManager.INSTANCE.getAppFont());
 		return view;
 	}
 	

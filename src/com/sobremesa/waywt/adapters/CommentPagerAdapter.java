@@ -49,7 +49,7 @@ public class CommentPagerAdapter extends FragmentStatePagerAdapter {
 	
 	@Override
     public CharSequence getPageTitle(int position) {
-      return mAuthors.get(position);
+      return mAuthors.get(position).toUpperCase();
     }
 	
 	
