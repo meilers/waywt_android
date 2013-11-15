@@ -1,4 +1,0 @@
-Copy this code snippet in your AndroidManifest.xml inside the <application> element to activate the content provider
-	
-<provider android:name="com.sobremesa.waywt.contentprovider.Provider" android:authorities="com.sobremesa.waywt.provider.Model" />
-	

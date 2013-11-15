@@ -55,7 +55,7 @@
                     android:src="@drawable/arrow_up"
                     android:visibility="gone" />
 
-                <com.sobremesa.waywt.views.OutlineTextView
+                <com.sobremesa.waywt.views.OutlineWaywtTextView
                     android:id="@+id/comment_points_tv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -84,8 +84,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_alignParentLeft="true"
-                android:gravity="top"
                 android:layout_alignParentTop="true"
+                android:gravity="top"
                 android:paddingLeft="@dimen/padding_large"
                 android:text="@string/quotations"
                 android:textColor="@android:color/black"
@@ -107,15 +107,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:gravity="center"
                 android:layout_toLeftOf="@id/comment_title_quotations_right_tv"
                 android:layout_toRightOf="@id/comment_title_quotations_left_tv"
+                android:gravity="center"
                 android:paddingLeft="@dimen/padding_medium"
                 android:paddingRight="@dimen/padding_medium"
                 android:textColor="@android:color/black"
                 android:textSize="18sp"
                 android:textStyle="bold" />
         </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/comment_replies_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
     </LinearLayout>
 
 </ScrollView>

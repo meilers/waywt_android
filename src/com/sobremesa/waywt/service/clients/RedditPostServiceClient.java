@@ -1,4 +1,4 @@
-package com.sobremesa.waywt.service;
+package com.sobremesa.waywt.service.clients;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,9 +7,9 @@ import retrofit.RestAdapter;
 import retrofit.Server;
 import android.content.Context;
 
-public class ImgurServiceClient {
-	private static ImgurServiceClient instance;
-	public static final String BASE_URL_PROD = "https://api.imgur.com";
+public class RedditPostServiceClient {
+	private static RedditPostServiceClient instance;
+	public static final String BASE_URL_PROD = "http://www.reddit.com";
 	public static final String BASE_URL_TEST = BASE_URL_PROD;
 	public static final String BASE_URL_DEV = BASE_URL_PROD;
 	
@@ -18,12 +18,12 @@ public class ImgurServiceClient {
 	
 	private String mBaseUrl = BASE_URL_PROD;
 
-	private ImgurServiceClient() {
+	private RedditPostServiceClient() {
 	}
 	
-	public static ImgurServiceClient getInstance() {
+	public static RedditPostServiceClient getInstance() {
 		if (null == instance) {
-			instance = new ImgurServiceClient();
+			instance = new RedditPostServiceClient();
 		}
 		
 		return instance;

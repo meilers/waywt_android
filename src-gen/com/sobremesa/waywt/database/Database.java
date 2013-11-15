@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.sobremesa.waywt.database.tables.RedditPostTable;
 import com.sobremesa.waywt.database.tables.ImageTable;
 import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
+import com.sobremesa.waywt.database.tables.RedditPostCommentSubcommentTable;
 
 /**
  * This database class extends the SQLiteOpenHelper
@@ -22,11 +23,11 @@ import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.11.11
+ * @date 2013.11.13
  */
 public class Database extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "mdsdacpdatabase.db";
-	private static final int DATABASE_VERSION = 9;
+	private static final int DATABASE_VERSION = 11;
 
 	public Database(final Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -37,6 +38,7 @@ public class Database extends SQLiteOpenHelper {
 		db.execSQL(RedditPostTable.SQL_CREATE);
 		db.execSQL(ImageTable.SQL_CREATE);
 		db.execSQL(RedditPostCommentTable.SQL_CREATE);
+		db.execSQL(RedditPostCommentSubcommentTable.SQL_CREATE);
 	}
 
 	@Override
@@ -57,6 +59,7 @@ public class Database extends SQLiteOpenHelper {
 		db.execSQL(RedditPostTable.SQL_DROP);
 		db.execSQL(ImageTable.SQL_DROP);
 		db.execSQL(RedditPostCommentTable.SQL_DROP);
+		db.execSQL(RedditPostCommentSubcommentTable.SQL_DROP);
 		onCreate(db);
 	}
 }

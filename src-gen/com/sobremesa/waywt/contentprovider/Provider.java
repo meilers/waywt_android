@@ -29,7 +29,7 @@ import android.util.Log;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.11.11
+ * @date 2013.11.13
  */
 public class Provider extends ContentProvider {
 	private static final String TAG = "com.sobremesa.waywt.contentprovider.Provider";
@@ -47,6 +47,10 @@ public class Provider extends ContentProvider {
 			.withAppendedPath(Provider.AUTHORITY_URI,
 					RedditPostCommentContent.CONTENT_PATH);
 
+	public static final Uri REDDITPOSTCOMMENTSUBCOMMENT_CONTENT_URI = Uri
+			.withAppendedPath(Provider.AUTHORITY_URI,
+					RedditPostCommentSubcommentContent.CONTENT_PATH);
+
 	private static final UriMatcher URI_MATCHER;
 
 	private Database db;
@@ -57,6 +61,8 @@ public class Provider extends ContentProvider {
 	private static final int IMAGE_ID = 3;
 	private static final int REDDITPOSTCOMMENT_DIR = 4;
 	private static final int REDDITPOSTCOMMENT_ID = 5;
+	private static final int REDDITPOSTCOMMENTSUBCOMMENT_DIR = 6;
+	private static final int REDDITPOSTCOMMENTSUBCOMMENT_ID = 7;
 
 	static {
 		URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
@@ -71,6 +77,12 @@ public class Provider extends ContentProvider {
 				REDDITPOSTCOMMENT_DIR);
 		URI_MATCHER.addURI(AUTHORITY, RedditPostCommentContent.CONTENT_PATH
 				+ "/#", REDDITPOSTCOMMENT_ID);
+		URI_MATCHER.addURI(AUTHORITY,
+				RedditPostCommentSubcommentContent.CONTENT_PATH,
+				REDDITPOSTCOMMENTSUBCOMMENT_DIR);
+		URI_MATCHER.addURI(AUTHORITY,
+				RedditPostCommentSubcommentContent.CONTENT_PATH + "/#",
+				REDDITPOSTCOMMENTSUBCOMMENT_ID);
 	}
 
 	/**
@@ -155,6 +167,35 @@ public class Provider extends ContentProvider {
 	}
 
 	/**
+	 * Provides the content information of the RedditPostCommentSubcommentTable.
+	 * 
+	 * CONTENT_PATH: redditpostcommentsubcomment (String)
+	 * CONTENT_TYPE: vnd.android.cursor.dir/vnd.mdsdacp.redditpostcommentsubcomment (String)
+	 * CONTENT_ITEM_TYPE: vnd.android.cursor.item/vnd.mdsdacp.redditpostcommentsubcomment (String)
+	 * ALL_COLUMNS: Provides the same information as RedditPostCommentSubcommentTable.ALL_COLUMNS (String[])
+	 */
+	public static final class RedditPostCommentSubcommentContent
+			implements
+				BaseColumns {
+		/**
+		 * Specifies the content path of the RedditPostCommentSubcommentTable for the required uri
+		 * Exact URI: content://com.sobremesa.waywt.provider.Model/redditpostcommentsubcomment
+		 */
+		public static final String CONTENT_PATH = "redditpostcommentsubcomment";
+
+		/**
+		 * Specifies the type for the folder and the single item of the RedditPostCommentSubcommentTable  
+		 */
+		public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.mdsdacp.redditpostcommentsubcomment";
+		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.mdsdacp.redditpostcommentsubcomment";
+
+		/**
+		 * Contains all columns of the RedditPostCommentSubcommentTable
+		 */
+		public static final String[] ALL_COLUMNS = RedditPostCommentSubcommentTable.ALL_COLUMNS;
+	}
+
+	/**
 	 * Instantiate the database, when the content provider is created
 	 */
 	@Override
@@ -186,6 +227,10 @@ public class Provider extends ContentProvider {
 				return RedditPostCommentContent.CONTENT_TYPE;
 			case REDDITPOSTCOMMENT_ID :
 				return RedditPostCommentContent.CONTENT_ITEM_TYPE;
+			case REDDITPOSTCOMMENTSUBCOMMENT_DIR :
+				return RedditPostCommentSubcommentContent.CONTENT_TYPE;
+			case REDDITPOSTCOMMENTSUBCOMMENT_ID :
+				return RedditPostCommentSubcommentContent.CONTENT_ITEM_TYPE;
 			default :
 				throw new IllegalArgumentException("Unsupported URI: " + uri);
 		}
@@ -240,6 +285,20 @@ public class Provider extends ContentProvider {
 							newRedditPostComment, null);
 					dbConnection.setTransactionSuccessful();
 					return newRedditPostComment;
+				case REDDITPOSTCOMMENTSUBCOMMENT_DIR :
+				case REDDITPOSTCOMMENTSUBCOMMENT_ID :
+					final long redditpostcommentsubcommentid = dbConnection
+							.insertOrThrow(
+									RedditPostCommentSubcommentTable.TABLE_NAME,
+									null, values);
+					final Uri newRedditPostCommentSubcomment = ContentUris
+							.withAppendedId(
+									REDDITPOSTCOMMENTSUBCOMMENT_CONTENT_URI,
+									redditpostcommentsubcommentid);
+					getContext().getContentResolver().notifyChange(
+							newRedditPostCommentSubcomment, null);
+					dbConnection.setTransactionSuccessful();
+					return newRedditPostCommentSubcomment;
 				default :
 					throw new IllegalArgumentException("Unsupported URI:" + uri);
 			}
@@ -334,6 +393,27 @@ public class Provider extends ContentProvider {
 							selectionArgs);
 					dbConnection.setTransactionSuccessful();
 					break;
+
+				case REDDITPOSTCOMMENTSUBCOMMENT_DIR :
+					updateCount = dbConnection.update(
+							RedditPostCommentSubcommentTable.TABLE_NAME,
+							values, selection, selectionArgs);
+					dbConnection.setTransactionSuccessful();
+					break;
+				case REDDITPOSTCOMMENTSUBCOMMENT_ID :
+					final Long redditpostcommentsubcommentId = ContentUris
+							.parseId(uri);
+					updateCount = dbConnection.update(
+							RedditPostCommentSubcommentTable.TABLE_NAME,
+							values, RedditPostCommentSubcommentTable.ID
+									+ "="
+									+ redditpostcommentsubcommentId
+									+ (TextUtils.isEmpty(selection)
+											? ""
+											: " AND (" + selection + ")"),
+							selectionArgs);
+					dbConnection.setTransactionSuccessful();
+					break;
 				default :
 					throw new IllegalArgumentException("Unsupported URI:" + uri);
 			}
@@ -406,6 +486,19 @@ public class Provider extends ContentProvider {
 							new String[]{uri.getPathSegments().get(1)});
 					dbConnection.setTransactionSuccessful();
 					break;
+				case REDDITPOSTCOMMENTSUBCOMMENT_DIR :
+					deleteCount = dbConnection.delete(
+							RedditPostCommentSubcommentTable.TABLE_NAME,
+							selection, selectionArgs);
+					dbConnection.setTransactionSuccessful();
+					break;
+				case REDDITPOSTCOMMENTSUBCOMMENT_ID :
+					deleteCount = dbConnection.delete(
+							RedditPostCommentSubcommentTable.TABLE_NAME,
+							RedditPostCommentSubcommentTable.WHERE_ID_EQUALS,
+							new String[]{uri.getPathSegments().get(1)});
+					dbConnection.setTransactionSuccessful();
+					break;
 
 				default :
 					throw new IllegalArgumentException("Unsupported URI:" + uri);
@@ -459,6 +552,13 @@ public class Provider extends ContentProvider {
 						+ uri.getPathSegments().get(1));
 			case REDDITPOSTCOMMENT_DIR :
 				queryBuilder.setTables(RedditPostCommentTable.TABLE_NAME);
+				break;
+			case REDDITPOSTCOMMENTSUBCOMMENT_ID :
+				queryBuilder.appendWhere(RedditPostCommentSubcommentTable.ID
+						+ "=" + uri.getPathSegments().get(1));
+			case REDDITPOSTCOMMENTSUBCOMMENT_DIR :
+				queryBuilder
+						.setTables(RedditPostCommentSubcommentTable.TABLE_NAME);
 				break;
 			default :
 				throw new IllegalArgumentException("Unsupported URI:" + uri);

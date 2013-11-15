@@ -6,7 +6,6 @@ import com.sobremesa.waywt.R;
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.ImageTable;
 import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
-import com.sobremesa.waywt.fragments.CommentImagesFragment.Extras;
 import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.views.AspectRatioImageView;
 import com.sobremesa.waywt.views.WaywtSecondaryTextView;
@@ -85,6 +84,14 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 		mMainIv = (AspectRatioImageView)view.findViewById(R.id.comment_image_iv);
 		mPointsTv = (TextView)view.findViewById(R.id.comment_points_tv);
 		mTitleTv = (WaywtSecondaryTextView)view.findViewById(R.id.comment_title_tv);
+		
+		RepliesFragment fragment = new RepliesFragment();
+		Bundle args = new Bundle();
+		args.putString(RepliesFragment.Extras.ARG_COMMENT_ID, getArguments().getString(Extras.ARG_COMMENT_ID));
+		fragment.setArguments(args);
+		
+		getChildFragmentManager().beginTransaction().replace(R.id.comment_replies_container, fragment, RepliesFragment.TAG).commit();
+		
 		return view;
 	}
 	

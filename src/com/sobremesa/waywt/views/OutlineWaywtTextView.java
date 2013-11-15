@@ -11,19 +11,19 @@ import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
-public class OutlineTextView extends TextView {
+public class OutlineWaywtTextView extends WaywtTextView {
 
-	public OutlineTextView(Context context) {
+	public OutlineWaywtTextView(Context context) {
 		this(context, null, 0);
 		// TODO Auto-generated constructor stub
 	}
 	
-	public OutlineTextView(Context context, AttributeSet attrs) {
+	public OutlineWaywtTextView(Context context, AttributeSet attrs) {
 		this(context, attrs, 0);
 		// TODO Auto-generated constructor stub
 	}
 	
-	public OutlineTextView(Context context, AttributeSet attrs, int defStyle) {
+	public OutlineWaywtTextView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		// TODO Auto-generated constructor stub
 	}

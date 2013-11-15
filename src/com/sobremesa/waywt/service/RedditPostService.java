@@ -28,7 +28,7 @@ import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
 import com.sobremesa.waywt.database.tables.RedditPostTable;
 import com.sobremesa.waywt.service.BaseService;
 import com.sobremesa.waywt.service.RemoteObject;
-import com.sobremesa.waywt.service.RedditServiceClient;
+import com.sobremesa.waywt.service.clients.RedditPostServiceClient;
 import com.sobremesa.waywt.service.synchronizer.RedditPostPreprocessor;
 import com.sobremesa.waywt.service.synchronizer.RedditPostSynchronizer;
 import com.sobremesa.waywt.service.synchronizer.RemotePreProcessor;
@@ -126,7 +126,7 @@ public class RedditPostService extends BaseService {
 			String after = "";
 			int i = 0;
 			
-			RedditMaleFashionAdvicePostClient client = RedditServiceClient.getInstance().getClient(getContext(), RedditMaleFashionAdvicePostClient.class); 
+			RedditMaleFashionAdvicePostClient client = RedditPostServiceClient.getInstance().getClient(getContext(), RedditMaleFashionAdvicePostClient.class); 
 			
 			// today
 			RemoteResponse response; 
