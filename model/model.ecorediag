@@ -4,27 +4,27 @@
     <children xmi:type="notation:Node" xmi:id="_JsrHwEaSEeOAhZ6b1CwEtg" type="4001"/>
     <children xmi:type="notation:Node" xmi:id="_Jss88EaSEeOAhZ6b1CwEtg" type="5001">
       <children xmi:type="notation:Node" xmi:id="_SF4OYEaSEeOAhZ6b1CwEtg" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPost/ups"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Post/ups"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_SF4OYUaSEeOAhZ6b1CwEtg"/>
       </children>
       <children xmi:type="notation:Node" xmi:id="_TshcEEaSEeOAhZ6b1CwEtg" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPost/downs"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Post/downs"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_TshcEUaSEeOAhZ6b1CwEtg"/>
       </children>
       <children xmi:type="notation:Node" xmi:id="_UzqDQEaSEeOAhZ6b1CwEtg" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPost/author"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Post/author"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_UzqDQUaSEeOAhZ6b1CwEtg"/>
       </children>
       <children xmi:type="notation:Node" xmi:id="_X57QoEaSEeOAhZ6b1CwEtg" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPost/created"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Post/created"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_X57QoUaSEeOAhZ6b1CwEtg"/>
       </children>
       <children xmi:type="notation:Node" xmi:id="_BSQUcEjoEeOAxPjgSvgFCQ" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPost/permalink"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Post/permalink"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_BSQUcUjoEeOAxPjgSvgFCQ"/>
       </children>
       <children xmi:type="notation:Node" xmi:id="_BBmekEszEeOYTZMdEDikXQ" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPost/title"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Post/title"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_BBnFoEszEeOYTZMdEDikXQ"/>
       </children>
       <styles xmi:type="notation:DrawerStyle" xmi:id="_Jss88UaSEeOAhZ6b1CwEtg"/>
@@ -37,7 +37,7 @@
       <styles xmi:type="notation:FilteringStyle" xmi:id="_Jss890aSEeOAhZ6b1CwEtg"/>
     </children>
     <styles xmi:type="notation:ShapeStyle" xmi:id="_JspSkUaSEeOAhZ6b1CwEtg" fontColor="4210752" fontName="Lucida Grande" fontHeight="10" fillColor="13761016" lineColor="8421504"/>
-    <element xmi:type="ecore:EClass" href="model.ecore#//RedditPost"/>
+    <element xmi:type="ecore:EClass" href="model.ecore#//Post"/>
     <layoutConstraint xmi:type="notation:Bounds" xmi:id="_JspSkkaSEeOAhZ6b1CwEtg" x="187" y="167"/>
   </children>
   <children xmi:type="notation:Node" xmi:id="_bUBY8EaSEeOAhZ6b1CwEtg" type="1001">
@@ -68,27 +68,27 @@
     <children xmi:type="notation:Node" xmi:id="_T0SpQEaYEeOAxPjgSvgFCQ" type="4001"/>
     <children xmi:type="notation:Node" xmi:id="_T0TQUEaYEeOAxPjgSvgFCQ" type="5001">
       <children xmi:type="notation:Node" xmi:id="_aI73IEaYEeOAxPjgSvgFCQ" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPostComment/author"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Comment/author"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_aI73IUaYEeOAxPjgSvgFCQ"/>
       </children>
       <children xmi:type="notation:Node" xmi:id="_i_5QwEaYEeOAxPjgSvgFCQ" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPostComment/ups"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Comment/ups"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_i_5QwUaYEeOAxPjgSvgFCQ"/>
       </children>
       <children xmi:type="notation:Node" xmi:id="_jaDdMEaYEeOAxPjgSvgFCQ" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPostComment/downs"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Comment/downs"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_jaDdMUaYEeOAxPjgSvgFCQ"/>
       </children>
       <children xmi:type="notation:Node" xmi:id="_lIUV0EaYEeOAxPjgSvgFCQ" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPostComment/created"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Comment/created"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_lIUV0UaYEeOAxPjgSvgFCQ"/>
       </children>
       <children xmi:type="notation:Node" xmi:id="_jgyVEEm-EeOAxPjgSvgFCQ" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPostComment/body_html"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Comment/body_html"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_jgyVEUm-EeOAxPjgSvgFCQ"/>
       </children>
       <children xmi:type="notation:Node" xmi:id="_zpnH4EnAEeOAxPjgSvgFCQ" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPostComment/identifier"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Comment/identifier"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_zpnH4UnAEeOAxPjgSvgFCQ"/>
       </children>
       <styles xmi:type="notation:DrawerStyle" xmi:id="_T0TQUUaYEeOAxPjgSvgFCQ"/>
@@ -101,35 +101,39 @@
       <styles xmi:type="notation:FilteringStyle" xmi:id="_T0TQV0aYEeOAxPjgSvgFCQ"/>
     </children>
     <styles xmi:type="notation:ShapeStyle" xmi:id="_T0SCMUaYEeOAxPjgSvgFCQ" fontColor="4210752" fontName="Lucida Grande" fontHeight="10" fillColor="13761016" lineColor="8421504"/>
-    <element xmi:type="ecore:EClass" href="model.ecore#//RedditPostComment"/>
+    <element xmi:type="ecore:EClass" href="model.ecore#//Comment"/>
     <layoutConstraint xmi:type="notation:Bounds" xmi:id="_T0SCMkaYEeOAxPjgSvgFCQ" x="522" y="585"/>
   </children>
   <children xmi:type="notation:Node" xmi:id="_Wh-CEEzbEeOYTZMdEDikXQ" type="1001">
     <children xmi:type="notation:Node" xmi:id="_Wh_QMEzbEeOYTZMdEDikXQ" type="4001"/>
     <children xmi:type="notation:Node" xmi:id="_Wh_3QEzbEeOYTZMdEDikXQ" type="5001">
       <children xmi:type="notation:Node" xmi:id="_g6VkEEzbEeOYTZMdEDikXQ" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPostCommentSubcomment/author"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Reply/author"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_g6VkEUzbEeOYTZMdEDikXQ"/>
       </children>
       <children xmi:type="notation:Node" xmi:id="_hsbvYEzbEeOYTZMdEDikXQ" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPostCommentSubcomment/ups"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Reply/ups"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_hsbvYUzbEeOYTZMdEDikXQ"/>
       </children>
       <children xmi:type="notation:Node" xmi:id="_iJQOQEzbEeOYTZMdEDikXQ" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPostCommentSubcomment/downs"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Reply/downs"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_iJQOQUzbEeOYTZMdEDikXQ"/>
       </children>
       <children xmi:type="notation:Node" xmi:id="_ijt8sEzbEeOYTZMdEDikXQ" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPostCommentSubcomment/created"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Reply/created"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_ijt8sUzbEeOYTZMdEDikXQ"/>
       </children>
       <children xmi:type="notation:Node" xmi:id="_jDIckEzbEeOYTZMdEDikXQ" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPostCommentSubcomment/body_html"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Reply/body_html"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_jDIckUzbEeOYTZMdEDikXQ"/>
       </children>
       <children xmi:type="notation:Node" xmi:id="_jqf-kEzbEeOYTZMdEDikXQ" type="2001">
-        <element xmi:type="ecore:EAttribute" href="model.ecore#//RedditPostCommentSubcomment/identifier"/>
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Reply/identifier"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_jqf-kUzbEeOYTZMdEDikXQ"/>
+      </children>
+      <children xmi:type="notation:Node" xmi:id="_xoRscE5ZEeOYTZMdEDikXQ" type="2001">
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Reply/parentIdentifier"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_xoRscU5ZEeOYTZMdEDikXQ"/>
       </children>
       <styles xmi:type="notation:DrawerStyle" xmi:id="_Wh_3QUzbEeOYTZMdEDikXQ"/>
       <styles xmi:type="notation:SortingStyle" xmi:id="_Wh_3QkzbEeOYTZMdEDikXQ"/>
@@ -141,7 +145,7 @@
       <styles xmi:type="notation:FilteringStyle" xmi:id="_Wh_3R0zbEeOYTZMdEDikXQ"/>
     </children>
     <styles xmi:type="notation:ShapeStyle" xmi:id="_Wh-CEUzbEeOYTZMdEDikXQ" fontColor="4210752" fontName="Lucida Grande" fontHeight="10" fillColor="13761016" lineColor="8421504"/>
-    <element xmi:type="ecore:EClass" href="model.ecore#//RedditPostCommentSubcomment"/>
+    <element xmi:type="ecore:EClass" href="model.ecore#//Reply"/>
     <layoutConstraint xmi:type="notation:Bounds" xmi:id="_Wh-CEkzbEeOYTZMdEDikXQ" x="981" y="144"/>
   </children>
   <styles xmi:type="notation:DiagramStyle" xmi:id="_bHOQIOqPEd-cf4p1YNxwtA"/>
@@ -155,7 +159,7 @@
     </children>
     <styles xmi:type="notation:ConnectorStyle" xmi:id="_gEW7cUaSEeOAhZ6b1CwEtg" lineColor="4210752"/>
     <styles xmi:type="notation:FontStyle" xmi:id="_gEW7ckaSEeOAhZ6b1CwEtg" fontColor="4210752" fontName="Lucida Grande" fontHeight="10"/>
-    <element xmi:type="ecore:EReference" href="model.ecore#//RedditPost/EReference0"/>
+    <element xmi:type="ecore:EReference" href="model.ecore#//Post/EReference0"/>
     <bendpoints xmi:type="notation:RelativeBendpoints" xmi:id="_gEW7c0aSEeOAhZ6b1CwEtg" points="[53, -6, -382, 17]$[292, -34, -143, -11]$[432, -24, -3, -1]"/>
     <targetAnchor xmi:type="notation:IdentityAnchor" xmi:id="_gEoBMEaSEeOAhZ6b1CwEtg" id="(0.03333333333333333,0.42857142857142855)"/>
   </edges>
@@ -168,7 +172,7 @@
     </children>
     <styles xmi:type="notation:ConnectorStyle" xmi:id="_reLrsUaYEeOAxPjgSvgFCQ" lineColor="4210752"/>
     <styles xmi:type="notation:FontStyle" xmi:id="_reLrskaYEeOAxPjgSvgFCQ" fontColor="4210752" fontName="Lucida Grande" fontHeight="10"/>
-    <element xmi:type="ecore:EReference" href="model.ecore#//RedditPostComment/EReference0"/>
+    <element xmi:type="ecore:EReference" href="model.ecore#//Comment/EReference0"/>
     <bendpoints xmi:type="notation:RelativeBendpoints" xmi:id="_reLrs0aYEeOAxPjgSvgFCQ" points="[22, 13, -142, -91]$[165, 103, 1, -1]"/>
     <sourceAnchor xmi:type="notation:IdentityAnchor" xmi:id="_reOH8EaYEeOAxPjgSvgFCQ" id="(0.8166666666666667,0.4020618556701031)"/>
     <targetAnchor xmi:type="notation:IdentityAnchor" xmi:id="_reOH8UaYEeOAxPjgSvgFCQ" id="(0.049019607843137254,0.04081632653061224)"/>
@@ -182,7 +186,7 @@
     </children>
     <styles xmi:type="notation:ConnectorStyle" xmi:id="_kHkwwUqZEeOlZPkvmgljEg" lineColor="4210752"/>
     <styles xmi:type="notation:FontStyle" xmi:id="_kHkwwkqZEeOlZPkvmgljEg" fontColor="4210752" fontName="Lucida Grande" fontHeight="10"/>
-    <element xmi:type="ecore:EReference" href="model.ecore#//RedditPost/EReference1"/>
+    <element xmi:type="ecore:EReference" href="model.ecore#//Post/EReference1"/>
     <bendpoints xmi:type="notation:RelativeBendpoints" xmi:id="_kHkww0qZEeOlZPkvmgljEg" points="[23, 4, -635, -93]$[659, 91, 1, -6]"/>
     <sourceAnchor xmi:type="notation:IdentityAnchor" xmi:id="_kHppQEqZEeOlZPkvmgljEg" id="(0.8145161290322581,0.5221238938053098)"/>
     <targetAnchor xmi:type="notation:IdentityAnchor" xmi:id="_kHppQUqZEeOlZPkvmgljEg" id="(0.17647058823529413,0.14285714285714285)"/>
@@ -196,7 +200,7 @@
     </children>
     <styles xmi:type="notation:ConnectorStyle" xmi:id="_q_oZEUzbEeOYTZMdEDikXQ" lineColor="4210752"/>
     <styles xmi:type="notation:FontStyle" xmi:id="_q_oZEkzbEeOYTZMdEDikXQ" fontColor="4210752" fontName="Lucida Grande" fontHeight="10"/>
-    <element xmi:type="ecore:EReference" href="model.ecore#//RedditPost/EReference2"/>
+    <element xmi:type="ecore:EReference" href="model.ecore#//Post/EReference2"/>
     <bendpoints xmi:type="notation:RelativeBendpoints" xmi:id="_q_oZE0zbEeOYTZMdEDikXQ" points="[20, 3, -708, 1]$[729, 66, 1, 64]"/>
     <sourceAnchor xmi:type="notation:IdentityAnchor" xmi:id="_q_sDcEzbEeOYTZMdEDikXQ" id="(0.8387096774193549,0.3023255813953488)"/>
     <targetAnchor xmi:type="notation:IdentityAnchor" xmi:id="_q_sDcUzbEeOYTZMdEDikXQ" id="(0.20108695652173914,0.49612403100775193)"/>
@@ -210,7 +214,7 @@
     </children>
     <styles xmi:type="notation:ConnectorStyle" xmi:id="_isM4YUzdEeOYTZMdEDikXQ" lineColor="4210752"/>
     <styles xmi:type="notation:FontStyle" xmi:id="_isM4YkzdEeOYTZMdEDikXQ" fontColor="4210752" fontName="Lucida Grande" fontHeight="10"/>
-    <element xmi:type="ecore:EReference" href="model.ecore#//RedditPostComment/EReference1"/>
+    <element xmi:type="ecore:EReference" href="model.ecore#//Comment/EReference1"/>
     <bendpoints xmi:type="notation:RelativeBendpoints" xmi:id="_isM4Y0zdEeOYTZMdEDikXQ" points="[21, -21, -365, 366]$[387, -349, 1, 38]"/>
     <sourceAnchor xmi:type="notation:IdentityAnchor" xmi:id="_isOtkEzdEeOYTZMdEDikXQ" id="(0.8333333333333334,0.27906976744186046)"/>
     <targetAnchor xmi:type="notation:IdentityAnchor" xmi:id="_isOtkUzdEeOYTZMdEDikXQ" id="(0.16847826086956522,0.7054263565891473)"/>

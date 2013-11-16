@@ -1,16 +1,16 @@
 package com.sobremesa.waywt.database.tables;
 
 /**
- * This interface represents the columns and SQLite statements for the RedditPostCommentSubcommentTable.
- * This table is represented in the sqlite database as RedditPostCommentSubcomment column.
+ * This interface represents the columns and SQLite statements for the ReplyTable.
+ * This table is represented in the sqlite database as Reply column.
  * 				  
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.11.13
+ * @date 2013.11.15
  */
-public interface RedditPostCommentSubcommentTable {
-	String TABLE_NAME = "redditpostcommentsubcomment";
+public interface ReplyTable {
+	String TABLE_NAME = "reply";
 
 	String ID = "_id";
 	String AUTHOR = "author";
@@ -19,23 +19,27 @@ public interface RedditPostCommentSubcommentTable {
 	String CREATED = "created";
 	String BODY_HTML = "body_html";
 	String IDENTIFIER = "identifier";
-	String REDDITPOST_ID = "redditpostid";
-	String REDDITPOSTCOMMENT_ID = "redditpostcommentid";
+	String PARENTIDENTIFIER = "parentidentifier";
+	String POST_ID = "postid";
+	String COMMENT_ID = "commentid";
+	String REPLY_ID = "replyid";
 
 	String[] ALL_COLUMNS = new String[]{ID, AUTHOR, UPS, DOWNS, CREATED,
-			BODY_HTML, IDENTIFIER, REDDITPOST_ID, REDDITPOSTCOMMENT_ID};
+			BODY_HTML, IDENTIFIER, PARENTIDENTIFIER, POST_ID, COMMENT_ID,
+			REPLY_ID};
 
 	String SQL_CREATE = "CREATE TABLE " + TABLE_NAME + " ( " + ID
 			+ " INTEGER PRIMARY KEY AUTOINCREMENT" + "," + AUTHOR + " TEXT"
 			+ "," + UPS + " TEXT" + "," + DOWNS + " TEXT" + "," + CREATED
 			+ " TEXT" + "," + BODY_HTML + " TEXT" + "," + IDENTIFIER + " TEXT"
-			+ "," + REDDITPOST_ID + " INTEGER" + "," + REDDITPOSTCOMMENT_ID
-			+ " INTEGER" + " )";
+			+ "," + PARENTIDENTIFIER + " TEXT" + "," + POST_ID + " INTEGER"
+			+ "," + COMMENT_ID + " INTEGER" + "," + REPLY_ID + " INTEGER"
+			+ " )";
 
 	String SQL_INSERT = "INSERT INTO " + TABLE_NAME + " (" + AUTHOR + "," + UPS
 			+ "," + DOWNS + "," + CREATED + "," + BODY_HTML + "," + IDENTIFIER
-			+ REDDITPOST_ID + "," + REDDITPOSTCOMMENT_ID
-			+ ") VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )";
+			+ "," + PARENTIDENTIFIER + POST_ID + "," + COMMENT_ID + ","
+			+ REPLY_ID + ") VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
 
 	String SQL_DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
 

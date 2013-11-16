@@ -3,9 +3,10 @@ package com.sobremesa.waywt.fragments;
 import java.util.ArrayList;
 
 import com.sobremesa.waywt.R;
+import com.sobremesa.waywt.activities.ImageActivity;
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.ImageTable;
-import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
+import com.sobremesa.waywt.database.tables.CommentTable;
 import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.views.AspectRatioImageView;
 import com.sobremesa.waywt.views.WaywtSecondaryTextView;
@@ -17,6 +18,7 @@ import com.xtremelabs.imageutils.ImageLoader.Options;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Point;
@@ -28,11 +30,13 @@ import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
@@ -54,7 +58,7 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 		public static String ARG_COMMENT_ID = "comment_id";
 	}
 	
-	public static final int LOADER_COMMENTS = 0;
+	public static final int LOADER_COMMENT = 0;
 	public static final int LOADER_IMAGES = 1;
 	
 	private ImageLoader mImageLoader;
@@ -92,6 +96,9 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 		
 		getChildFragmentManager().beginTransaction().replace(R.id.comment_replies_container, fragment, RepliesFragment.TAG).commit();
 		
+		getLoaderManager().initLoader(LOADER_COMMENT, null, this);
+		getLoaderManager().initLoader(LOADER_IMAGES, null, this);
+		
 		return view;
 	}
 	
@@ -100,8 +107,7 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 		// TODO Auto-generated method stub
 		super.onStart();
 		
-		getLoaderManager().initLoader(LOADER_COMMENTS, null, this);
-		getLoaderManager().initLoader(LOADER_IMAGES, null, this);
+
 	}
 
 	@Override
@@ -117,10 +123,10 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 	public Loader<Cursor> onCreateLoader(int loaderId, Bundle arg1) {
 		switch( loaderId )
 		{
-		case LOADER_COMMENTS:
-			return new CursorLoader(getActivity(), Provider.REDDITPOSTCOMMENT_CONTENT_URI, RedditPostCommentTable.ALL_COLUMNS, RedditPostCommentTable.ID + "=?", new String[] { getArguments().getString(Extras.ARG_COMMENT_ID) }, null);
+		case LOADER_COMMENT:
+			return new CursorLoader(getActivity(), Provider.COMMENT_CONTENT_URI, CommentTable.ALL_COLUMNS, CommentTable.ID + "=?", new String[] { getArguments().getString(Extras.ARG_COMMENT_ID) }, null);
 		case LOADER_IMAGES:
-			return new CursorLoader(getActivity(), Provider.IMAGE_CONTENT_URI, ImageTable.ALL_COLUMNS, ImageTable.REDDITPOSTCOMMENT_ID + "=?", new String[] { getArguments().getString(Extras.ARG_COMMENT_ID) }, null);
+			return new CursorLoader(getActivity(), Provider.IMAGE_CONTENT_URI, ImageTable.ALL_COLUMNS, ImageTable.COMMENT_ID + "=?", new String[] { getArguments().getString(Extras.ARG_COMMENT_ID) }, null);
 		}
 		
 		return null;
@@ -132,12 +138,12 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 	
 		switch( loader.getId() )
 		{
-		case LOADER_COMMENTS:
+		case LOADER_COMMENT:
 			
 			if( cursor.getCount() > 0)
 			{
-				int ups = Integer.valueOf(cursor.getString(cursor.getColumnIndex(RedditPostCommentTable.UPS))); 
-				int downs = Integer.valueOf(cursor.getString(cursor.getColumnIndex(RedditPostCommentTable.DOWNS)));
+				int ups = Integer.valueOf(cursor.getString(cursor.getColumnIndex(CommentTable.UPS))); 
+				int downs = Integer.valueOf(cursor.getString(cursor.getColumnIndex(CommentTable.DOWNS)));
 				
 				if( getView() != null )
 				{
@@ -149,9 +155,13 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 					
 					mPointsTv.setText((ups-downs)  + "");
 					
-					String bodyHtml =  cursor.getString(cursor.getColumnIndex(RedditPostCommentTable.BODY_HTML));
+					
+					String bodyHtml =  cursor.getString(cursor.getColumnIndex(CommentTable.BODY_HTML));
 					mTitleTv.setText(Html.fromHtml(bodyHtml));
 					mTitleTv.setTypeface(FontManager.INSTANCE.getGeorgiaFont(), Typeface.ITALIC);
+					
+					mTitleTv.setMovementMethod (LinkMovementMethod.getInstance());
+					mTitleTv.setClickable(true);
 				}
 
 			}
@@ -187,6 +197,14 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 						
 						Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
 						sv.startAnimation(myFadeInAnimation);
+						
+						imageView.setOnClickListener(new OnClickListener() {
+							
+							@Override
+							public void onClick(View v) {
+								startImagesActivity(0);
+							}
+						});
 					}
 				});
 			
@@ -246,6 +264,16 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 						}
 					});
 					
+					final int position = i;
+					
+					iv.setOnClickListener(new OnClickListener() {
+						
+						@Override
+						public void onClick(View v) {
+							startImagesActivity(position);
+						}
+					});
+					
 					innerLayout.addView(iv);
 
 					
@@ -271,74 +299,17 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 	}
 	
 	
-	private class ImageAdapter extends ArrayAdapter<String> {
-		Context context;
-		int layoutResourceId;
-		ArrayList<String> data = new ArrayList<String>();
-
-		public ImageAdapter(Context context, int layoutResourceId, ArrayList<String> data) {
-			super(context, layoutResourceId, data);
-			this.layoutResourceId = layoutResourceId;
-			this.context = context;
-			this.data = data;
-		}
-
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
-			View row = convertView;
-			ImageHolder holder = null;
-
-			if (row == null) {
-				LayoutInflater inflater = ((Activity) context).getLayoutInflater();
-				row = inflater.inflate(layoutResourceId, parent, false);
-
-				holder = new ImageHolder();
-				holder.imageItem = (ImageView) row.findViewById(R.id.list_item_iv);
-				row.setTag(holder);
-			} else {
-				holder = (ImageHolder) row.getTag();
-			}
-
-			String imageUrl = data.get(position);
-			
-			mImageLoader.loadImage(holder.imageItem,imageUrl, new ImageLoaderListener() {
-				@Override
-				public void onImageLoadError(String arg0) {
-				}
-				
-				@Override
-				public void onImageAvailable(ImageView imageView, Bitmap bitmap, ImageReturnedFrom imageReturnedFrom) {
-					
-					// bitmap = getResizedBitmap(bitmap, 200);
-					
-					imageView.setImageBitmap(bitmap);
-					if (imageReturnedFrom != ImageReturnedFrom.MEMORY) {
-						
-						if (getActivity() != null) {
-							
-							Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
-							imageView.startAnimation(myFadeInAnimation);
-						}
-					}
-				}
-			});
-			
-			
-			if( CommentFragment.this.getView() != null )
-			{
-				ScrollView sv = (ScrollView)CommentFragment.this.getView().findViewById(R.id.container);
-				sv.fullScroll(ScrollView.FOCUS_UP);
-				sv.smoothScrollTo(0,0);
-			}
-			
-			
-			return row;
-
-		}
-
-		private class ImageHolder {
-			ImageView imageItem;
-
-		}
+	private void startImagesActivity(int position)
+	{
+		Intent intent = new Intent(getActivity(), ImageActivity.class);
+		Bundle extras = new Bundle();
+		extras.putString(ImageActivity.Extras.ARG_COMMENT_ID, getArguments().getString(Extras.ARG_COMMENT_ID));
+		extras.putInt(ImageActivity.Extras.ARG_IMAGE_SELECTED_POSITION, position);
+		intent.putExtras(extras);
+		startActivity(intent);
 	}
+	
+	
+	
+	
 }

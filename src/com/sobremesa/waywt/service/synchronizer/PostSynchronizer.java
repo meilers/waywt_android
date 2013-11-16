@@ -19,10 +19,10 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.ImageTable;
-import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
-import com.sobremesa.waywt.database.tables.RedditPostTable;
-import com.sobremesa.waywt.service.RedditPostService;
-import com.sobremesa.waywt.service.RedditPostService.RemoteRedditPost;
+import com.sobremesa.waywt.database.tables.CommentTable;
+import com.sobremesa.waywt.database.tables.PostTable;
+import com.sobremesa.waywt.service.PostService;
+import com.sobremesa.waywt.service.PostService.RemoteRedditPost;
 
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
@@ -34,11 +34,11 @@ import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
 
-public class RedditPostSynchronizer extends Synchronizer<RedditPostService.RemoteRedditPost> {
+public class PostSynchronizer extends Synchronizer<PostService.RemoteRedditPost> {
 
 	HashMap<String, String> mImageUrlMap;
 	
-	public RedditPostSynchronizer(Context context) {
+	public PostSynchronizer(Context context) {
 		super(context);
 		
 		mImageUrlMap = new HashMap<String, String>();
@@ -48,27 +48,27 @@ public class RedditPostSynchronizer extends Synchronizer<RedditPostService.Remot
 	protected void performSynchronizationOperations(Context context, List<RemoteRedditPost> inserts, List<RemoteRedditPost> updates, List<Long> deletions) {
 		ArrayList<ContentProviderOperation> operations = new ArrayList<ContentProviderOperation>();
 
-		for (RedditPostService.RemoteRedditPost w : inserts) {
+		for (PostService.RemoteRedditPost w : inserts) {
 			ContentValues values = this.getContentValuesForRemoteEntity(w);
-			ContentProviderOperation op = ContentProviderOperation.newInsert(Provider.REDDITPOST_CONTENT_URI).withValues(values).build();
+			ContentProviderOperation op = ContentProviderOperation.newInsert(Provider.POST_CONTENT_URI).withValues(values).build();
 			operations.add(op);
 		}
 
-		for (RedditPostService.RemoteRedditPost w : updates) {
+		for (PostService.RemoteRedditPost w : updates) {
 			ContentValues values = this.getContentValuesForRemoteEntity(w);
-			ContentProviderOperation op = ContentProviderOperation.newUpdate(Provider.REDDITPOST_CONTENT_URI).withSelection(RedditPostTable.PERMALINK + " = ?", new String[] { w.data.permalink })
+			ContentProviderOperation op = ContentProviderOperation.newUpdate(Provider.POST_CONTENT_URI).withSelection(PostTable.PERMALINK + " = ?", new String[] { w.data.permalink })
 					.withValues(values).build();
 			operations.add(op);
 		}
 
 		for (Long id : deletions) {
-			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.REDDITPOST_CONTENT_URI).withSelection(RedditPostTable.ID + " = ?", new String[] { String.valueOf(id) }).build();
+			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.POST_CONTENT_URI).withSelection(PostTable.ID + " = ?", new String[] { String.valueOf(id) }).build();
 			operations.add(op);
 			
-			op = ContentProviderOperation.newDelete(Provider.REDDITPOSTCOMMENT_CONTENT_URI).withSelection(RedditPostCommentTable.REDDITPOST_ID + " = ?", new String[] { String.valueOf(id) }).build();
+			op = ContentProviderOperation.newDelete(Provider.COMMENT_CONTENT_URI).withSelection(CommentTable.POST_ID + " = ?", new String[] { String.valueOf(id) }).build();
 			operations.add(op);
 			
-			op = ContentProviderOperation.newDelete(Provider.REDDITPOSTCOMMENT_CONTENT_URI).withSelection(ImageTable.REDDITPOST_ID + " = ?", new String[] { String.valueOf(id) }).build();
+			op = ContentProviderOperation.newDelete(Provider.COMMENT_CONTENT_URI).withSelection(ImageTable.POST_ID + " = ?", new String[] { String.valueOf(id) }).build();
 			operations.add(op);
 		}
 
@@ -93,13 +93,13 @@ public class RedditPostSynchronizer extends Synchronizer<RedditPostService.Remot
 	@Override
 	protected ContentValues getContentValuesForRemoteEntity(RemoteRedditPost t) {
 		ContentValues values = new ContentValues();
-		values.put(RedditPostTable.AUTHOR, t.data.author);
-		values.put(RedditPostTable.CREATED, t.data.created);
-		values.put(RedditPostTable.DOWNS, t.data.downs);
-		values.put(RedditPostTable.UPS, t.data.ups);
-		values.put(RedditPostTable.DOWNS, t.data.downs);
-		values.put(RedditPostTable.PERMALINK, t.data.permalink);
-		values.put(RedditPostTable.TITLE, t.data.title);
+		values.put(PostTable.AUTHOR, t.data.author);
+		values.put(PostTable.CREATED, t.data.created);
+		values.put(PostTable.DOWNS, t.data.downs);
+		values.put(PostTable.UPS, t.data.ups);
+		values.put(PostTable.DOWNS, t.data.downs);
+		values.put(PostTable.PERMALINK, t.data.permalink);
+		values.put(PostTable.TITLE, t.data.title);
 
 		return values;
 	}

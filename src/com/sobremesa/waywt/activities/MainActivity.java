@@ -8,9 +8,9 @@ import java.util.HashMap;
 
 import com.sobremesa.waywt.R;
 import com.sobremesa.waywt.contentprovider.Provider;
-import com.sobremesa.waywt.database.tables.RedditPostTable;
+import com.sobremesa.waywt.database.tables.PostTable;
 import com.sobremesa.waywt.fragments.WaywtFragment;
-import com.sobremesa.waywt.service.RedditPostService;
+import com.sobremesa.waywt.service.PostService;
 
 import android.app.ActionBar;
 import android.content.Intent;
@@ -72,9 +72,6 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		
 		// Set up the dropdown list navigation in the action bar.
 		actionBar.setListNavigationCallbacks(mNavAdapter, this);
-		
-		
-
 	}
 
 	@Override
@@ -82,7 +79,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		// TODO Auto-generated method stub
 		super.onStart();
 
-		fetchRedditPostData();
+		fetchPostData();
 		getSupportLoaderManager().initLoader(0, null, this);
 	}
 
@@ -122,16 +119,16 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 	}
 
 
-	private void fetchRedditPostData() {
+	private void fetchPostData() {
 
-		Intent i = new Intent(this, RedditPostService.class);
+		Intent i = new Intent(this, PostService.class);
 		i.setAction(Intent.ACTION_SYNC);
 		startService(i);
 	}
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		mLoader = new CursorLoader(this, Provider.REDDITPOST_CONTENT_URI, RedditPostTable.ALL_COLUMNS, null, null, RedditPostTable.CREATED + " DESC");
+		mLoader = new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, null, null, PostTable.CREATED + " DESC");
 
 		return mLoader;
 	}
@@ -145,7 +142,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) { 
 //			SimpleDateFormat formatter=new SimpleDateFormat("DD-MMM-yyyy");  
 //			
-//			Date date = new Date(cursor.getLong(cursor.getColumnIndex(RedditPostTable.CREATED))*1000);
+//			Date date = new Date(cursor.getLong(cursor.getColumnIndex(PostTable.CREATED))*1000);
 //			Calendar c = Calendar.getInstance();
 //			c.setTime(date);
 //			
@@ -153,12 +150,12 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 //			
 //			mNavAdapter.add(new SimpleDateFormat("MMM").format(c.getTime()) + " " + c.get(Calendar.DATE) + " " +  c.get(Calendar.YEAR));
 			
-			mNavAdapter.add( cursor.getString(cursor.getColumnIndex(RedditPostTable.TITLE)));
+			mNavAdapter.add( cursor.getString(cursor.getColumnIndex(PostTable.TITLE)));
 			
 			PostPermalink p = new PostPermalink();
-			String id = cursor.getString(cursor.getColumnIndex(RedditPostTable.ID));
-			p.mId = cursor.getString(cursor.getColumnIndex(RedditPostTable.ID));
-			p.mPermalink = cursor.getString(cursor.getColumnIndex(RedditPostTable.PERMALINK));
+			String id = cursor.getString(cursor.getColumnIndex(PostTable.ID));
+			p.mId = cursor.getString(cursor.getColumnIndex(PostTable.ID));
+			p.mPermalink = cursor.getString(cursor.getColumnIndex(PostTable.PERMALINK));
 			mPermalinks.add(p); 
 		}
 		

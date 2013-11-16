@@ -16,6 +16,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
+import retrofit.http.EncodedPath;
 import retrofit.http.GET;
 import retrofit.http.Query;
 import android.content.Context;
@@ -24,19 +25,18 @@ import android.database.Cursor;
 import android.util.Log;
 
 import com.sobremesa.waywt.contentprovider.Provider;
-import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
-import com.sobremesa.waywt.database.tables.RedditPostTable;
+import com.sobremesa.waywt.database.tables.PostTable;
 import com.sobremesa.waywt.service.BaseService;
 import com.sobremesa.waywt.service.RemoteObject;
-import com.sobremesa.waywt.service.clients.RedditPostServiceClient;
-import com.sobremesa.waywt.service.synchronizer.RedditPostPreprocessor;
-import com.sobremesa.waywt.service.synchronizer.RedditPostSynchronizer;
+import com.sobremesa.waywt.service.clients.PostServiceClient;
+import com.sobremesa.waywt.service.synchronizer.PostPreprocessor;
+import com.sobremesa.waywt.service.synchronizer.PostSynchronizer;
 import com.sobremesa.waywt.service.synchronizer.RemotePreProcessor;
 import com.sobremesa.waywt.service.synchronizer.Synchronizer;
 
 import de.greenrobot.event.EventBus;
 
-public class RedditPostService extends BaseService {
+public class PostService extends BaseService {
 
 
 	public class RemoteResponse {
@@ -102,19 +102,19 @@ public class RedditPostService extends BaseService {
 	// Interfaces
 	
 	public interface RedditMaleFashionAdvicePostClient {
-		@GET("/r/malefashionadvice/top.json")
-		RemoteResponse getPosts(@Query("t")String time, @Query("after")String after);  
+		@GET("/r/malefashionadvice/{path}.json")
+		RemoteResponse getPosts(@EncodedPath("path") String path, @Query("t")String time, @Query("after")String after);  
 	}
 	
 	
 	
 	
 
-	public RedditPostService() {
+	public PostService() {
 		super("RedditPostService");
 	} 
 
-	public RedditPostService(Context c) {
+	public PostService(Context c) {
 		super("RedditPostService", c);
 	}
 
@@ -123,12 +123,10 @@ public class RedditPostService extends BaseService {
 		if (intent.getAction().equals(Intent.ACTION_SYNC)) 
 		{
 			List<RemoteRedditPost> totalPosts = new ArrayList<RemoteRedditPost>();
-			String after = "";
-			int i = 0;
 			
-			RedditMaleFashionAdvicePostClient client = RedditPostServiceClient.getInstance().getClient(getContext(), RedditMaleFashionAdvicePostClient.class); 
+			RedditMaleFashionAdvicePostClient client = PostServiceClient.getInstance().getClient(getContext(), RedditMaleFashionAdvicePostClient.class); 
 			
-			// today
+			
 			RemoteResponse response; 
 			RemoteData remoteData;
 			
@@ -136,9 +134,41 @@ public class RedditPostService extends BaseService {
 			
 			Iterator<RemoteRedditPost> iter;
 			
+			
+			// new 
+			String after = "";
+			int i = 0;
+			
+			while( after != null && i < 1)
+			{
+				response = client.getPosts("hot", "", after);  
+				remoteData = response.data;
+				
+				posts = remoteData.children;  
+				
+				iter = posts.iterator();
+				while (iter.hasNext()) {
+					RemoteRedditPost post = iter.next();
+					
+				    if (!post.data.domain.equals("self.malefashionadvice") || post.data.author_flair_text == null || !post.data.author_flair_text.equals("Automated Robo-Mod") || !post.data.title.contains("WAYWT")) {
+				        iter.remove(); 
+				    }
+				}
+				
+				totalPosts.addAll(posts);
+				after = response.data.after;
+				
+				++i;
+			}
+			
+			
+			// today
+			after = "";
+			i = 0;
+			
 			while( after != null && i < 2)
 			{
-				response = client.getPosts("today", after);  
+				response = client.getPosts("top", "today", after);  
 				remoteData = response.data;
 				
 				posts = remoteData.children;  
@@ -164,7 +194,7 @@ public class RedditPostService extends BaseService {
 			
 			while( after != null && i < 2)
 			{
-				response = client.getPosts("week", after);  
+				response = client.getPosts("top", "week", after);  
 				remoteData = response.data;
 				
 				posts = remoteData.children;  
@@ -191,7 +221,7 @@ public class RedditPostService extends BaseService {
 			
 			while( after != null && i < 5)
 			{
-				response = client.getPosts("month", after);  
+				response = client.getPosts("top", "month", after);  
 				remoteData = response.data;
 				
 				posts = remoteData.children;  
@@ -214,9 +244,9 @@ public class RedditPostService extends BaseService {
 			
 			if (totalPosts != null && totalPosts.size() > 0) { 
 				// synchronize!
-				Cursor localRecCursor = getContext().getContentResolver().query(Provider.REDDITPOST_CONTENT_URI, RedditPostTable.ALL_COLUMNS, null, null, null);
+				Cursor localRecCursor = getContext().getContentResolver().query(Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, null, null, null);
 				localRecCursor.moveToFirst();
-				synchronizeRemoteRecords(totalPosts, localRecCursor, localRecCursor.getColumnIndex(RedditPostTable.PERMALINK), new RedditPostSynchronizer(getContext()), new RedditPostPreprocessor());
+				synchronizeRemoteRecords(totalPosts, localRecCursor, localRecCursor.getColumnIndex(PostTable.PERMALINK), new PostSynchronizer(getContext()), new PostPreprocessor());
 				
 				//
 			} else {

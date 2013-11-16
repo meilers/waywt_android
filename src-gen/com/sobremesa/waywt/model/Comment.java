@@ -2,7 +2,7 @@ package com.sobremesa.waywt.model;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
+import com.sobremesa.waywt.database.tables.CommentTable;
 
 /**
  * Generated model class for usage in your application, defined by classifiers in ecore diagram
@@ -10,9 +10,9 @@ import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.11.13	 
+ * @date 2013.11.15	 
  */
-public class RedditPostComment {
+public class Comment {
 
 	private Long id;
 	private java.lang.String author;
@@ -24,22 +24,19 @@ public class RedditPostComment {
 
 	private final ContentValues values = new ContentValues();
 
-	public RedditPostComment() {
+	public Comment() {
 	}
 
-	public RedditPostComment(final Cursor cursor) {
-		setId(cursor.getLong(cursor.getColumnIndex(RedditPostCommentTable.ID)));
-		setAuthor(cursor.getString(cursor
-				.getColumnIndex(RedditPostCommentTable.AUTHOR)));
-		setUps(cursor.getInt(cursor.getColumnIndex(RedditPostCommentTable.UPS)));
-		setDowns(cursor.getInt(cursor
-				.getColumnIndex(RedditPostCommentTable.DOWNS)));
-		setCreated(cursor.getLong(cursor
-				.getColumnIndex(RedditPostCommentTable.CREATED)));
+	public Comment(final Cursor cursor) {
+		setId(cursor.getLong(cursor.getColumnIndex(CommentTable.ID)));
+		setAuthor(cursor.getString(cursor.getColumnIndex(CommentTable.AUTHOR)));
+		setUps(cursor.getInt(cursor.getColumnIndex(CommentTable.UPS)));
+		setDowns(cursor.getInt(cursor.getColumnIndex(CommentTable.DOWNS)));
+		setCreated(cursor.getLong(cursor.getColumnIndex(CommentTable.CREATED)));
 		setBody_html(cursor.getString(cursor
-				.getColumnIndex(RedditPostCommentTable.BODY_HTML)));
+				.getColumnIndex(CommentTable.BODY_HTML)));
 		setIdentifier(cursor.getString(cursor
-				.getColumnIndex(RedditPostCommentTable.IDENTIFIER)));
+				.getColumnIndex(CommentTable.IDENTIFIER)));
 
 	}
 
@@ -50,7 +47,7 @@ public class RedditPostComment {
 	 */
 	public void setId(final Long id) {
 		this.id = id;
-		this.values.put(RedditPostCommentTable.ID, id);
+		this.values.put(CommentTable.ID, id);
 	}
 
 	/**
@@ -69,7 +66,7 @@ public class RedditPostComment {
 	 */
 	public void setAuthor(final java.lang.String author) {
 		this.author = author;
-		this.values.put(RedditPostCommentTable.AUTHOR, author);
+		this.values.put(CommentTable.AUTHOR, author);
 	}
 
 	/**
@@ -88,7 +85,7 @@ public class RedditPostComment {
 	 */
 	public void setUps(final int ups) {
 		this.ups = ups;
-		this.values.put(RedditPostCommentTable.UPS, ups);
+		this.values.put(CommentTable.UPS, ups);
 	}
 
 	/**
@@ -107,7 +104,7 @@ public class RedditPostComment {
 	 */
 	public void setDowns(final int downs) {
 		this.downs = downs;
-		this.values.put(RedditPostCommentTable.DOWNS, downs);
+		this.values.put(CommentTable.DOWNS, downs);
 	}
 
 	/**
@@ -126,7 +123,7 @@ public class RedditPostComment {
 	 */
 	public void setCreated(final long created) {
 		this.created = created;
-		this.values.put(RedditPostCommentTable.CREATED, created);
+		this.values.put(CommentTable.CREATED, created);
 	}
 
 	/**
@@ -145,7 +142,7 @@ public class RedditPostComment {
 	 */
 	public void setBody_html(final java.lang.String body_html) {
 		this.body_html = body_html;
-		this.values.put(RedditPostCommentTable.BODY_HTML, body_html);
+		this.values.put(CommentTable.BODY_HTML, body_html);
 	}
 
 	/**
@@ -164,7 +161,7 @@ public class RedditPostComment {
 	 */
 	public void setIdentifier(final java.lang.String identifier) {
 		this.identifier = identifier;
-		this.values.put(RedditPostCommentTable.IDENTIFIER, identifier);
+		this.values.put(CommentTable.IDENTIFIER, identifier);
 	}
 
 	/**

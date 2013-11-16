@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="Model" nsURI="com.sobremesa.waywt" nsPrefix="com.sobremesa.waywt">
-  <eClassifiers xsi:type="ecore:EClass" name="RedditPost">
+  <eClassifiers xsi:type="ecore:EClass" name="Post">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="ups" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="downs" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="author" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="created" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="EReference0" lowerBound="1"
-        upperBound="-1" eType="#//RedditPostComment" containment="true"/>
+        upperBound="-1" eType="#//Comment" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="permalink" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="EReference1" upperBound="-1"
         eType="#//Image"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="title" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="EReference2" upperBound="-1"
-        eType="#//RedditPostCommentSubcomment"/>
+        eType="#//Reply"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Image">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="url" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="identifier" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="RedditPostComment">
+  <eClassifiers xsi:type="ecore:EClass" name="Comment">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="author" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="ups" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="downs" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
@@ -29,14 +29,17 @@
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="body_html" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="identifier" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="EReference1" upperBound="-1"
-        eType="#//RedditPostCommentSubcomment" containment="true"/>
+        eType="#//Reply" containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="RedditPostCommentSubcomment">
+  <eClassifiers xsi:type="ecore:EClass" name="Reply">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="author"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="ups"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="downs"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="created"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="body_html"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="identifier"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="EReference0" upperBound="-1"
+        eType="#//Reply" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="parentIdentifier"/>
   </eClassifiers>
 </ecore:EPackage>

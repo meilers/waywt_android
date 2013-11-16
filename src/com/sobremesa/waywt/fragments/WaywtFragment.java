@@ -7,11 +7,10 @@ import java.util.List;
 import com.sobremesa.waywt.R;
 import com.sobremesa.waywt.adapters.CommentPagerAdapter;
 import com.sobremesa.waywt.contentprovider.Provider;
-import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
-import com.sobremesa.waywt.database.tables.RedditPostTable;
+import com.sobremesa.waywt.database.tables.CommentTable;
 import com.sobremesa.waywt.managers.FontManager;
-import com.sobremesa.waywt.service.RedditPostCommentService;
-import com.sobremesa.waywt.service.RedditPostService;
+import com.sobremesa.waywt.service.CommentService;
+import com.sobremesa.waywt.service.PostService;
 import com.viewpagerindicator.TabPageIndicator;
 import com.viewpagerindicator.TitlePageIndicator;
 
@@ -42,7 +41,7 @@ public class WaywtFragment extends Fragment implements LoaderCallbacks<Cursor> {
 	
 	private ViewPager mPager;
 	private CommentPagerAdapter mPagerAdapter;
-	TitlePageIndicator mindicator;
+	private TitlePageIndicator mindicator;
 	
 	
 	@Override
@@ -57,6 +56,10 @@ public class WaywtFragment extends Fragment implements LoaderCallbacks<Cursor> {
 		mindicator = (TitlePageIndicator)view.findViewById(R.id.page_indicator);
 		mindicator.setViewPager(mPager);
 		mindicator.setTypeface(FontManager.INSTANCE.getAppFont());
+		
+		getLoaderManager().initLoader(0, null, this);
+		fetchRedditPostCommentData();
+		
 		return view;
 	}
 	
@@ -65,8 +68,7 @@ public class WaywtFragment extends Fragment implements LoaderCallbacks<Cursor> {
 		// TODO Auto-generated method stub
 		super.onStart();
 		 
-		getLoaderManager().initLoader(0, null, this);
-		fetchRedditPostCommentData();
+
 	}
 	
 	@Override
@@ -78,16 +80,16 @@ public class WaywtFragment extends Fragment implements LoaderCallbacks<Cursor> {
 	
 	private void fetchRedditPostCommentData() {  
  
-		Intent i = new Intent(getActivity(), RedditPostCommentService.class);
+		Intent i = new Intent(getActivity(), CommentService.class);
 		i.setAction(Intent.ACTION_SYNC);
-		i.putExtra(RedditPostCommentService.Extras.ARG_POST_ID, getArguments().getString(Extras.ARG_POST_ID));
-		i.putExtra(RedditPostCommentService.Extras.ARG_PERMALINK, getArguments().getString(Extras.ARG_PERMALINK));
+		i.putExtra(CommentService.Extras.ARG_POST_ID, getArguments().getString(Extras.ARG_POST_ID));
+		i.putExtra(CommentService.Extras.ARG_PERMALINK, getArguments().getString(Extras.ARG_PERMALINK));
 		getActivity().startService(i);
 	}
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		mLoader = new CursorLoader(getActivity(), Provider.REDDITPOSTCOMMENT_CONTENT_URI, new String[] {RedditPostCommentTable.ID, RedditPostCommentTable.REDDITPOST_ID, RedditPostCommentTable.AUTHOR, RedditPostCommentTable.UPS + " - " + RedditPostCommentTable.DOWNS + " AS `difference`" }, RedditPostCommentTable.REDDITPOST_ID + "=?", new String[] { getArguments().getString(Extras.ARG_POST_ID) }, "`difference` DESC");
+		mLoader = new CursorLoader(getActivity(), Provider.COMMENT_CONTENT_URI, new String[] {CommentTable.ID, CommentTable.POST_ID, CommentTable.AUTHOR, CommentTable.UPS + " - " + CommentTable.DOWNS + " AS `difference`" }, CommentTable.POST_ID + "=?", new String[] { getArguments().getString(Extras.ARG_POST_ID) }, "`difference` DESC");
 
 		return mLoader;
 	}
@@ -99,11 +101,12 @@ public class WaywtFragment extends Fragment implements LoaderCallbacks<Cursor> {
 		List<String> usernames = new ArrayList<String>();
 		
 		for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-			commentIds.add(cursor.getString(cursor.getColumnIndex(RedditPostCommentTable.ID)));
-			usernames.add(cursor.getString(cursor.getColumnIndex(RedditPostCommentTable.AUTHOR)));
+			commentIds.add(cursor.getString(cursor.getColumnIndex(CommentTable.ID)));
+			usernames.add(cursor.getString(cursor.getColumnIndex(CommentTable.AUTHOR)));
 		}
 		
 		mPagerAdapter.setInfo(commentIds, usernames);
+		mPagerAdapter.notifyDataSetChanged();
 		mindicator.notifyDataSetChanged();
 
 	}

@@ -1,16 +1,16 @@
 package com.sobremesa.waywt.database.tables;
 
 /**
- * This interface represents the columns and SQLite statements for the RedditPostTable.
- * This table is represented in the sqlite database as RedditPost column.
+ * This interface represents the columns and SQLite statements for the PostTable.
+ * This table is represented in the sqlite database as Post column.
  * 				  
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.11.13
+ * @date 2013.11.15
  */
-public interface RedditPostTable {
-	String TABLE_NAME = "redditpost";
+public interface PostTable {
+	String TABLE_NAME = "post";
 
 	String ID = "_id";
 	String UPS = "ups";

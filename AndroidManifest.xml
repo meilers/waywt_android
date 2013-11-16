@@ -26,16 +26,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <activity
+            android:name="com.sobremesa.waywt.activities.ImageActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/app_name" >
+        </activity>
 
         <provider
             android:name="com.sobremesa.waywt.contentprovider.Provider"
             android:authorities="com.sobremesa.waywt.provider.Model"
             android:exported="false" />
 
-        <service android:name=".service.RedditPostService" >
+        <service android:name=".service.PostService" >
         </service>
         
-        <service android:name=".service.RedditPostCommentService" >
+        <service android:name=".service.CommentService" >
         </service>
     </application>
 

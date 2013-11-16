@@ -2,8 +2,9 @@ package com.sobremesa.waywt.fragments;
 
 import com.sobremesa.waywt.R;
 import com.sobremesa.waywt.contentprovider.Provider;
+import com.sobremesa.waywt.database.tables.CommentTable;
 import com.sobremesa.waywt.database.tables.ImageTable;
-import com.sobremesa.waywt.database.tables.RedditPostCommentSubcommentTable;
+import com.sobremesa.waywt.database.tables.ReplyTable;
 import com.sobremesa.waywt.fragments.CommentFragment.Extras;
 import com.sobremesa.waywt.views.AspectRatioImageView;
 import com.sobremesa.waywt.views.WaywtSecondaryTextView;
@@ -17,6 +18,7 @@ import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -60,7 +62,7 @@ public class RepliesFragment extends Fragment implements LoaderCallbacks<Cursor>
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		return new CursorLoader(getActivity(), Provider.REDDITPOSTCOMMENTSUBCOMMENT_CONTENT_URI, RedditPostCommentSubcommentTable.ALL_COLUMNS, RedditPostCommentSubcommentTable.REDDITPOSTCOMMENT_ID + "=?", new String[] { getArguments().getString(Extras.ARG_COMMENT_ID) }, null);
+		return new CursorLoader(getActivity(), Provider.REPLY_CONTENT_URI, new String[] { ReplyTable.AUTHOR, ReplyTable.BODY_HTML, CommentTable.UPS + " - " + CommentTable.DOWNS + " AS `difference`" }, ReplyTable.COMMENT_ID + "=?", new String[] { getArguments().getString(Extras.ARG_COMMENT_ID) }, "`difference` DESC");
 	}
 
 
@@ -77,8 +79,8 @@ public class RepliesFragment extends Fragment implements LoaderCallbacks<Cursor>
 			
 			for( cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext() )
 			{
-				String author = cursor.getString(cursor.getColumnIndex(RedditPostCommentSubcommentTable.AUTHOR));
-				String bodyHtml = cursor.getString(cursor.getColumnIndex(RedditPostCommentSubcommentTable.BODY_HTML));
+				String author = cursor.getString(cursor.getColumnIndex(ReplyTable.AUTHOR));
+				String bodyHtml = cursor.getString(cursor.getColumnIndex(ReplyTable.BODY_HTML));
 				
 				LinearLayout newLayout = (LinearLayout)getActivity().getLayoutInflater().inflate(R.layout.list_item_reply, null);
 				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
@@ -90,6 +92,8 @@ public class RepliesFragment extends Fragment implements LoaderCallbacks<Cursor>
 				
 				TextView bodyTv = (TextView)newLayout.findViewById(R.id.list_item_reply_body_tv);
 				bodyTv.setText(Html.fromHtml(bodyHtml));
+				bodyTv.setMovementMethod (LinkMovementMethod.getInstance());
+				bodyTv.setClickable(true);
 				
 				container.addView(newLayout);
 				

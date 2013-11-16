@@ -29,7 +29,7 @@ import android.util.Log;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.11.13
+ * @date 2013.11.15
  */
 public class Provider extends ContentProvider {
 	private static final String TAG = "com.sobremesa.waywt.contentprovider.Provider";
@@ -37,79 +37,71 @@ public class Provider extends ContentProvider {
 	public static final String AUTHORITY = "com.sobremesa.waywt.provider.Model";
 	public static final Uri AUTHORITY_URI = Uri.parse("content://" + AUTHORITY);
 
-	public static final Uri REDDITPOST_CONTENT_URI = Uri.withAppendedPath(
-			Provider.AUTHORITY_URI, RedditPostContent.CONTENT_PATH);
+	public static final Uri POST_CONTENT_URI = Uri.withAppendedPath(
+			Provider.AUTHORITY_URI, PostContent.CONTENT_PATH);
 
 	public static final Uri IMAGE_CONTENT_URI = Uri.withAppendedPath(
 			Provider.AUTHORITY_URI, ImageContent.CONTENT_PATH);
 
-	public static final Uri REDDITPOSTCOMMENT_CONTENT_URI = Uri
-			.withAppendedPath(Provider.AUTHORITY_URI,
-					RedditPostCommentContent.CONTENT_PATH);
+	public static final Uri COMMENT_CONTENT_URI = Uri.withAppendedPath(
+			Provider.AUTHORITY_URI, CommentContent.CONTENT_PATH);
 
-	public static final Uri REDDITPOSTCOMMENTSUBCOMMENT_CONTENT_URI = Uri
-			.withAppendedPath(Provider.AUTHORITY_URI,
-					RedditPostCommentSubcommentContent.CONTENT_PATH);
+	public static final Uri REPLY_CONTENT_URI = Uri.withAppendedPath(
+			Provider.AUTHORITY_URI, ReplyContent.CONTENT_PATH);
 
 	private static final UriMatcher URI_MATCHER;
 
 	private Database db;
 
-	private static final int REDDITPOST_DIR = 0;
-	private static final int REDDITPOST_ID = 1;
+	private static final int POST_DIR = 0;
+	private static final int POST_ID = 1;
 	private static final int IMAGE_DIR = 2;
 	private static final int IMAGE_ID = 3;
-	private static final int REDDITPOSTCOMMENT_DIR = 4;
-	private static final int REDDITPOSTCOMMENT_ID = 5;
-	private static final int REDDITPOSTCOMMENTSUBCOMMENT_DIR = 6;
-	private static final int REDDITPOSTCOMMENTSUBCOMMENT_ID = 7;
+	private static final int COMMENT_DIR = 4;
+	private static final int COMMENT_ID = 5;
+	private static final int REPLY_DIR = 6;
+	private static final int REPLY_ID = 7;
 
 	static {
 		URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
-		URI_MATCHER.addURI(AUTHORITY, RedditPostContent.CONTENT_PATH,
-				REDDITPOST_DIR);
-		URI_MATCHER.addURI(AUTHORITY, RedditPostContent.CONTENT_PATH + "/#",
-				REDDITPOST_ID);
+		URI_MATCHER.addURI(AUTHORITY, PostContent.CONTENT_PATH, POST_DIR);
+		URI_MATCHER.addURI(AUTHORITY, PostContent.CONTENT_PATH + "/#", POST_ID);
 		URI_MATCHER.addURI(AUTHORITY, ImageContent.CONTENT_PATH, IMAGE_DIR);
 		URI_MATCHER.addURI(AUTHORITY, ImageContent.CONTENT_PATH + "/#",
 				IMAGE_ID);
-		URI_MATCHER.addURI(AUTHORITY, RedditPostCommentContent.CONTENT_PATH,
-				REDDITPOSTCOMMENT_DIR);
-		URI_MATCHER.addURI(AUTHORITY, RedditPostCommentContent.CONTENT_PATH
-				+ "/#", REDDITPOSTCOMMENT_ID);
-		URI_MATCHER.addURI(AUTHORITY,
-				RedditPostCommentSubcommentContent.CONTENT_PATH,
-				REDDITPOSTCOMMENTSUBCOMMENT_DIR);
-		URI_MATCHER.addURI(AUTHORITY,
-				RedditPostCommentSubcommentContent.CONTENT_PATH + "/#",
-				REDDITPOSTCOMMENTSUBCOMMENT_ID);
+		URI_MATCHER.addURI(AUTHORITY, CommentContent.CONTENT_PATH, COMMENT_DIR);
+		URI_MATCHER.addURI(AUTHORITY, CommentContent.CONTENT_PATH + "/#",
+				COMMENT_ID);
+		URI_MATCHER.addURI(AUTHORITY, ReplyContent.CONTENT_PATH, REPLY_DIR);
+		URI_MATCHER.addURI(AUTHORITY, ReplyContent.CONTENT_PATH + "/#",
+				REPLY_ID);
 	}
 
 	/**
-	 * Provides the content information of the RedditPostTable.
+	 * Provides the content information of the PostTable.
 	 * 
-	 * CONTENT_PATH: redditpost (String)
-	 * CONTENT_TYPE: vnd.android.cursor.dir/vnd.mdsdacp.redditpost (String)
-	 * CONTENT_ITEM_TYPE: vnd.android.cursor.item/vnd.mdsdacp.redditpost (String)
-	 * ALL_COLUMNS: Provides the same information as RedditPostTable.ALL_COLUMNS (String[])
+	 * CONTENT_PATH: post (String)
+	 * CONTENT_TYPE: vnd.android.cursor.dir/vnd.mdsdacp.post (String)
+	 * CONTENT_ITEM_TYPE: vnd.android.cursor.item/vnd.mdsdacp.post (String)
+	 * ALL_COLUMNS: Provides the same information as PostTable.ALL_COLUMNS (String[])
 	 */
-	public static final class RedditPostContent implements BaseColumns {
+	public static final class PostContent implements BaseColumns {
 		/**
-		 * Specifies the content path of the RedditPostTable for the required uri
-		 * Exact URI: content://com.sobremesa.waywt.provider.Model/redditpost
+		 * Specifies the content path of the PostTable for the required uri
+		 * Exact URI: content://com.sobremesa.waywt.provider.Model/post
 		 */
-		public static final String CONTENT_PATH = "redditpost";
+		public static final String CONTENT_PATH = "post";
 
 		/**
-		 * Specifies the type for the folder and the single item of the RedditPostTable  
+		 * Specifies the type for the folder and the single item of the PostTable  
 		 */
-		public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.mdsdacp.redditpost";
-		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.mdsdacp.redditpost";
+		public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.mdsdacp.post";
+		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.mdsdacp.post";
 
 		/**
-		 * Contains all columns of the RedditPostTable
+		 * Contains all columns of the PostTable
 		 */
-		public static final String[] ALL_COLUMNS = RedditPostTable.ALL_COLUMNS;
+		public static final String[] ALL_COLUMNS = PostTable.ALL_COLUMNS;
 	}
 
 	/**
@@ -140,59 +132,57 @@ public class Provider extends ContentProvider {
 	}
 
 	/**
-	 * Provides the content information of the RedditPostCommentTable.
+	 * Provides the content information of the CommentTable.
 	 * 
-	 * CONTENT_PATH: redditpostcomment (String)
-	 * CONTENT_TYPE: vnd.android.cursor.dir/vnd.mdsdacp.redditpostcomment (String)
-	 * CONTENT_ITEM_TYPE: vnd.android.cursor.item/vnd.mdsdacp.redditpostcomment (String)
-	 * ALL_COLUMNS: Provides the same information as RedditPostCommentTable.ALL_COLUMNS (String[])
+	 * CONTENT_PATH: comment (String)
+	 * CONTENT_TYPE: vnd.android.cursor.dir/vnd.mdsdacp.comment (String)
+	 * CONTENT_ITEM_TYPE: vnd.android.cursor.item/vnd.mdsdacp.comment (String)
+	 * ALL_COLUMNS: Provides the same information as CommentTable.ALL_COLUMNS (String[])
 	 */
-	public static final class RedditPostCommentContent implements BaseColumns {
+	public static final class CommentContent implements BaseColumns {
 		/**
-		 * Specifies the content path of the RedditPostCommentTable for the required uri
-		 * Exact URI: content://com.sobremesa.waywt.provider.Model/redditpostcomment
+		 * Specifies the content path of the CommentTable for the required uri
+		 * Exact URI: content://com.sobremesa.waywt.provider.Model/comment
 		 */
-		public static final String CONTENT_PATH = "redditpostcomment";
+		public static final String CONTENT_PATH = "comment";
 
 		/**
-		 * Specifies the type for the folder and the single item of the RedditPostCommentTable  
+		 * Specifies the type for the folder and the single item of the CommentTable  
 		 */
-		public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.mdsdacp.redditpostcomment";
-		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.mdsdacp.redditpostcomment";
+		public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.mdsdacp.comment";
+		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.mdsdacp.comment";
 
 		/**
-		 * Contains all columns of the RedditPostCommentTable
+		 * Contains all columns of the CommentTable
 		 */
-		public static final String[] ALL_COLUMNS = RedditPostCommentTable.ALL_COLUMNS;
+		public static final String[] ALL_COLUMNS = CommentTable.ALL_COLUMNS;
 	}
 
 	/**
-	 * Provides the content information of the RedditPostCommentSubcommentTable.
+	 * Provides the content information of the ReplyTable.
 	 * 
-	 * CONTENT_PATH: redditpostcommentsubcomment (String)
-	 * CONTENT_TYPE: vnd.android.cursor.dir/vnd.mdsdacp.redditpostcommentsubcomment (String)
-	 * CONTENT_ITEM_TYPE: vnd.android.cursor.item/vnd.mdsdacp.redditpostcommentsubcomment (String)
-	 * ALL_COLUMNS: Provides the same information as RedditPostCommentSubcommentTable.ALL_COLUMNS (String[])
+	 * CONTENT_PATH: reply (String)
+	 * CONTENT_TYPE: vnd.android.cursor.dir/vnd.mdsdacp.reply (String)
+	 * CONTENT_ITEM_TYPE: vnd.android.cursor.item/vnd.mdsdacp.reply (String)
+	 * ALL_COLUMNS: Provides the same information as ReplyTable.ALL_COLUMNS (String[])
 	 */
-	public static final class RedditPostCommentSubcommentContent
-			implements
-				BaseColumns {
+	public static final class ReplyContent implements BaseColumns {
 		/**
-		 * Specifies the content path of the RedditPostCommentSubcommentTable for the required uri
-		 * Exact URI: content://com.sobremesa.waywt.provider.Model/redditpostcommentsubcomment
+		 * Specifies the content path of the ReplyTable for the required uri
+		 * Exact URI: content://com.sobremesa.waywt.provider.Model/reply
 		 */
-		public static final String CONTENT_PATH = "redditpostcommentsubcomment";
+		public static final String CONTENT_PATH = "reply";
 
 		/**
-		 * Specifies the type for the folder and the single item of the RedditPostCommentSubcommentTable  
+		 * Specifies the type for the folder and the single item of the ReplyTable  
 		 */
-		public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.mdsdacp.redditpostcommentsubcomment";
-		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.mdsdacp.redditpostcommentsubcomment";
+		public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.mdsdacp.reply";
+		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.mdsdacp.reply";
 
 		/**
-		 * Contains all columns of the RedditPostCommentSubcommentTable
+		 * Contains all columns of the ReplyTable
 		 */
-		public static final String[] ALL_COLUMNS = RedditPostCommentSubcommentTable.ALL_COLUMNS;
+		public static final String[] ALL_COLUMNS = ReplyTable.ALL_COLUMNS;
 	}
 
 	/**
@@ -215,22 +205,22 @@ public class Provider extends ContentProvider {
 	@Override
 	public final String getType(final Uri uri) {
 		switch (URI_MATCHER.match(uri)) {
-			case REDDITPOST_DIR :
-				return RedditPostContent.CONTENT_TYPE;
-			case REDDITPOST_ID :
-				return RedditPostContent.CONTENT_ITEM_TYPE;
+			case POST_DIR :
+				return PostContent.CONTENT_TYPE;
+			case POST_ID :
+				return PostContent.CONTENT_ITEM_TYPE;
 			case IMAGE_DIR :
 				return ImageContent.CONTENT_TYPE;
 			case IMAGE_ID :
 				return ImageContent.CONTENT_ITEM_TYPE;
-			case REDDITPOSTCOMMENT_DIR :
-				return RedditPostCommentContent.CONTENT_TYPE;
-			case REDDITPOSTCOMMENT_ID :
-				return RedditPostCommentContent.CONTENT_ITEM_TYPE;
-			case REDDITPOSTCOMMENTSUBCOMMENT_DIR :
-				return RedditPostCommentSubcommentContent.CONTENT_TYPE;
-			case REDDITPOSTCOMMENTSUBCOMMENT_ID :
-				return RedditPostCommentSubcommentContent.CONTENT_ITEM_TYPE;
+			case COMMENT_DIR :
+				return CommentContent.CONTENT_TYPE;
+			case COMMENT_ID :
+				return CommentContent.CONTENT_ITEM_TYPE;
+			case REPLY_DIR :
+				return ReplyContent.CONTENT_TYPE;
+			case REPLY_ID :
+				return ReplyContent.CONTENT_ITEM_TYPE;
 			default :
 				throw new IllegalArgumentException("Unsupported URI: " + uri);
 		}
@@ -253,16 +243,16 @@ public class Provider extends ContentProvider {
 			dbConnection.beginTransaction();
 
 			switch (URI_MATCHER.match(uri)) {
-				case REDDITPOST_DIR :
-				case REDDITPOST_ID :
-					final long redditpostid = dbConnection.insertOrThrow(
-							RedditPostTable.TABLE_NAME, null, values);
-					final Uri newRedditPost = ContentUris.withAppendedId(
-							REDDITPOST_CONTENT_URI, redditpostid);
-					getContext().getContentResolver().notifyChange(
-							newRedditPost, null);
+				case POST_DIR :
+				case POST_ID :
+					final long postid = dbConnection.insertOrThrow(
+							PostTable.TABLE_NAME, null, values);
+					final Uri newPost = ContentUris.withAppendedId(
+							POST_CONTENT_URI, postid);
+					getContext().getContentResolver().notifyChange(newPost,
+							null);
 					dbConnection.setTransactionSuccessful();
-					return newRedditPost;
+					return newPost;
 				case IMAGE_DIR :
 				case IMAGE_ID :
 					final long imageid = dbConnection.insertOrThrow(
@@ -273,32 +263,26 @@ public class Provider extends ContentProvider {
 							null);
 					dbConnection.setTransactionSuccessful();
 					return newImage;
-				case REDDITPOSTCOMMENT_DIR :
-				case REDDITPOSTCOMMENT_ID :
-					final long redditpostcommentid = dbConnection
-							.insertOrThrow(RedditPostCommentTable.TABLE_NAME,
-									null, values);
-					final Uri newRedditPostComment = ContentUris
-							.withAppendedId(REDDITPOSTCOMMENT_CONTENT_URI,
-									redditpostcommentid);
-					getContext().getContentResolver().notifyChange(
-							newRedditPostComment, null);
+				case COMMENT_DIR :
+				case COMMENT_ID :
+					final long commentid = dbConnection.insertOrThrow(
+							CommentTable.TABLE_NAME, null, values);
+					final Uri newComment = ContentUris.withAppendedId(
+							COMMENT_CONTENT_URI, commentid);
+					getContext().getContentResolver().notifyChange(newComment,
+							null);
 					dbConnection.setTransactionSuccessful();
-					return newRedditPostComment;
-				case REDDITPOSTCOMMENTSUBCOMMENT_DIR :
-				case REDDITPOSTCOMMENTSUBCOMMENT_ID :
-					final long redditpostcommentsubcommentid = dbConnection
-							.insertOrThrow(
-									RedditPostCommentSubcommentTable.TABLE_NAME,
-									null, values);
-					final Uri newRedditPostCommentSubcomment = ContentUris
-							.withAppendedId(
-									REDDITPOSTCOMMENTSUBCOMMENT_CONTENT_URI,
-									redditpostcommentsubcommentid);
-					getContext().getContentResolver().notifyChange(
-							newRedditPostCommentSubcomment, null);
+					return newComment;
+				case REPLY_DIR :
+				case REPLY_ID :
+					final long replyid = dbConnection.insertOrThrow(
+							ReplyTable.TABLE_NAME, null, values);
+					final Uri newReply = ContentUris.withAppendedId(
+							REPLY_CONTENT_URI, replyid);
+					getContext().getContentResolver().notifyChange(newReply,
+							null);
 					dbConnection.setTransactionSuccessful();
-					return newRedditPostCommentSubcomment;
+					return newReply;
 				default :
 					throw new IllegalArgumentException("Unsupported URI:" + uri);
 			}
@@ -333,19 +317,19 @@ public class Provider extends ContentProvider {
 
 			switch (URI_MATCHER.match(uri)) {
 
-				case REDDITPOST_DIR :
-					updateCount = dbConnection.update(
-							RedditPostTable.TABLE_NAME, values, selection,
-							selectionArgs);
+				case POST_DIR :
+					updateCount = dbConnection.update(PostTable.TABLE_NAME,
+							values, selection, selectionArgs);
 					dbConnection.setTransactionSuccessful();
 					break;
-				case REDDITPOST_ID :
-					final Long redditpostId = ContentUris.parseId(uri);
+				case POST_ID :
+					final Long postId = ContentUris.parseId(uri);
 					updateCount = dbConnection.update(
-							RedditPostTable.TABLE_NAME, values,
-							RedditPostTable.ID
+							PostTable.TABLE_NAME,
+							values,
+							PostTable.ID
 									+ "="
-									+ redditpostId
+									+ postId
 									+ (TextUtils.isEmpty(selection)
 											? ""
 											: " AND (" + selection + ")"),
@@ -373,20 +357,17 @@ public class Provider extends ContentProvider {
 					dbConnection.setTransactionSuccessful();
 					break;
 
-				case REDDITPOSTCOMMENT_DIR :
-					updateCount = dbConnection.update(
-							RedditPostCommentTable.TABLE_NAME, values,
-							selection, selectionArgs);
+				case COMMENT_DIR :
+					updateCount = dbConnection.update(CommentTable.TABLE_NAME,
+							values, selection, selectionArgs);
 					dbConnection.setTransactionSuccessful();
 					break;
-				case REDDITPOSTCOMMENT_ID :
-					final Long redditpostcommentId = ContentUris.parseId(uri);
-					updateCount = dbConnection.update(
-							RedditPostCommentTable.TABLE_NAME,
-							values,
-							RedditPostCommentTable.ID
+				case COMMENT_ID :
+					final Long commentId = ContentUris.parseId(uri);
+					updateCount = dbConnection.update(CommentTable.TABLE_NAME,
+							values, CommentTable.ID
 									+ "="
-									+ redditpostcommentId
+									+ commentId
 									+ (TextUtils.isEmpty(selection)
 											? ""
 											: " AND (" + selection + ")"),
@@ -394,20 +375,19 @@ public class Provider extends ContentProvider {
 					dbConnection.setTransactionSuccessful();
 					break;
 
-				case REDDITPOSTCOMMENTSUBCOMMENT_DIR :
-					updateCount = dbConnection.update(
-							RedditPostCommentSubcommentTable.TABLE_NAME,
+				case REPLY_DIR :
+					updateCount = dbConnection.update(ReplyTable.TABLE_NAME,
 							values, selection, selectionArgs);
 					dbConnection.setTransactionSuccessful();
 					break;
-				case REDDITPOSTCOMMENTSUBCOMMENT_ID :
-					final Long redditpostcommentsubcommentId = ContentUris
-							.parseId(uri);
+				case REPLY_ID :
+					final Long replyId = ContentUris.parseId(uri);
 					updateCount = dbConnection.update(
-							RedditPostCommentSubcommentTable.TABLE_NAME,
-							values, RedditPostCommentSubcommentTable.ID
+							ReplyTable.TABLE_NAME,
+							values,
+							ReplyTable.ID
 									+ "="
-									+ redditpostcommentsubcommentId
+									+ replyId
 									+ (TextUtils.isEmpty(selection)
 											? ""
 											: " AND (" + selection + ")"),
@@ -449,16 +429,14 @@ public class Provider extends ContentProvider {
 			dbConnection.beginTransaction();
 
 			switch (URI_MATCHER.match(uri)) {
-				case REDDITPOST_DIR :
-					deleteCount = dbConnection.delete(
-							RedditPostTable.TABLE_NAME, selection,
-							selectionArgs);
+				case POST_DIR :
+					deleteCount = dbConnection.delete(PostTable.TABLE_NAME,
+							selection, selectionArgs);
 					dbConnection.setTransactionSuccessful();
 					break;
-				case REDDITPOST_ID :
-					deleteCount = dbConnection.delete(
-							RedditPostTable.TABLE_NAME,
-							RedditPostTable.WHERE_ID_EQUALS, new String[]{uri
+				case POST_ID :
+					deleteCount = dbConnection.delete(PostTable.TABLE_NAME,
+							PostTable.WHERE_ID_EQUALS, new String[]{uri
 									.getPathSegments().get(1)});
 					dbConnection.setTransactionSuccessful();
 					break;
@@ -473,30 +451,26 @@ public class Provider extends ContentProvider {
 									.getPathSegments().get(1)});
 					dbConnection.setTransactionSuccessful();
 					break;
-				case REDDITPOSTCOMMENT_DIR :
-					deleteCount = dbConnection.delete(
-							RedditPostCommentTable.TABLE_NAME, selection,
-							selectionArgs);
-					dbConnection.setTransactionSuccessful();
-					break;
-				case REDDITPOSTCOMMENT_ID :
-					deleteCount = dbConnection.delete(
-							RedditPostCommentTable.TABLE_NAME,
-							RedditPostCommentTable.WHERE_ID_EQUALS,
-							new String[]{uri.getPathSegments().get(1)});
-					dbConnection.setTransactionSuccessful();
-					break;
-				case REDDITPOSTCOMMENTSUBCOMMENT_DIR :
-					deleteCount = dbConnection.delete(
-							RedditPostCommentSubcommentTable.TABLE_NAME,
+				case COMMENT_DIR :
+					deleteCount = dbConnection.delete(CommentTable.TABLE_NAME,
 							selection, selectionArgs);
 					dbConnection.setTransactionSuccessful();
 					break;
-				case REDDITPOSTCOMMENTSUBCOMMENT_ID :
-					deleteCount = dbConnection.delete(
-							RedditPostCommentSubcommentTable.TABLE_NAME,
-							RedditPostCommentSubcommentTable.WHERE_ID_EQUALS,
-							new String[]{uri.getPathSegments().get(1)});
+				case COMMENT_ID :
+					deleteCount = dbConnection.delete(CommentTable.TABLE_NAME,
+							CommentTable.WHERE_ID_EQUALS, new String[]{uri
+									.getPathSegments().get(1)});
+					dbConnection.setTransactionSuccessful();
+					break;
+				case REPLY_DIR :
+					deleteCount = dbConnection.delete(ReplyTable.TABLE_NAME,
+							selection, selectionArgs);
+					dbConnection.setTransactionSuccessful();
+					break;
+				case REPLY_ID :
+					deleteCount = dbConnection.delete(ReplyTable.TABLE_NAME,
+							ReplyTable.WHERE_ID_EQUALS, new String[]{uri
+									.getPathSegments().get(1)});
 					dbConnection.setTransactionSuccessful();
 					break;
 
@@ -535,11 +509,11 @@ public class Provider extends ContentProvider {
 		final SQLiteDatabase dbConnection = db.getReadableDatabase();
 
 		switch (URI_MATCHER.match(uri)) {
-			case REDDITPOST_ID :
-				queryBuilder.appendWhere(RedditPostTable.ID + "="
+			case POST_ID :
+				queryBuilder.appendWhere(PostTable.ID + "="
 						+ uri.getPathSegments().get(1));
-			case REDDITPOST_DIR :
-				queryBuilder.setTables(RedditPostTable.TABLE_NAME);
+			case POST_DIR :
+				queryBuilder.setTables(PostTable.TABLE_NAME);
 				break;
 			case IMAGE_ID :
 				queryBuilder.appendWhere(ImageTable.ID + "="
@@ -547,18 +521,17 @@ public class Provider extends ContentProvider {
 			case IMAGE_DIR :
 				queryBuilder.setTables(ImageTable.TABLE_NAME);
 				break;
-			case REDDITPOSTCOMMENT_ID :
-				queryBuilder.appendWhere(RedditPostCommentTable.ID + "="
+			case COMMENT_ID :
+				queryBuilder.appendWhere(CommentTable.ID + "="
 						+ uri.getPathSegments().get(1));
-			case REDDITPOSTCOMMENT_DIR :
-				queryBuilder.setTables(RedditPostCommentTable.TABLE_NAME);
+			case COMMENT_DIR :
+				queryBuilder.setTables(CommentTable.TABLE_NAME);
 				break;
-			case REDDITPOSTCOMMENTSUBCOMMENT_ID :
-				queryBuilder.appendWhere(RedditPostCommentSubcommentTable.ID
-						+ "=" + uri.getPathSegments().get(1));
-			case REDDITPOSTCOMMENTSUBCOMMENT_DIR :
-				queryBuilder
-						.setTables(RedditPostCommentSubcommentTable.TABLE_NAME);
+			case REPLY_ID :
+				queryBuilder.appendWhere(ReplyTable.ID + "="
+						+ uri.getPathSegments().get(1));
+			case REPLY_DIR :
+				queryBuilder.setTables(ReplyTable.TABLE_NAME);
 				break;
 			default :
 				throw new IllegalArgumentException("Unsupported URI:" + uri);

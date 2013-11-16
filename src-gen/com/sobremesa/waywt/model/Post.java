@@ -2,7 +2,7 @@ package com.sobremesa.waywt.model;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import com.sobremesa.waywt.database.tables.RedditPostTable;
+import com.sobremesa.waywt.database.tables.PostTable;
 
 /**
  * Generated model class for usage in your application, defined by classifiers in ecore diagram
@@ -10,9 +10,9 @@ import com.sobremesa.waywt.database.tables.RedditPostTable;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.11.13	 
+ * @date 2013.11.15	 
  */
-public class RedditPost {
+public class Post {
 
 	private Long id;
 	private int ups;
@@ -24,20 +24,18 @@ public class RedditPost {
 
 	private final ContentValues values = new ContentValues();
 
-	public RedditPost() {
+	public Post() {
 	}
 
-	public RedditPost(final Cursor cursor) {
-		setId(cursor.getLong(cursor.getColumnIndex(RedditPostTable.ID)));
-		setUps(cursor.getInt(cursor.getColumnIndex(RedditPostTable.UPS)));
-		setDowns(cursor.getInt(cursor.getColumnIndex(RedditPostTable.DOWNS)));
-		setAuthor(cursor.getString(cursor
-				.getColumnIndex(RedditPostTable.AUTHOR)));
-		setCreated(cursor.getLong(cursor
-				.getColumnIndex(RedditPostTable.CREATED)));
+	public Post(final Cursor cursor) {
+		setId(cursor.getLong(cursor.getColumnIndex(PostTable.ID)));
+		setUps(cursor.getInt(cursor.getColumnIndex(PostTable.UPS)));
+		setDowns(cursor.getInt(cursor.getColumnIndex(PostTable.DOWNS)));
+		setAuthor(cursor.getString(cursor.getColumnIndex(PostTable.AUTHOR)));
+		setCreated(cursor.getLong(cursor.getColumnIndex(PostTable.CREATED)));
 		setPermalink(cursor.getString(cursor
-				.getColumnIndex(RedditPostTable.PERMALINK)));
-		setTitle(cursor.getString(cursor.getColumnIndex(RedditPostTable.TITLE)));
+				.getColumnIndex(PostTable.PERMALINK)));
+		setTitle(cursor.getString(cursor.getColumnIndex(PostTable.TITLE)));
 
 	}
 
@@ -48,7 +46,7 @@ public class RedditPost {
 	 */
 	public void setId(final Long id) {
 		this.id = id;
-		this.values.put(RedditPostTable.ID, id);
+		this.values.put(PostTable.ID, id);
 	}
 
 	/**
@@ -67,7 +65,7 @@ public class RedditPost {
 	 */
 	public void setUps(final int ups) {
 		this.ups = ups;
-		this.values.put(RedditPostTable.UPS, ups);
+		this.values.put(PostTable.UPS, ups);
 	}
 
 	/**
@@ -86,7 +84,7 @@ public class RedditPost {
 	 */
 	public void setDowns(final int downs) {
 		this.downs = downs;
-		this.values.put(RedditPostTable.DOWNS, downs);
+		this.values.put(PostTable.DOWNS, downs);
 	}
 
 	/**
@@ -105,7 +103,7 @@ public class RedditPost {
 	 */
 	public void setAuthor(final java.lang.String author) {
 		this.author = author;
-		this.values.put(RedditPostTable.AUTHOR, author);
+		this.values.put(PostTable.AUTHOR, author);
 	}
 
 	/**
@@ -124,7 +122,7 @@ public class RedditPost {
 	 */
 	public void setCreated(final long created) {
 		this.created = created;
-		this.values.put(RedditPostTable.CREATED, created);
+		this.values.put(PostTable.CREATED, created);
 	}
 
 	/**
@@ -143,7 +141,7 @@ public class RedditPost {
 	 */
 	public void setPermalink(final java.lang.String permalink) {
 		this.permalink = permalink;
-		this.values.put(RedditPostTable.PERMALINK, permalink);
+		this.values.put(PostTable.PERMALINK, permalink);
 	}
 
 	/**
@@ -162,7 +160,7 @@ public class RedditPost {
 	 */
 	public void setTitle(final java.lang.String title) {
 		this.title = title;
-		this.values.put(RedditPostTable.TITLE, title);
+		this.values.put(PostTable.TITLE, title);
 	}
 
 	/**

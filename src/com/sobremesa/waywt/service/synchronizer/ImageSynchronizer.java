@@ -19,9 +19,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.ImageTable;
-import com.sobremesa.waywt.database.tables.RedditPostCommentTable;
-import com.sobremesa.waywt.service.RedditPostCommentService;
-import com.sobremesa.waywt.service.RedditPostCommentService.RemoteImage;
+import com.sobremesa.waywt.service.CommentService;
+import com.sobremesa.waywt.service.CommentService.RemoteImage;
 
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
@@ -33,12 +32,12 @@ import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
 
-public class RedditPostCommentImageSynchronizer extends Synchronizer<RedditPostCommentService.RemoteImage> {
+public class ImageSynchronizer extends Synchronizer<CommentService.RemoteImage> {
 
 	
 	HashMap<String, String> mImageUrlMap;
 	
-	public RedditPostCommentImageSynchronizer(Context context) {
+	public ImageSynchronizer(Context context) {
 		super(context);
 		
 		mImageUrlMap = new HashMap<String, String>();
@@ -48,7 +47,7 @@ public class RedditPostCommentImageSynchronizer extends Synchronizer<RedditPostC
 	protected void performSynchronizationOperations(Context context, List<RemoteImage> inserts, List<RemoteImage> updates, List<Long> deletions) {
 		ArrayList<ContentProviderOperation> operations = new ArrayList<ContentProviderOperation>();
 
-		for (RedditPostCommentService.RemoteImage w : inserts) {
+		for (CommentService.RemoteImage w : inserts) {
 			ContentValues values = this.getContentValuesForRemoteEntity(w);
 			ContentProviderOperation op = ContentProviderOperation.newInsert(Provider.IMAGE_CONTENT_URI).withValues(values).build();
 			operations.add(op); 
@@ -56,7 +55,7 @@ public class RedditPostCommentImageSynchronizer extends Synchronizer<RedditPostC
 			
 		}
 
-		for (RedditPostCommentService.RemoteImage w : updates) {
+		for (CommentService.RemoteImage w : updates) {
 			ContentValues values = this.getContentValuesForRemoteEntity(w);
 			ContentProviderOperation op = ContentProviderOperation.newUpdate(Provider.IMAGE_CONTENT_URI).withSelection(ImageTable.IDENTIFIER + " = ?", new String[] { w.getIdentifier() })
 					.withValues(values).build();
@@ -93,8 +92,8 @@ public class RedditPostCommentImageSynchronizer extends Synchronizer<RedditPostC
 	protected ContentValues getContentValuesForRemoteEntity(RemoteImage t) {
 		ContentValues values = new ContentValues();
 		
-		values.put(ImageTable.REDDITPOST_ID, t.postId);
-		values.put(ImageTable.REDDITPOSTCOMMENT_ID, t.commentId);
+		values.put(ImageTable.POST_ID, t.postId);
+		values.put(ImageTable.COMMENT_ID, t.commentId);
 		values.put(ImageTable.URL, t.url);
 		values.put(ImageTable.IDENTIFIER, t.getIdentifier());
 

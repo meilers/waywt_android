@@ -6,6 +6,6 @@
     android:textAppearance="?android:attr/textAppearanceListItemSmall"
     android:gravity="center_vertical"
     android:textAllCaps="true"
-    android:padding="@dimen/padding_medium"
-    android:minHeight="?android:attr/listPreferredItemHeightSmall"
+    android:padding="@dimen/padding_medium" 
+    android:minHeight="?android:attr/listPreferredItemHeightSmall" 
 />
