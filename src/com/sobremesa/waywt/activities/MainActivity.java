@@ -6,13 +6,23 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
+import org.apache.http.client.HttpClient;
+
 import com.sobremesa.waywt.R;
+import com.sobremesa.waywt.common.Constants;
+import com.sobremesa.waywt.common.RedditIsFunHttpClientFactory;
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.PostTable;
+import com.sobremesa.waywt.dialog.LoginDialog;
 import com.sobremesa.waywt.fragments.WaywtFragment;
 import com.sobremesa.waywt.service.PostService;
+import com.sobremesa.waywt.settings.RedditSettings;
+import com.sobremesa.waywt.tasks.LoginTask;
 
 import android.app.ActionBar;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -31,8 +41,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.CookieSyncManager;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity implements ActionBar.OnNavigationListener, LoaderCallbacks<Cursor> {
 
@@ -47,10 +59,10 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 	
 	private ArrayList<PostPermalink> mPermalinks;
 
-	/**
-	 * The serialization (saved instance state) Bundle key representing the
-	 * current dropdown position.
-	 */
+	
+	private final HttpClient mClient = RedditIsFunHttpClientFactory.getGzipHttpClient();
+	private final RedditSettings mSettings = new RedditSettings();
+	
 	private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
 
 	@Override
@@ -72,6 +84,12 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		
 		// Set up the dropdown list navigation in the action bar.
 		actionBar.setListNavigationCallbacks(mNavAdapter, this);
+		
+		
+		// load settings
+		CookieSyncManager.createInstance(getApplicationContext());
+		mSettings.loadRedditPreferences(this, mClient);
+		
 	}
 
 	@Override
@@ -82,7 +100,24 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		fetchPostData();
 		getSupportLoaderManager().initLoader(0, null, this);
 	}
+	
+	@Override
+	protected void onResume() {
+		// TODO Auto-generated method stub
+		super.onResume();
+		
+    	mSettings.loadRedditPreferences(this, mClient);
+    	CookieSyncManager.getInstance().startSync();
+	}
 
+	@Override
+	protected void onPause() {
+		super.onPause();
+		
+		CookieSyncManager.getInstance().stopSync();
+		mSettings.saveRedditPreferences(this);
+	}
+	
 	@Override
 	public void onRestoreInstanceState(Bundle savedInstanceState) {
 		// Restore the previously serialized current dropdown position.
@@ -118,6 +153,11 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		return true;
 	}
 
+	@Override
+	protected void onActivityResult(int arg0, int arg1, Intent arg2) {
+		// TODO Auto-generated method stub
+		super.onActivityResult(arg0, arg1, arg2);
+	}
 
 	private void fetchPostData() {
 
@@ -170,8 +210,67 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		
 	}
 
-
-
+    @Override
+    protected void onPrepareDialog(int id, Dialog dialog) {
+    	super.onPrepareDialog(id, dialog);
+    	StringBuilder sb;
+    	    	
+    	switch (id) {
+    	case Constants.DIALOG_LOGIN:
+    		if (mSettings.getUsername() != null) {
+	    		final TextView loginUsernameInput = (TextView) dialog.findViewById(R.id.login_username_input);
+	    		loginUsernameInput.setText(mSettings.getUsername());
+    		}
+    		final TextView loginPasswordInput = (TextView) dialog.findViewById(R.id.login_password_input);
+    		loginPasswordInput.setText("");
+    		break;
+    		
+    	}
+	}
+    
+    @Override
+    protected Dialog onCreateDialog(int id) {
+    	final Dialog dialog;
+    	ProgressDialog pdialog;
+    	AlertDialog.Builder builder;
+    	LayoutInflater inflater;
+    	
+    	switch (id) {
+    	case Constants.DIALOG_LOGIN:
+    		dialog = new LoginDialog(this, mSettings, false) {
+				@Override
+				public void onLoginChosen(String user, String password) {
+					removeDialog(Constants.DIALOG_LOGIN);
+    				new MyLoginTask(user, password).execute();
+				}
+			};
+    		return dialog;
+    		
+    	}
+    	return null;
+    }
+    
+    
+    private class MyLoginTask extends LoginTask {
+    	public MyLoginTask(String username, String password) {
+    		super(username, password, mSettings, mClient, getApplicationContext());
+    	}
+    	
+    	@Override
+    	protected void onPreExecute() {
+    		showDialog(Constants.DIALOG_LOGGING_IN);
+    	}
+    	
+    	@Override
+    	protected void onPostExecute(Boolean success) {
+    		removeDialog(Constants.DIALOG_LOGGING_IN);
+    		if (success) {
+    			Toast.makeText(MainActivity.this, "Logged in as "+mUsername, Toast.LENGTH_SHORT).show();
+    		} else {
+//            	Common.showErrorToast(mUserError, Toast.LENGTH_LONG, CommentsListActivity.this);
+    		}
+    	}
+    }
 
 
 }

@@ -101,7 +101,7 @@ public class PostService extends BaseService {
 	
 	// Interfaces
 	
-	public interface RedditMaleFashionAdvicePostClient {
+	public interface PostClient {
 		@GET("/r/malefashionadvice/{path}.json")
 		RemoteResponse getPosts(@EncodedPath("path") String path, @Query("t")String time, @Query("after")String after);  
 	}
@@ -124,7 +124,7 @@ public class PostService extends BaseService {
 		{
 			List<RemoteRedditPost> totalPosts = new ArrayList<RemoteRedditPost>();
 			
-			RedditMaleFashionAdvicePostClient client = PostServiceClient.getInstance().getClient(getContext(), RedditMaleFashionAdvicePostClient.class); 
+			PostClient client = PostServiceClient.getInstance().getClient(getContext(), PostClient.class); 
 			
 			
 			RemoteResponse response; 

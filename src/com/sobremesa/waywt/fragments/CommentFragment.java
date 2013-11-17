@@ -1,12 +1,16 @@
 package com.sobremesa.waywt.fragments;
 
+import java.net.Authenticator;
 import java.util.ArrayList;
 
 import com.sobremesa.waywt.R;
 import com.sobremesa.waywt.activities.ImageActivity;
+import com.sobremesa.waywt.activities.MainActivity;
+import com.sobremesa.waywt.common.Constants;
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.ImageTable;
 import com.sobremesa.waywt.database.tables.CommentTable;
+import com.sobremesa.waywt.listeners.LoginListener;
 import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.views.AspectRatioImageView;
 import com.sobremesa.waywt.views.WaywtSecondaryTextView;
@@ -17,12 +21,17 @@ import com.xtremelabs.imageutils.ImageReturnedFrom;
 import com.xtremelabs.imageutils.ImageLoader.Options;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -32,6 +41,7 @@ import android.support.v4.content.Loader;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -42,14 +52,17 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.Toast;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
+public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>, LoginListener, View.OnCreateContextMenuListener
 {
 	public static final String TAG = CommentFragment.class.getCanonicalName();
 	
@@ -89,6 +102,26 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 		mPointsTv = (TextView)view.findViewById(R.id.comment_points_tv);
 		mTitleTv = (WaywtSecondaryTextView)view.findViewById(R.id.comment_title_tv);
 		
+		ImageView arrowUpIv = (ImageView)view.findViewById(R.id.comment_arrow_up_iv);
+		arrowUpIv.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+//				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://ssl.reddit.com/api/v1/authorize?state=egrwnoierignoernreuiw&duration=permanent&response_type=code&scope=identity&client_id=v2-xpPJEV2GZhg&redirect_uri=https://com.sobremesa.waywt"));
+				
+//				Intent intent = new Intent(getActivity(), WebViewActivity.class);
+//				startActivityForResult(intent, 3445);
+				
+				
+//				LiveAuthenticator.authenticate("opheliawnik", "allanpoe", CommentFragment.this);
+				MainActivity act = (MainActivity)getActivity();
+				
+				act.showDialog(Constants.DIALOG_LOGIN);
+			}
+		});
+		
+		
+		// Images fragemnt
 		RepliesFragment fragment = new RepliesFragment();
 		Bundle args = new Bundle();
 		args.putString(RepliesFragment.Extras.ARG_COMMENT_ID, getArguments().getString(Extras.ARG_COMMENT_ID));
@@ -96,6 +129,9 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 		
 		getChildFragmentManager().beginTransaction().replace(R.id.comment_replies_container, fragment, RepliesFragment.TAG).commit();
 		
+		
+		
+		// Load data
 		getLoaderManager().initLoader(LOADER_COMMENT, null, this);
 		getLoaderManager().initLoader(LOADER_IMAGES, null, this);
 		
@@ -197,14 +233,6 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 						
 						Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
 						sv.startAnimation(myFadeInAnimation);
-						
-						imageView.setOnClickListener(new OnClickListener() {
-							
-							@Override
-							public void onClick(View v) {
-								startImagesActivity(0);
-							}
-						});
 					}
 				});
 			
@@ -253,14 +281,14 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 							// bitmap = getResizedBitmap(bitmap, 200);
 							
 							imageView.setImageBitmap(bitmap); 
-							if (imageReturnedFrom != ImageReturnedFrom.MEMORY) {
-								
-								if (getActivity() != null) {
-									
-									Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
-									imageView.startAnimation(myFadeInAnimation);
-								}
-							}
+//							if (imageReturnedFrom != ImageReturnedFrom.MEMORY) {
+//								
+//								if (getActivity() != null) {
+//									
+//									Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
+//									imageView.startAnimation(myFadeInAnimation);
+//								}
+//							}
 						}
 					});
 					
@@ -278,9 +306,7 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 
 					
 					if( (i & 1) == 0  || i == cursor.getCount()-1 )
-					{
 						imagesLayout.addView(innerLayout);
-					}
 					
 					++i;
 					
@@ -308,8 +334,35 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 		intent.putExtras(extras);
 		startActivity(intent);
 	}
+
+
+	@Override
+	public void onLoginSuccess() {
+		// TODO Auto-generated method stub
+//		String modString = result.modhash;
+//		
+//		String cool = "";
+		
+	}
+
+
+	@Override
+	public void onLoginFailure(Exception exception) {
+		// TODO Auto-generated method stub
+		String pascool = "";
+	}
 	
 	
 	
+	@Override
+	  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+	    super.onActivityResult(requestCode, resultCode, data);
+	    getActivity();
+	    if(requestCode == 1 && resultCode == Activity.RESULT_OK) {
+	       //some code
+	    }
+	  }
+
+
 	
 }

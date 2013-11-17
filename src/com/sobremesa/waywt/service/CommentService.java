@@ -493,7 +493,7 @@ public class CommentService extends BaseService {
 											reply.data.body_html = Html.fromHtml(reply.data.body_html).toString();
 										
 										// recursive
-//										repliesChildren = getReplies(commentId, reply, repliesChildren);
+										repliesChildren = getReplies(commentId, reply, repliesChildren);
 										
 									}
 									

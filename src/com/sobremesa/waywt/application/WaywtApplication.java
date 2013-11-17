@@ -16,7 +16,13 @@ public class WaywtApplication extends Application {
 
 	private static final int MAX_IMAGES_MEM_CACHE_SIZE = 2 * 1024 * 1024;
 	private static Context sContext;
-
+	private static WaywtApplication sApplication;
+	
+	public WaywtApplication()
+	{
+		sApplication = this;
+	}
+	
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -29,5 +35,9 @@ public class WaywtApplication extends Application {
 	
 	public static final Context getContext() {
 		return sContext;
+	}
+	
+	public static WaywtApplication getApplication(){
+		return sApplication;
 	}
 }

@@ -73,4 +73,12 @@ public class ImageFragment extends Fragment {
 		
 		return view;
 	}
+	
+	@Override
+	public void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		
+		mImageLoader.destroy();
+	}
 }
