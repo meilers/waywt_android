@@ -1,8 +1,11 @@
 package com.sobremesa.waywt.adapters;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.sobremesa.waywt.fragments.CommentFragment;
+import com.sobremesa.waywt.model.ThingInfo;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -12,30 +15,29 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import com.viewpagerindicator.TitlePageIndicator;
 
 public class CommentPagerAdapter extends FragmentStatePagerAdapter {
-	List<String> mCommentIds;
-	List<String> mAuthors;
+	public boolean mIsLoading = false;
+	
+	ArrayList<ThingInfo> mComments;
 
-	public CommentPagerAdapter(FragmentManager fragmentManager,  List<String> commentIds, List<String> authors) {
+	public CommentPagerAdapter(FragmentManager fragmentManager,  ArrayList<ThingInfo> comments) {
 		super(fragmentManager);
-		mCommentIds = commentIds;
-		mAuthors = authors;
+		mComments = comments;
 	}
 	
-	public void setInfo(List<String> commentIds,  List<String> authors)
+	public void setComments( List<ThingInfo> comments )
 	{
-		mCommentIds = commentIds;
-		mAuthors = authors;
-		notifyDataSetChanged();
+		mComments.clear();
+		mComments.addAll(comments);
+		Collections.sort(mComments);
+		this.notifyDataSetChanged();
 	}
-	
 
 	@Override
 	public Fragment getItem(int position) {
 		
 		CommentFragment fragment = new CommentFragment();
 		Bundle args = new Bundle();
-		args.putString(CommentFragment.Extras.ARG_COMMENT_ID, mCommentIds.get(position));;
-		
+		args.putParcelable(CommentFragment.Extras.ARG_COMMENT, mComments.get(position));
 		
 		fragment.setArguments(args);
 		
@@ -44,12 +46,15 @@ public class CommentPagerAdapter extends FragmentStatePagerAdapter {
 
 	@Override
 	public int getCount() {
-		return mCommentIds.size();
+		return mComments.size();
 	}
 	
 	@Override
     public CharSequence getPageTitle(int position) {
-      return mAuthors.get(position).toUpperCase();
+		if( mComments.get(position).getAuthor() != null )
+			return mComments.get(position).getAuthor().toUpperCase();
+		
+		return null;
     }
 	
 	

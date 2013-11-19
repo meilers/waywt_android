@@ -28,16 +28,14 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.view.MenuItem;
 
-public class ImageActivity extends FragmentActivity implements LoaderCallbacks<Cursor>{
+public class ImageActivity extends FragmentActivity {
 
 	public static class Extras
 	{
-		public static String ARG_COMMENT_ID = "comment_id";
+		public static String ARG_COMMENT = "comment";
 		public static String ARG_IMAGE_SELECTED_POSITION = "image_selected_position";
 	}
 	
-	public static final int LOADER_COMMENT = 0;
-	public static final int LOADER_IMAGES = 1;
 	
 	private ViewPager mPager;
 	private ImagePagerAdapter mPagerAdapter;
@@ -60,67 +58,64 @@ public class ImageActivity extends FragmentActivity implements LoaderCallbacks<C
 	protected void onStart() {
 		// TODO Auto-generated method stub
 		super.onStart();
-		
-		getSupportLoaderManager().initLoader(LOADER_COMMENT, null, this);
-		getSupportLoaderManager().initLoader(LOADER_IMAGES, null, this);
 	}
 
-	@Override
-	public Loader<Cursor> onCreateLoader(int loaderId, Bundle arg1) {
-		
-		switch( loaderId )
-		{
-		case LOADER_COMMENT:
-			return new CursorLoader(this, Provider.COMMENT_CONTENT_URI, CommentTable.ALL_COLUMNS, CommentTable.ID + "=?", new String[] { getIntent().getStringExtra(Extras.ARG_COMMENT_ID) }, null);
-		case LOADER_IMAGES:
-			return new CursorLoader(this, Provider.IMAGE_CONTENT_URI, ImageTable.ALL_COLUMNS, ImageTable.COMMENT_ID + "=?", new String[] { getIntent().getStringExtra(Extras.ARG_COMMENT_ID) }, null);
-		}
-		
-		return null;
-	}
-
-	@Override
-	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-		
-		cursor.moveToFirst();
-		
-		switch( loader.getId() )
-		{
-		case LOADER_COMMENT:
-			
-			SpannableString s = new SpannableString(cursor.getString(cursor.getColumnIndex(CommentTable.AUTHOR)).toUpperCase());
-			s.setSpan(new TypefaceSpan(WaywtApplication.getContext()), 0, s.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-			ActionBar actionBar = getActionBar();
-			actionBar.setTitle(s);
-			
-			break;
-		case LOADER_IMAGES:
-			List<String> imageUrls = new ArrayList<String>();
-			
-			for( cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext() )
-			{
-				imageUrls.add(cursor.getString(cursor.getColumnIndex(ImageTable.URL)));
-			}
-			
-			mPagerAdapter = new ImagePagerAdapter(getSupportFragmentManager(), imageUrls);
-			mPager.setAdapter(mPagerAdapter);
-			mPager.setCurrentItem(getIntent().getIntExtra(Extras.ARG_IMAGE_SELECTED_POSITION,0));
-			
-			mindicator = (CirclePageIndicator)findViewById(R.id.indicator);
-			mindicator.setViewPager(mPager);
-			
-			break;
-			
-		}
-
-	}
-
-	@Override
-	public void onLoaderReset(Loader<Cursor> arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+//	@Override
+//	public Loader<Cursor> onCreateLoader(int loaderId, Bundle arg1) {
+//		
+//		switch( loaderId )
+//		{
+//		case LOADER_COMMENT:
+//			return new CursorLoader(this, Provider.COMMENT_CONTENT_URI, CommentTable.ALL_COLUMNS, CommentTable.ID + "=?", new String[] { getIntent().getStringExtra(Extras.ARG_COMMENT_ID) }, null);
+//		case LOADER_IMAGES:
+//			return new CursorLoader(this, Provider.IMAGE_CONTENT_URI, ImageTable.ALL_COLUMNS, ImageTable.COMMENT_ID + "=?", new String[] { getIntent().getStringExtra(Extras.ARG_COMMENT_ID) }, null);
+//		}
+//		
+//		return null;
+//	}
+//
+//	@Override
+//	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+//		
+//		cursor.moveToFirst();
+//		
+//		switch( loader.getId() )
+//		{
+//		case LOADER_COMMENT:
+//			
+//			SpannableString s = new SpannableString(cursor.getString(cursor.getColumnIndex(CommentTable.AUTHOR)).toUpperCase());
+//			s.setSpan(new TypefaceSpan(WaywtApplication.getContext()), 0, s.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+//
+//			ActionBar actionBar = getActionBar();
+//			actionBar.setTitle(s);
+//			
+//			break;
+//		case LOADER_IMAGES:
+//			List<String> imageUrls = new ArrayList<String>();
+//			
+//			for( cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext() )
+//			{
+//				imageUrls.add(cursor.getString(cursor.getColumnIndex(ImageTable.URL)));
+//			}
+//			
+//			mPagerAdapter = new ImagePagerAdapter(getSupportFragmentManager(), imageUrls);
+//			mPager.setAdapter(mPagerAdapter);
+//			mPager.setCurrentItem(getIntent().getIntExtra(Extras.ARG_IMAGE_SELECTED_POSITION,0));
+//			
+//			mindicator = (CirclePageIndicator)findViewById(R.id.indicator);
+//			mindicator.setViewPager(mPager);
+//			
+//			break;
+//			
+//		}
+//
+//	}
+//
+//	@Override
+//	public void onLoaderReset(Loader<Cursor> arg0) {
+//		// TODO Auto-generated method stub
+//		
+//	}
 	
 	
 	@Override

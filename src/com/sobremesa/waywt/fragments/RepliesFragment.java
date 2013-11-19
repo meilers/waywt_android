@@ -27,12 +27,12 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class RepliesFragment extends Fragment implements LoaderCallbacks<Cursor> {
-	public static final String TAG = RepliesFragment.class.getCanonicalName();
+public class RepliesFragment extends Fragment {
+	private static final String TAG = RepliesFragment.class.getSimpleName();
 	
 	public static class Extras
 	{
-		public static String ARG_COMMENT_ID = "comment_id";
+		public static String ARG_COMMENT = "comment";
 	}
 	
 	
@@ -55,58 +55,56 @@ public class RepliesFragment extends Fragment implements LoaderCallbacks<Cursor>
 	public void onStart() {
 		// TODO Auto-generated method stub
 		super.onStart();
-		
-		getLoaderManager().initLoader(0, null, this);
 	}
 
 
-	@Override
-	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		return new CursorLoader(getActivity(), Provider.REPLY_CONTENT_URI, new String[] { ReplyTable.AUTHOR, ReplyTable.BODY_HTML, CommentTable.UPS + " - " + CommentTable.DOWNS + " AS `difference`" }, ReplyTable.COMMENT_ID + "=?", new String[] { getArguments().getString(Extras.ARG_COMMENT_ID) }, "`difference` DESC");
-	}
-
-
-	@Override
-	public void onLoadFinished(Loader<Cursor> arg0, Cursor cursor) {
-		
-		
-		
-		if( getView() != null && cursor.getCount() > 0 )
-		{
-			LinearLayout container = (LinearLayout)getView().findViewById(R.id.replies_container);
-			
-			container.removeAllViews();
-			
-			for( cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext() )
-			{
-				String author = cursor.getString(cursor.getColumnIndex(ReplyTable.AUTHOR));
-				String bodyHtml = cursor.getString(cursor.getColumnIndex(ReplyTable.BODY_HTML));
-				
-				LinearLayout newLayout = (LinearLayout)getActivity().getLayoutInflater().inflate(R.layout.list_item_reply, null);
-				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-				params.gravity = Gravity.LEFT;
-				newLayout.setLayoutParams(params);
-				
-				TextView authorTv = (TextView)newLayout.findViewById(R.id.list_item_reply_author_tv);
-				authorTv.setText(author);
-				
-				TextView bodyTv = (TextView)newLayout.findViewById(R.id.list_item_reply_body_tv);
-				bodyTv.setText(Html.fromHtml(bodyHtml));
-				bodyTv.setMovementMethod (LinkMovementMethod.getInstance());
-				bodyTv.setClickable(true);
-				
-				container.addView(newLayout);
-				
-			}
-			
-			
-		}
-	}
-
-
-	@Override
-	public void onLoaderReset(Loader<Cursor> arg0) {
-		// TODO Auto-generated method stub
-		
-	}
+//	@Override
+//	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
+//		return new CursorLoader(getActivity(), Provider.REPLY_CONTENT_URI, new String[] { ReplyTable.AUTHOR, ReplyTable.BODY_HTML, CommentTable.UPS + " - " + CommentTable.DOWNS + " AS `difference`" }, ReplyTable.COMMENT_ID + "=?", new String[] { getArguments().getString(Extras.ARG_COMMENT_ID) }, "`difference` DESC");
+//	}
+//
+//
+//	@Override
+//	public void onLoadFinished(Loader<Cursor> arg0, Cursor cursor) {
+//		
+//		
+//		
+//		if( getView() != null && cursor.getCount() > 0 )
+//		{
+//			LinearLayout container = (LinearLayout)getView().findViewById(R.id.replies_container);
+//			
+//			container.removeAllViews();
+//			
+//			for( cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext() )
+//			{
+//				String author = cursor.getString(cursor.getColumnIndex(ReplyTable.AUTHOR));
+//				String bodyHtml = cursor.getString(cursor.getColumnIndex(ReplyTable.BODY_HTML));
+//				
+//				LinearLayout newLayout = (LinearLayout)getActivity().getLayoutInflater().inflate(R.layout.list_item_reply, null);
+//				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+//				params.gravity = Gravity.LEFT;
+//				newLayout.setLayoutParams(params);
+//				
+//				TextView authorTv = (TextView)newLayout.findViewById(R.id.list_item_reply_author_tv);
+//				authorTv.setText(author);
+//				
+//				TextView bodyTv = (TextView)newLayout.findViewById(R.id.list_item_reply_body_tv);
+//				bodyTv.setText(Html.fromHtml(bodyHtml));
+//				bodyTv.setMovementMethod (LinkMovementMethod.getInstance());
+//				bodyTv.setClickable(true);
+//				
+//				container.addView(newLayout);
+//				
+//			}
+//			
+//			
+//		}
+//	}
+//
+//
+//	@Override
+//	public void onLoaderReset(Loader<Cursor> arg0) {
+//		// TODO Auto-generated method stub
+//		
+//	}
 }

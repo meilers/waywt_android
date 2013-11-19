@@ -1,7 +1,14 @@
 package com.sobremesa.waywt.fragments;
 
+import java.io.IOException;
 import java.net.Authenticator;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.sobremesa.waywt.R;
 import com.sobremesa.waywt.activities.ImageActivity;
@@ -12,6 +19,12 @@ import com.sobremesa.waywt.database.tables.ImageTable;
 import com.sobremesa.waywt.database.tables.CommentTable;
 import com.sobremesa.waywt.listeners.LoginListener;
 import com.sobremesa.waywt.managers.FontManager;
+import com.sobremesa.waywt.model.ThingInfo;
+import com.sobremesa.waywt.service.CommentService.ImgurClient;
+import com.sobremesa.waywt.service.CommentService.RemoteImgurAlbum;
+import com.sobremesa.waywt.service.CommentService.RemoteImgurAlbumImage;
+import com.sobremesa.waywt.service.CommentService.RemoteImgurResponse;
+import com.sobremesa.waywt.service.clients.ImgurServiceClient;
 import com.sobremesa.waywt.views.AspectRatioImageView;
 import com.sobremesa.waywt.views.WaywtSecondaryTextView;
 import com.sobremesa.waywt.views.WaywtTextView;
@@ -62,17 +75,17 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>, LoginListener, View.OnCreateContextMenuListener
+public class CommentFragment extends Fragment implements View.OnCreateContextMenuListener
 {
-	public static final String TAG = CommentFragment.class.getCanonicalName();
+	private static final String TAG = CommentFragment.class.getSimpleName();
 	
 	public static class Extras
 	{
-		public static String ARG_COMMENT_ID = "comment_id";
+		public static String ARG_COMMENT = "comment";
 	}
+	private ThingInfo mComment;
+	private List<String> mImageUrls;
 	
-	public static final int LOADER_COMMENT = 0;
-	public static final int LOADER_IMAGES = 1;
 	
 	private ImageLoader mImageLoader;
 	private AspectRatioImageView mMainIv;
@@ -80,10 +93,129 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 	private WaywtSecondaryTextView mTitleTv;
 	private TextView mPointsTv;
 	
+	
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
+		
+		mComment = (ThingInfo)getArguments().get(Extras.ARG_COMMENT);
+		mImageUrls = new ArrayList<String>();
+		
+		String bodyHtml = mComment.getBody_html();
+		
+	    if( bodyHtml != null )
+		{
+			Pattern pattern = Pattern.compile("href=\"(.*?)\"");
+			Matcher matcher = pattern.matcher(bodyHtml);
+			
+			String url = "";
+			
+				
+			while (matcher.find()) {
+				url = matcher.group(1);
+				
+				if( url.contains("imgur.com"))
+				{
+					url = url.replace("gallery/", "");
+					
+					if( !url.contains("i.imgur.com"))
+					{
+						if( url.contains("imgur.com/a/"))
+						{
+//							ImgurClient imgurClient = ImgurServiceClient.getInstance().getClient(getContext(), ImgurClient.class);  
+//							
+//							String albumId = url.split("/a/")[1];
+//							RemoteImgurResponse imgurResponse = imgurClient.getAlbum( "Client-ID " + "e52e554e5972395", albumId);  
+//							RemoteImgurAlbum imgurAlbum = imgurResponse.data;
+//							List<RemoteImgurAlbumImage> imgs = imgurAlbum.images;
+//							
+//							for( RemoteImgurAlbumImage img : imgs)
+//							{
+//								url = img.link;
+//								
+//								url = url.replace("imgur", "i.imgur");
+//								url += "m.jpg";
+//								
+//								RemoteImage image = new RemoteImage();
+//								image.url = url;
+//								image.postId = mPostId;
+//								image.commentId = commentId;
+//								images.add(image);
+//							}
+						
+						}
+						else
+						{
+							url = url.replace("imgur", "i.imgur");
+							url += "m.jpg";
+							mImageUrls.add(url);
+						}
+					}
+					else
+					{
+						if( !url.contains(".jpg"))
+							url += "m.jpg";
+						else
+						{
+							url = url.replace("s.jpg", ".jpg");
+							url = url.replace("l.jpg", ".jpg");
+							
+							url = url.replace(".jpg", "m.jpg");
+						}
+						
+						mImageUrls.add(url);
+						
+					}
+				}
+				
+				else if( url.contains("drsd.so") || url.contains("dressed.so"))
+				{
+					if( url.contains("drsd.so") )
+					{
+						URL u;
+//						try {
+//							u = new URL(url);
+//							HttpURLConnection ucon = (HttpURLConnection) u.openConnection();
+//							ucon.setInstanceFollowRedirects(false);
+//							URL secondURL = new URL(ucon.getHeaderField("Location"));
+//							
+//							url = secondURL.toString(); 
+//							
+//							
+//							
+//						} catch (MalformedURLException e) {
+//							// TODO Auto-generated catch block
+//							Log.d("exc", url);  
+//							e.printStackTrace();
+//						} catch (IOException e) {
+//							// TODO Auto-generated catch block
+//							Log.d("exc", url);  
+//							e.printStackTrace();
+//						}
+							continue;
+					}
+					
+					if( !url.contains("cdn.dressed.so") )
+					{
+						url = url.replace("dressed.so/post/view", "cdn.dressed.so/i");
+						
+
+						
+						url += "m.jpg";  
+					}
+					
+					mImageUrls.add(url);
+				}
+				
+			
+			}
+				
+		}
+	    
+		
+		
 		
 		Options options = new Options();
 		options.scalingPreference = Options.ScalingPreference.ROUND_TO_CLOSEST_MATCH;
@@ -95,45 +227,173 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
-		View view = inflater.inflate(R.layout.fragment_comment, null, false);
+		final View view = inflater.inflate(R.layout.fragment_comment, null, false);
 		
 		
 		mMainIv = (AspectRatioImageView)view.findViewById(R.id.comment_image_iv);
 		mPointsTv = (TextView)view.findViewById(R.id.comment_points_tv);
 		mTitleTv = (WaywtSecondaryTextView)view.findViewById(R.id.comment_title_tv);
 		
-		ImageView arrowUpIv = (ImageView)view.findViewById(R.id.comment_arrow_up_iv);
-		arrowUpIv.setOnClickListener(new OnClickListener() {
+//		ImageView arrowUpIv = (ImageView)view.findViewById(R.id.comment_arrow_up_iv);
+//		arrowUpIv.setOnClickListener(new OnClickListener() {
+//			
+//			@Override
+//			public void onClick(View v) {
+////				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://ssl.reddit.com/api/v1/authorize?state=egrwnoierignoernreuiw&duration=permanent&response_type=code&scope=identity&client_id=v2-xpPJEV2GZhg&redirect_uri=https://com.sobremesa.waywt"));
+//				
+////				Intent intent = new Intent(getActivity(), WebViewActivity.class);
+////				startActivityForResult(intent, 3445);
+//				
+//				
+////				LiveAuthenticator.authenticate("opheliawnik", "allanpoe", CommentFragment.this);
+//				MainActivity act = (MainActivity)getActivity();
+//				
+//				act.showDialog(Constants.DIALOG_LOGIN);
+//			}
+//		});
+		
+		
+		
+		// Images
+		if( mImageUrls.size() > 0 )
+		{
+			final String mainImageUrl = mImageUrls.get(0);
 			
-			@Override
-			public void onClick(View v) {
-//				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://ssl.reddit.com/api/v1/authorize?state=egrwnoierignoernreuiw&duration=permanent&response_type=code&scope=identity&client_id=v2-xpPJEV2GZhg&redirect_uri=https://com.sobremesa.waywt"));
+			mImageLoader.loadImage(mMainIv, mainImageUrl, new ImageLoaderListener() {
+				@Override
+				public void onImageLoadError(String arg0) { 
+					
+					Log.d("fail", mainImageUrl);
+					
+					ScrollView sv = (ScrollView)view.findViewById(R.id.container);
+					sv.setVisibility(View.VISIBLE);
+					
+					Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
+					sv.startAnimation(myFadeInAnimation);
+				}
 				
-//				Intent intent = new Intent(getActivity(), WebViewActivity.class);
-//				startActivityForResult(intent, 3445);
+				@Override
+				public void onImageAvailable(ImageView imageView, Bitmap bitmap, ImageReturnedFrom imageReturnedFrom) {
+					
+					// bitmap = getResizedBitmap(bitmap, 200);
+					
+					imageView.setImageBitmap(bitmap);
+					
+					ScrollView sv = (ScrollView)view.findViewById(R.id.container);
+					sv.setVisibility(View.VISIBLE);
+					
+					Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
+					sv.startAnimation(myFadeInAnimation);
+				}
+			});
+			
+			LinearLayout imagesLayout = (LinearLayout)view.findViewById(R.id.images_grid_layout);
+			imagesLayout.removeAllViews();
+			
+			Display display = getActivity().getWindowManager().getDefaultDisplay();
+			Point size = new Point();
+			display.getSize(size);
+			int width = size.x;
+			LinearLayout innerLayout = new LinearLayout(getActivity());
+			
+			for( int i = 1; i < mImageUrls.size(); ++i )
+			{
+				final String imageUrl = mImageUrls.get(0);
 				
 				
-//				LiveAuthenticator.authenticate("opheliawnik", "allanpoe", CommentFragment.this);
-				MainActivity act = (MainActivity)getActivity();
+				if( (i & 1) == 1 )
+				{
+					
+					LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, width/2);
+					params.gravity = Gravity.LEFT;
+					
+					innerLayout = new LinearLayout(getActivity());
+					innerLayout.setLayoutParams(params);
+					innerLayout.setOrientation(LinearLayout.HORIZONTAL);
+				}
 				
-				act.showDialog(Constants.DIALOG_LOGIN);
+				ImageView iv = new ImageView(getActivity());
+				iv.setLayoutParams(new LinearLayout.LayoutParams(width/2, width/2));
+				iv.setScaleType(ScaleType.CENTER_CROP);
+				
+				mImageLoader.loadImage(iv, imageUrl, new ImageLoaderListener() {
+					@Override
+					public void onImageLoadError(String arg0) {
+		
+						Log.d("fail", imageUrl);
+					}
+					
+					@Override
+					public void onImageAvailable(ImageView imageView, Bitmap bitmap, ImageReturnedFrom imageReturnedFrom) {
+						
+						// bitmap = getResizedBitmap(bitmap, 200);
+						
+						imageView.setImageBitmap(bitmap); 
+//							if (imageReturnedFrom != ImageReturnedFrom.MEMORY) {
+//								
+//								if (getActivity() != null) {
+//									
+//									Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
+//									imageView.startAnimation(myFadeInAnimation);
+//								}
+//							}
+					}
+				});
+				
+				final int position = i;
+				
+				iv.setOnClickListener(new OnClickListener() {
+					
+					@Override
+					public void onClick(View v) {
+						startImagesActivity(position);
+					}
+				});
+				
+				innerLayout.addView(iv);
+	
+				
+				if( (i & 1) == 0  || i == mImageUrls.size()-1 )
+					imagesLayout.addView(innerLayout);
 			}
-		});
+			
+		}
+
 		
 		
-		// Images fragemnt
+		// Points
+		int ups = Integer.valueOf(mComment.getUps()); 
+		int downs = Integer.valueOf(mComment.getDowns());
+		
+		ImageView arrowUpIv = (ImageView)view.findViewById(R.id.comment_arrow_up_iv);
+		ImageView arrowDownIv = (ImageView)view.findViewById(R.id.comment_arrow_down_iv);		
+		
+		arrowUpIv.setVisibility(View.VISIBLE);
+		arrowDownIv.setVisibility(View.VISIBLE);
+		
+		mPointsTv.setText((ups-downs)  + "");
+		
+		
+		// Text
+		String bodyHtml =  mComment.getBody_html();
+		mTitleTv.setText(Html.fromHtml(Html.fromHtml(bodyHtml).toString()));
+		mTitleTv.setTypeface(FontManager.INSTANCE.getGeorgiaFont(), Typeface.ITALIC);
+		
+		mTitleTv.setMovementMethod (LinkMovementMethod.getInstance());
+		mTitleTv.setClickable(true);
+		
+		
+		
+		
+		// Replies fragment
 		RepliesFragment fragment = new RepliesFragment();
 		Bundle args = new Bundle();
-		args.putString(RepliesFragment.Extras.ARG_COMMENT_ID, getArguments().getString(Extras.ARG_COMMENT_ID));
+		args.putParcelable(RepliesFragment.Extras.ARG_COMMENT, mComment);
 		fragment.setArguments(args);
 		
-		getChildFragmentManager().beginTransaction().replace(R.id.comment_replies_container, fragment, RepliesFragment.TAG).commit();
+		getChildFragmentManager().beginTransaction().replace(R.id.comment_replies_container, fragment, RepliesFragment.class.getCanonicalName()).commit();
 		
-		
-		
-		// Load data
-		getLoaderManager().initLoader(LOADER_COMMENT, null, this);
-		getLoaderManager().initLoader(LOADER_IMAGES, null, this);
+	
 		
 		return view;
 	}
@@ -153,205 +413,18 @@ public class CommentFragment extends Fragment implements LoaderCallbacks<Cursor>
 		
 		super.onDestroy();
 	}
-	
-	
-	@Override
-	public Loader<Cursor> onCreateLoader(int loaderId, Bundle arg1) {
-		switch( loaderId )
-		{
-		case LOADER_COMMENT:
-			return new CursorLoader(getActivity(), Provider.COMMENT_CONTENT_URI, CommentTable.ALL_COLUMNS, CommentTable.ID + "=?", new String[] { getArguments().getString(Extras.ARG_COMMENT_ID) }, null);
-		case LOADER_IMAGES:
-			return new CursorLoader(getActivity(), Provider.IMAGE_CONTENT_URI, ImageTable.ALL_COLUMNS, ImageTable.COMMENT_ID + "=?", new String[] { getArguments().getString(Extras.ARG_COMMENT_ID) }, null);
-		}
-		
-		return null;
-	}
 
-	@Override
-	public void onLoadFinished(Loader<Cursor> loader, final Cursor cursor) {
-		cursor.moveToFirst();
-	
-		switch( loader.getId() )
-		{
-		case LOADER_COMMENT:
-			
-			if( cursor.getCount() > 0)
-			{
-				int ups = Integer.valueOf(cursor.getString(cursor.getColumnIndex(CommentTable.UPS))); 
-				int downs = Integer.valueOf(cursor.getString(cursor.getColumnIndex(CommentTable.DOWNS)));
-				
-				if( getView() != null )
-				{
-					ImageView arrowUpIv = (ImageView)getView().findViewById(R.id.comment_arrow_up_iv);
-					ImageView arrowDownIv = (ImageView)getView().findViewById(R.id.comment_arrow_down_iv);		
-					
-					arrowUpIv.setVisibility(View.VISIBLE);
-					arrowDownIv.setVisibility(View.VISIBLE);
-					
-					mPointsTv.setText((ups-downs)  + "");
-					
-					
-					String bodyHtml =  cursor.getString(cursor.getColumnIndex(CommentTable.BODY_HTML));
-					mTitleTv.setText(Html.fromHtml(bodyHtml));
-					mTitleTv.setTypeface(FontManager.INSTANCE.getGeorgiaFont(), Typeface.ITALIC);
-					
-					mTitleTv.setMovementMethod (LinkMovementMethod.getInstance());
-					mTitleTv.setClickable(true);
-				}
-
-			}
-			break;
-		case LOADER_IMAGES:
-			if( getView() != null && cursor.getCount() > 0)
-			{
-				Log.d("image", cursor.getString(cursor.getColumnIndex(ImageTable.URL)));
-				
-				final String str = cursor.getString(cursor.getColumnIndex(ImageTable.URL));
-				mImageLoader.loadImage(mMainIv, cursor.getString(cursor.getColumnIndex(ImageTable.URL)), new ImageLoaderListener() {
-					@Override
-					public void onImageLoadError(String arg0) { 
-		
-						Log.d("fail", str);
-						
-						ScrollView sv = (ScrollView)getView().findViewById(R.id.container);
-						sv.setVisibility(View.VISIBLE);
-						
-						Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
-						sv.startAnimation(myFadeInAnimation);
-					}
-					
-					@Override
-					public void onImageAvailable(ImageView imageView, Bitmap bitmap, ImageReturnedFrom imageReturnedFrom) {
-						
-						// bitmap = getResizedBitmap(bitmap, 200);
-						
-						imageView.setImageBitmap(bitmap);
-						
-						ScrollView sv = (ScrollView)getView().findViewById(R.id.container);
-						sv.setVisibility(View.VISIBLE);
-						
-						Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
-						sv.startAnimation(myFadeInAnimation);
-					}
-				});
-			
-				LinearLayout imagesLayout = (LinearLayout)getView().findViewById(R.id.images_grid_layout);
-				imagesLayout.removeAllViews();
-				
-				Display display = getActivity().getWindowManager().getDefaultDisplay();
-				Point size = new Point();
-				display.getSize(size);
-				int width = size.x;
-				int height = size.y;
-				
-				int i = 1;
-				
-				LinearLayout innerLayout = new LinearLayout(getActivity());
-				
-				for (cursor.moveToNext(); !cursor.isAfterLast(); cursor.moveToNext()) {
-					String imageUrl = cursor.getString(cursor.getColumnIndex(ImageTable.URL));
-					
-					
-					if( (i & 1) == 1 )
-					{
-						
-						LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(width, width/2);
-						params.gravity = Gravity.LEFT;
-						
-						innerLayout = new LinearLayout(getActivity());
-						innerLayout.setLayoutParams(params);
-						innerLayout.setOrientation(LinearLayout.HORIZONTAL);
-					}
-					
-					ImageView iv = new ImageView(getActivity());
-					iv.setLayoutParams(new LinearLayout.LayoutParams(width/2, width/2));
-					iv.setScaleType(ScaleType.CENTER_CROP);
-					
-					mImageLoader.loadImage(iv, imageUrl, new ImageLoaderListener() {
-						@Override
-						public void onImageLoadError(String arg0) {
-			
-							Log.d("fail", str);
-						}
-						
-						@Override
-						public void onImageAvailable(ImageView imageView, Bitmap bitmap, ImageReturnedFrom imageReturnedFrom) {
-							
-							// bitmap = getResizedBitmap(bitmap, 200);
-							
-							imageView.setImageBitmap(bitmap); 
-//							if (imageReturnedFrom != ImageReturnedFrom.MEMORY) {
-//								
-//								if (getActivity() != null) {
-//									
-//									Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
-//									imageView.startAnimation(myFadeInAnimation);
-//								}
-//							}
-						}
-					});
-					
-					final int position = i;
-					
-					iv.setOnClickListener(new OnClickListener() {
-						
-						@Override
-						public void onClick(View v) {
-							startImagesActivity(position);
-						}
-					});
-					
-					innerLayout.addView(iv);
-
-					
-					if( (i & 1) == 0  || i == cursor.getCount()-1 )
-						imagesLayout.addView(innerLayout);
-					
-					++i;
-					
-
-				}
-			}
-			break;
-		}
-		
-	}
-
-	@Override
-	public void onLoaderReset(Loader<Cursor> arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 	
 	private void startImagesActivity(int position)
 	{
 		Intent intent = new Intent(getActivity(), ImageActivity.class);
 		Bundle extras = new Bundle();
-		extras.putString(ImageActivity.Extras.ARG_COMMENT_ID, getArguments().getString(Extras.ARG_COMMENT_ID));
+		extras.putString(ImageActivity.Extras.ARG_COMMENT, getArguments().getString(Extras.ARG_COMMENT));
 		extras.putInt(ImageActivity.Extras.ARG_IMAGE_SELECTED_POSITION, position);
 		intent.putExtras(extras);
 		startActivity(intent);
 	}
 
-
-	@Override
-	public void onLoginSuccess() {
-		// TODO Auto-generated method stub
-//		String modString = result.modhash;
-//		
-//		String cool = "";
-		
-	}
-
-
-	@Override
-	public void onLoginFailure(Exception exception) {
-		// TODO Auto-generated method stub
-		String pascool = "";
-	}
-	
 	
 	
 	@Override

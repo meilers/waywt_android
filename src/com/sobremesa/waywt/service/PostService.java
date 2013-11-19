@@ -144,7 +144,7 @@ public class PostService extends BaseService {
 				response = client.getPosts("hot", "", after);  
 				remoteData = response.data;
 				
-				posts = remoteData.children;  
+				posts = remoteData.children;   
 				
 				iter = posts.iterator();
 				while (iter.hasNext()) {

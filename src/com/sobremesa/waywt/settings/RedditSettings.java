@@ -34,6 +34,8 @@ import android.webkit.CookieSyncManager;
 import com.sobremesa.waywt.R;
 import com.sobremesa.waywt.common.Constants;
 import com.sobremesa.waywt.common.RedditIsFunHttpClientFactory;
+import com.sobremesa.waywt.util.StringUtils;
+import com.sobremesa.waywt.util.Util;
 
 /**
  * Common settings
@@ -47,6 +49,25 @@ public class RedditSettings {
 	private String username = null;
 	private Cookie redditSessionCookie = null;
 	private String modhash = null;
+	private String homepage = Constants.FRONTPAGE_STRING;
+	private boolean useExternalBrowser = false;
+	private boolean showCommentGuideLines = true;
+	private boolean confirmQuitOrLogout = true;
+	private boolean saveHistory = true;
+	private boolean alwaysShowNextPrevious = true;
+	
+	private int threadDownloadLimit = Constants.DEFAULT_THREAD_DOWNLOAD_LIMIT;
+	private String commentsSortByUrl = Constants.CommentsSort.SORT_BY_BEST_URL;
+	
+    
+	// --- Themes ---
+	private int theme = R.style.Reddit_Light_Medium;
+	private int rotation = -1;  // -1 means unspecified
+	private boolean loadThumbnails = true;
+	private boolean loadThumbnailsOnlyWifi = false;
+	
+	private String mailNotificationStyle = Constants.PREF_MAIL_NOTIFICATION_STYLE_DEFAULT;
+	private String mailNotificationService = Constants.PREF_MAIL_NOTIFICATION_SERVICE_OFF;
 	
 	
 	
@@ -107,6 +128,39 @@ public class RedditSettings {
     	if (this.modhash != null)
     		editor.putString("modhash", this.modhash.toString());
     	
+    	// Default subreddit
+    	editor.putString(Constants.PREF_HOMEPAGE, this.homepage.toString());
+    	
+    	// Use external browser instead of BrowserActivity
+    	editor.putBoolean(Constants.PREF_USE_EXTERNAL_BROWSER, this.useExternalBrowser);
+
+    	// Show confirmation dialog when backing out of root Activity
+    	editor.putBoolean(Constants.PREF_CONFIRM_QUIT, this.confirmQuitOrLogout);
+
+    	// Save reddit history to Browser history
+    	editor.putBoolean(Constants.PREF_SAVE_HISTORY, this.saveHistory);
+    	
+    	// Whether to always show the next/previous buttons, or only at bottom of list
+    	editor.putBoolean(Constants.PREF_ALWAYS_SHOW_NEXT_PREVIOUS, this.alwaysShowNextPrevious);
+    	
+    	// Comments sort order
+    	editor.putString(Constants.PREF_COMMENTS_SORT_BY_URL, this.commentsSortByUrl);
+    	
+    	
+    	// Comment guide lines
+    	editor.putBoolean(Constants.PREF_SHOW_COMMENT_GUIDE_LINES, this.showCommentGuideLines);
+    	
+    	// Rotation
+    	editor.putString(Constants.PREF_ROTATION, RedditSettings.Rotation.toString(this.rotation));
+    	
+    	// Thumbnails
+    	editor.putBoolean(Constants.PREF_LOAD_THUMBNAILS, this.loadThumbnails);
+    	editor.putBoolean(Constants.PREF_LOAD_THUMBNAILS_ONLY_WIFI, this.loadThumbnailsOnlyWifi);
+    	
+    	// Notifications
+    	editor.putString(Constants.PREF_MAIL_NOTIFICATION_STYLE, this.mailNotificationStyle);
+    	editor.putString(Constants.PREF_MAIL_NOTIFICATION_SERVICE, this.mailNotificationService);
+
     	editor.commit();
     }
     
@@ -136,9 +190,53 @@ public class RedditSettings {
     		}
         }
         
+        // Default subreddit
+        String homepage = sessionPrefs.getString(Constants.PREF_HOMEPAGE, Constants.FRONTPAGE_STRING).trim();
+        if (StringUtils.isEmpty(homepage))
+        	this.setHomepage(Constants.FRONTPAGE_STRING);
+        else
+        	this.setHomepage(homepage);
+        
+    	// Use external browser instead of BrowserActivity
+        this.setUseExternalBrowser(sessionPrefs.getBoolean(Constants.PREF_USE_EXTERNAL_BROWSER, false));
 
+    	// Show confirmation dialog when backing out of root Activity
+        this.setConfirmQuitOrLogout(sessionPrefs.getBoolean(Constants.PREF_CONFIRM_QUIT, true));
+
+        // Save reddit history to Browser history
+        this.setSaveHistory(sessionPrefs.getBoolean(Constants.PREF_SAVE_HISTORY, true));
+        
+    	// Whether to always show the next/previous buttons, or only at bottom of list
+        this.setAlwaysShowNextPrevious(sessionPrefs.getBoolean(Constants.PREF_ALWAYS_SHOW_NEXT_PREVIOUS, true));
+        
+    	// Comments sort order
+        this.setCommentsSortByUrl(sessionPrefs.getString(Constants.PREF_COMMENTS_SORT_BY_URL, Constants.CommentsSort.SORT_BY_BEST_URL));
+        
+        
+        // Comment guide lines
+        this.setShowCommentGuideLines(sessionPrefs.getBoolean(Constants.PREF_SHOW_COMMENT_GUIDE_LINES, true));
+        
+        // Rotation
+        this.setRotation(RedditSettings.Rotation.valueOf(
+        		sessionPrefs.getString(Constants.PREF_ROTATION, Constants.PREF_ROTATION_UNSPECIFIED)));
+        
+        // Thumbnails
+        this.setLoadThumbnails(sessionPrefs.getBoolean(Constants.PREF_LOAD_THUMBNAILS, true));
+        // Thumbnails on Wifi
+        this.setLoadThumbnailsOnlyWifi(sessionPrefs.getBoolean(Constants.PREF_LOAD_THUMBNAILS_ONLY_WIFI, false));
+        
+        // Notifications
+        this.setMailNotificationStyle(sessionPrefs.getString(Constants.PREF_MAIL_NOTIFICATION_STYLE, Constants.PREF_MAIL_NOTIFICATION_STYLE_DEFAULT));
+        this.setMailNotificationService(sessionPrefs.getString(Constants.PREF_MAIL_NOTIFICATION_SERVICE, Constants.PREF_MAIL_NOTIFICATION_SERVICE_OFF));
     }
     
+    public int getDialogTheme() {
+    	return R.style.Reddit_Light_Dialog;
+    }
+    
+    public int getDialogNoTitleTheme() {
+    	return R.style.Reddit_Light_Dialog_NoTitle;
+    }
 
 	public boolean isLoggedIn() {
 		return username != null;
@@ -168,5 +266,116 @@ public class RedditSettings {
 		this.modhash = modhash;
 	}
 
+	public String getHomepage() {
+		return homepage;
+	}
+
+	public void setHomepage(String homepage) {
+		this.homepage = homepage;
+	}
+
+	public boolean isUseExternalBrowser() {
+		return useExternalBrowser;
+	}
+
+	public void setUseExternalBrowser(boolean useExternalBrowser) {
+		this.useExternalBrowser = useExternalBrowser;
+	}
+
+	public boolean isShowCommentGuideLines() {
+		return showCommentGuideLines;
+	}
+
+	public void setShowCommentGuideLines(boolean showCommentGuideLines) {
+		this.showCommentGuideLines = showCommentGuideLines;
+	}
+
+	public boolean isConfirmQuitOrLogout() {
+		return confirmQuitOrLogout;
+	}
+
+	public boolean isSaveHistory() {
+		return saveHistory;
+	}
+
+	public void setConfirmQuitOrLogout(boolean confirmQuitOrLogout) {
+		this.confirmQuitOrLogout = confirmQuitOrLogout;
+	}
+
+	public void setSaveHistory(boolean saveHistory) {
+		this.saveHistory = saveHistory;
+	}
+
+	public boolean isAlwaysShowNextPrevious() {
+		return alwaysShowNextPrevious;
+	}
+
+	public void setAlwaysShowNextPrevious(boolean alwaysShowNextPrevious) {
+		this.alwaysShowNextPrevious = alwaysShowNextPrevious;
+	}
+
+	public int getThreadDownloadLimit() {
+		return threadDownloadLimit;
+	}
+
+	public void setThreadDownloadLimit(int threadDownloadLimit) {
+		this.threadDownloadLimit = threadDownloadLimit;
+	}
+
+	public String getCommentsSortByUrl() {
+		return commentsSortByUrl;
+	}
+
+	public void setCommentsSortByUrl(String commentsSortByUrl) {
+		this.commentsSortByUrl = commentsSortByUrl;
+	}
+
+	public int getTheme() {
+		return theme;
+	}
+
+	public void setTheme(int theme) {
+		this.theme = theme;
+	}
+
+	public int getRotation() {
+		return rotation;
+	}
+
+	public void setRotation(int rotation) {
+		this.rotation = rotation;
+	}
+
+	public boolean isLoadThumbnails() {
+		return loadThumbnails;
+	}
+
+	public void setLoadThumbnails(boolean loadThumbnails) {
+		this.loadThumbnails = loadThumbnails;
+	}
+
+	public boolean isLoadThumbnailsOnlyWifi() {
+		return loadThumbnailsOnlyWifi;
+	}
+
+	public void setLoadThumbnailsOnlyWifi(boolean loadThumbnailsOnlyWifi) {
+		this.loadThumbnailsOnlyWifi = loadThumbnailsOnlyWifi;
+	}
+
+	public String getMailNotificationStyle() {
+		return mailNotificationStyle;
+	}
+
+	public void setMailNotificationStyle(String mailNotificationStyle) {
+		this.mailNotificationStyle = mailNotificationStyle;
+	}
+
+	public String getMailNotificationService() {
+		return mailNotificationService;
+	}
+
+	public void setMailNotificationService(String mailNotificationService) {
+		this.mailNotificationService = mailNotificationService;
+	}
 
 }
