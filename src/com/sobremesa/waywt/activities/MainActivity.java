@@ -70,6 +70,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+		mSettings.loadRedditPreferences(this, null);
+		
 		mPermalinks = new ArrayList<PostPermalink>();
 
 		
@@ -272,5 +274,18 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
     	}
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+    	// TODO Auto-generated method stub
+    	switch(item.getItemId() )
+    	{
+    	case R.id.action_settings:
+    		showDialog(Constants.DIALOG_LOGIN);
+    		break;
+    	}
+    	
+    	
+    	return super.onOptionsItemSelected(item);
+    }
 
 }

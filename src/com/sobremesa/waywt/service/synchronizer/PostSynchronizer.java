@@ -54,12 +54,12 @@ public class PostSynchronizer extends Synchronizer<PostService.RemoteRedditPost>
 			operations.add(op);
 		}
 
-		for (PostService.RemoteRedditPost w : updates) {
-			ContentValues values = this.getContentValuesForRemoteEntity(w);
-			ContentProviderOperation op = ContentProviderOperation.newUpdate(Provider.POST_CONTENT_URI).withSelection(PostTable.PERMALINK + " = ?", new String[] { w.data.permalink })
-					.withValues(values).build();
-			operations.add(op);
-		}
+//		for (PostService.RemoteRedditPost w : updates) {
+//			ContentValues values = this.getContentValuesForRemoteEntity(w);
+//			ContentProviderOperation op = ContentProviderOperation.newUpdate(Provider.POST_CONTENT_URI).withSelection(PostTable.PERMALINK + " = ?", new String[] { w.data.permalink })
+//					.withValues(values).build();
+//			operations.add(op);
+//		}
 
 		for (Long id : deletions) {
 			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.POST_CONTENT_URI).withSelection(PostTable.ID + " = ?", new String[] { String.valueOf(id) }).build();
@@ -73,7 +73,8 @@ public class PostSynchronizer extends Synchronizer<PostService.RemoteRedditPost>
 		}
 
 		try {
-			context.getContentResolver().applyBatch(Provider.AUTHORITY, operations);
+			if( operations.size() > 0 )
+				context.getContentResolver().applyBatch(Provider.AUTHORITY, operations);
 
 		} catch (RemoteException e) {
 			e.printStackTrace();

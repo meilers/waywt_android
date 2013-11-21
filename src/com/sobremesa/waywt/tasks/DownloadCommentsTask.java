@@ -36,7 +36,6 @@ import com.sobremesa.waywt.util.Assert;
 import com.sobremesa.waywt.util.StringUtils;
 import com.sobremesa.waywt.util.Util;
 import com.sobremesa.waywt.util.Markdown;
-import com.sobremesa.waywt.service.CommentService.RemoteRedditPostComment;
 import com.sobremesa.waywt.settings.RedditSettings;
 import com.sobremesa.waywt.model.Listing;
 import com.sobremesa.waywt.model.ListingData;

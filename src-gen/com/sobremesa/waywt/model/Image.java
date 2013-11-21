@@ -10,7 +10,7 @@ import com.sobremesa.waywt.database.tables.ImageTable;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.11.15	 
+ * @date 2013.11.20	 
  */
 public class Image {
 

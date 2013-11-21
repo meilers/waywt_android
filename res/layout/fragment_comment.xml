@@ -1,6 +1,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
+    android:visibility="invisible"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -51,8 +52,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:src="@drawable/arrow_up"
-                    android:visibility="gone" />
+                    android:src="@drawable/arrow_up" />
 
                 <com.sobremesa.waywt.views.OutlineWaywtTextView
                     android:id="@+id/comment_points_tv"
@@ -69,8 +69,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:src="@drawable/arrow_down"
-                    android:visibility="gone" />
+                    android:src="@drawable/arrow_down"/>
             </LinearLayout>
         </FrameLayout>
 

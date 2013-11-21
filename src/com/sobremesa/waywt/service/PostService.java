@@ -240,7 +240,7 @@ public class PostService extends BaseService {
 				
 				++i;
 			}
-
+			
 			
 			if (totalPosts != null && totalPosts.size() > 0) { 
 				// synchronize!

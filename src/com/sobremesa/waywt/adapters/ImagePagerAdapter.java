@@ -26,7 +26,7 @@ public class ImagePagerAdapter extends FragmentStatePagerAdapter {
 		
 		ImageFragment fragment = new ImageFragment();
 		Bundle args = new Bundle();
-//		args.putString(ImageFragment.Extras.ARG_IMAGE_URL, mImageUrls.get(position));;
+		args.putString(ImageFragment.Extras.ARG_IMAGE_URL, mImageUrls.get(position));;
 		
 		
 		fragment.setArguments(args);

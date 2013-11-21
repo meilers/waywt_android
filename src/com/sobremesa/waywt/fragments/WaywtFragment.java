@@ -18,7 +18,6 @@ import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.CommentTable;
 import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.model.ThingInfo;
-import com.sobremesa.waywt.service.CommentService;
 import com.sobremesa.waywt.service.PostService;
 import com.sobremesa.waywt.settings.RedditSettings;
 import com.sobremesa.waywt.tasks.DownloadCommentsTask;

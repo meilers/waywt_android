@@ -27,10 +27,8 @@ public class ImageFragment extends Fragment {
 	
 	public static class Extras
 	{
-		public static String ARG_COMMENT = "comment";
+		public static String ARG_IMAGE_URL = "comment";
 	}
-	
-	private ThingInfo mComment;
 	
 	private ImageLoader mImageLoader;
 	
@@ -38,8 +36,6 @@ public class ImageFragment extends Fragment {
 	public void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
-		
-		mComment = (ThingInfo) getArguments().get(Extras.ARG_COMMENT);
 		
 		Options options = new Options();
 		options.scalingPreference = Options.ScalingPreference.ROUND_TO_CLOSEST_MATCH;
@@ -56,25 +52,25 @@ public class ImageFragment extends Fragment {
 		ImageView iv = (ImageView)view.findViewById(R.id.image_iv);
 		
 		
-//		mImageLoader.loadImage(iv, getArguments().getString(Extras.ARG_IMAGE_URL), new ImageLoaderListener() {
-//			@Override
-//			public void onImageLoadError(String arg0) { 
-//			}
-//			
-//			@Override
-//			public void onImageAvailable(ImageView imageView, Bitmap bitmap, ImageReturnedFrom imageReturnedFrom) {
-//				
-//				
-//				
-//				if( getActivity() != null )
-//				{
-//					imageView.setImageBitmap(bitmap);
-//					
-//					Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
-//					imageView.startAnimation(myFadeInAnimation);
-//				}
-//			}
-//		});
+		mImageLoader.loadImage(iv, getArguments().getString(Extras.ARG_IMAGE_URL), new ImageLoaderListener() {
+			@Override
+			public void onImageLoadError(String arg0) { 
+			}
+			
+			@Override
+			public void onImageAvailable(ImageView imageView, Bitmap bitmap, ImageReturnedFrom imageReturnedFrom) {
+				
+				
+				
+				if( getActivity() != null )
+				{
+					imageView.setImageBitmap(bitmap);
+					
+					Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
+					imageView.startAnimation(myFadeInAnimation);
+				}
+			}
+		});
 		
 		return view;
 	}

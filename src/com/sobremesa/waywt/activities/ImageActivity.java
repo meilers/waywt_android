@@ -32,7 +32,8 @@ public class ImageActivity extends FragmentActivity {
 
 	public static class Extras
 	{
-		public static String ARG_COMMENT = "comment";
+		public static String ARG_AUTHOR = "author";
+		public static String ARG_IMAGE_URLS = "image_urls";
 		public static String ARG_IMAGE_SELECTED_POSITION = "image_selected_position";
 	}
 	
@@ -50,8 +51,25 @@ public class ImageActivity extends FragmentActivity {
 		
 		mPager = (ViewPager)findViewById(R.id.pager);
 		
-		getActionBar().setDisplayHomeAsUpEnabled(true);
-		getActionBar().setHomeButtonEnabled(true);
+		Bundle extras = getIntent().getExtras();
+		
+		SpannableString s = new SpannableString(extras.getString(Extras.ARG_AUTHOR).toUpperCase());
+		s.setSpan(new TypefaceSpan(WaywtApplication.getContext()), 0, s.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		
+		ActionBar actionbar = getActionBar();
+		actionbar.setDisplayHomeAsUpEnabled(true);
+		actionbar.setHomeButtonEnabled(true); 
+		actionbar.setTitle(s);
+		
+		
+		List<String> imageUrls = extras.getStringArrayList(Extras.ARG_IMAGE_URLS);
+		
+		mPagerAdapter = new ImagePagerAdapter(getSupportFragmentManager(), imageUrls);
+		mPager.setAdapter(mPagerAdapter);
+		mPager.setCurrentItem(extras.getInt(Extras.ARG_IMAGE_SELECTED_POSITION,0));
+		
+		mindicator = (CirclePageIndicator)findViewById(R.id.indicator);
+		mindicator.setViewPager(mPager);
 	}
 	
 	@Override
