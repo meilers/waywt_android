@@ -112,7 +112,6 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 	private ImageLoader mImageLoader;
 	private AspectRatioImageView mMainIv;
 	
-	private WaywtSecondaryTextView mTitleTv;
 	private TextView mPointsTv;
 	
     private final HttpClient mClient = RedditIsFunHttpClientFactory.getGzipHttpClient();
@@ -255,7 +254,6 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		
 		mMainIv = (AspectRatioImageView)view.findViewById(R.id.comment_image_iv);
 		mPointsTv = (TextView)view.findViewById(R.id.comment_points_tv);
-		mTitleTv = (WaywtSecondaryTextView)view.findViewById(R.id.comment_title_tv);
 		
 	    
 		ImageView arrowUpIv = (ImageView)view.findViewById(R.id.comment_arrow_up_iv);
@@ -267,19 +265,6 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		//Points
 		updatePoints(view);
 		
-		// Text
-//		String bodyHtml =  mComment.getBody_html();
-//		mTitleTv.setText(Html.fromHtml(Html.fromHtml(bodyHtml).toString()));
-//		mTitleTv.setTypeface(FontManager.INSTANCE.getGeorgiaFont(), Typeface.ITALIC);
-//		
-//		mTitleTv.setMovementMethod (LinkMovementMethod.getInstance());
-//		mTitleTv.setClickable(true);
-		
-		
-    	if (mComment.getSpannedBody() != null)
-    		mTitleTv.setText(mComment.getSpannedBody());
-		else
-			mTitleTv.setText(mComment.getBody());
     
 		
 		
@@ -292,6 +277,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		
 		getChildFragmentManager().beginTransaction().replace(R.id.comment_replies_container, fragment, RepliesFragment.class.getCanonicalName()).commit();
 		
+		
+		// images
 		if(mImgurAlbumUrls.isEmpty() && mDressedUrls.isEmpty())
 			updateImages(view);
 		else
@@ -327,6 +314,16 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		super.onDestroy();
 	}
 
+	private void updateReplies( final View view )
+	{
+		RepliesFragment fragment = new RepliesFragment();
+		Bundle args = new Bundle();
+		args.putParcelable(RepliesFragment.Extras.ARG_COMMENT, mComment);
+		fragment.setArguments(args);
+		
+		getChildFragmentManager().beginTransaction().replace(R.id.comment_replies_container, fragment, RepliesFragment.class.getCanonicalName()).commit();
+	}
+	
 	
 	private void updatePoints( final View view )
 	{
@@ -625,7 +622,10 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     		_mTargetThingInfo.setScore(newUps - newDowns);
     		
     		if( getView() != null )
+    		{
     			updatePoints(getView());
+    			updateReplies(getView());
+    		}
     	}
     	
     	public void onPostExecute(Boolean success) {
@@ -639,8 +639,11 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
        			_mTargetThingInfo.setScore(_mPreviousUps - _mPreviousDowns);
 
         		if( getView() != null )
+        		{
         			updatePoints(getView());
-        		
+        			updateReplies(getView());
+        		}
+        			
     			Common.showErrorToast(_mUserError, Toast.LENGTH_LONG, CommentFragment.this.getActivity());
     		}
     	}

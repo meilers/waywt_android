@@ -66,7 +66,7 @@ public class RepliesFragment extends Fragment {
     private final HttpClient mClient = RedditIsFunHttpClientFactory.getGzipHttpClient();
 	
     private int last_found_position = -1;
-    private int mIndentation = 0;
+    private int mIndentation = 1;
     
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -79,6 +79,8 @@ public class RepliesFragment extends Fragment {
 		mComment = (ThingInfo)getArguments().get(Extras.ARG_COMMENT);
 		
 		int insertedCommentIndex = 0;
+		
+		mCommentsList.add(mComment);
 		
 		if( mComment.getReplies() != null && mComment.getReplies().getData() != null && mComment.getReplies().getData().getChildren() != null)
 		{
@@ -239,6 +241,8 @@ public class RepliesFragment extends Fragment {
     	else
     		bodyView.setText(item.getBody());
         
+    	bodyView.setMovementMethod(LinkMovementMethod.getInstance());
+    	
         setCommentIndent(view, item.getIndent(), settings);
         
         if (voteUpView != null && voteDownView != null) {
@@ -257,7 +261,7 @@ public class RepliesFragment extends Fragment {
         }
         
         if (item.getAuthor().equalsIgnoreCase(mComment.getAuthor()))
-        	submitterView.setTextColor(getActivity().getResources().getColor(R.color.orange));
+        	submitterView.setText(item.getAuthor() + " [S]");
     }
     
     public static void setCommentIndent(View commentListItemView, int indentLevel, RedditSettings settings) {

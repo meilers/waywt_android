@@ -73,19 +73,6 @@
             </LinearLayout>
         </FrameLayout>
 
-        <com.sobremesa.waywt.views.WaywtSecondaryTextView
-            android:id="@+id/comment_title_tv"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:paddingLeft="@dimen/padding_medium"
-            android:paddingRight="@dimen/padding_medium"
-            android:textColor="@android:color/black"
-            android:layout_marginBottom="@dimen/padding_large"
-            android:textSize="18sp"
-            android:textStyle="italic" />
-
         <LinearLayout
             android:id="@+id/comment_replies_container"
             android:layout_width="match_parent"
