@@ -315,12 +315,17 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 					{
 						ThingInfo ci = commentThingListing.getData();
 						
+						if (ci.getBody_html() != null) {
+				        	CharSequence spanned = createSpanned(ci.getBody_html());
+				        	ci.setSpannedBody(spanned);
+						}
+						
 						if (isInsertingEntireThread())
 							deferCommentAppend(ci);
 						else
 							deferCommentReplacement(ci);
 						
-						insertedCommentIndex = insertNestedComment(commentThingListing, 0, insertedCommentIndex + 1);
+//						insertedCommentIndex = insertNestedComment(commentThingListing, 0, insertedCommentIndex + 1);
 					}
 				}
 			}
@@ -377,9 +382,9 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 //		else
 //			deferCommentReplacement(ci);
 
-			
+		
 		// Formatting that applies to all items, both real comments and "more" entries
-		ci.setIndent(mIndentation + indentLevel - 1);
+		ci.setIndent(mIndentation + indentLevel);
 		
 		// Handle "more" entry
 		if (Constants.MORE_KIND.equals(commentThingListing.getKind())) {
@@ -421,6 +426,7 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 		return mJumpToCommentFoundIndex != -1;
 	}
 	
+
 	
     /**
      * Call from UI Thread
@@ -510,5 +516,24 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 	public void propertyChange(PropertyChangeEvent event) {
 		publishProgress((Long) event.getNewValue());
 	}
+	
+    private CharSequence createSpanned(String bodyHtml) {
+    	try {
+    		// get unescaped HTML
+    		bodyHtml = Html.fromHtml(bodyHtml).toString();
+    		// fromHtml doesn't support all HTML tags. convert <code> and <pre>
+    		bodyHtml = Util.convertHtmlTags(bodyHtml);
+    		
+    		Spanned body = Html.fromHtml(bodyHtml);
+    		// remove last 2 newline characters
+    		if (body.length() > 2)
+    			return body.subSequence(0, body.length()-2);
+    		else
+    			return "";
+    	} catch (Exception e) {
+    		if (Constants.LOGGING) Log.e(TAG, "createSpanned failed", e);
+    		return null;
+    	}
+    }
 }
 

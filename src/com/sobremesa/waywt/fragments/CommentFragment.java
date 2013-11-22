@@ -39,6 +39,8 @@ import com.sobremesa.waywt.settings.RedditSettings;
 import com.sobremesa.waywt.tasks.DrsdTask;
 import com.sobremesa.waywt.tasks.ImgurAlbumTask;
 import com.sobremesa.waywt.tasks.VoteTask;
+import com.sobremesa.waywt.util.CollectionUtils;
+import com.sobremesa.waywt.util.Util;
 import com.sobremesa.waywt.views.AspectRatioImageView;
 import com.sobremesa.waywt.views.WaywtSecondaryTextView;
 import com.sobremesa.waywt.views.WaywtTextView;
@@ -56,6 +58,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -85,6 +88,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
@@ -155,7 +159,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 						else
 						{
 							url = url.replace("imgur", "i.imgur");
-							url += "m.jpg";
+							url += ".jpg";
 							
 							if( !mImageUrls.contains( url ))
 								mImageUrls.add(url);
@@ -164,14 +168,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 					else
 					{
 						if( !url.contains(".jpg"))
-							url += "m.jpg";
-						else
-						{
-							url = url.replace("s.jpg", ".jpg");
-							url = url.replace("l.jpg", ".jpg");
-							
-							url = url.replace(".jpg", "m.jpg");
-						}
+							url += ".jpg";
 						
 						if( !mImageUrls.contains( url ))
 							mImageUrls.add(url);
@@ -215,6 +212,14 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		mImageLoader.setDefaultOptions(options);
 
 	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		
+		mSettings.loadRedditPreferences(getActivity(), mClient);
+	}
+	
 	
 	private OnClickListener mArrowUpListener = new OnClickListener() {
 		
@@ -263,13 +268,19 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		updatePoints(view);
 		
 		// Text
-		String bodyHtml =  mComment.getBody_html();
-		mTitleTv.setText(Html.fromHtml(Html.fromHtml(bodyHtml).toString()));
-		mTitleTv.setTypeface(FontManager.INSTANCE.getGeorgiaFont(), Typeface.ITALIC);
+//		String bodyHtml =  mComment.getBody_html();
+//		mTitleTv.setText(Html.fromHtml(Html.fromHtml(bodyHtml).toString()));
+//		mTitleTv.setTypeface(FontManager.INSTANCE.getGeorgiaFont(), Typeface.ITALIC);
+//		
+//		mTitleTv.setMovementMethod (LinkMovementMethod.getInstance());
+//		mTitleTv.setClickable(true);
 		
-		mTitleTv.setMovementMethod (LinkMovementMethod.getInstance());
-		mTitleTv.setClickable(true);
 		
+    	if (mComment.getSpannedBody() != null)
+    		mTitleTv.setText(mComment.getSpannedBody());
+		else
+			mTitleTv.setText(mComment.getBody());
+    
 		
 		
 		
@@ -634,4 +645,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     		}
     	}
     }
+    
+    
+
 }

@@ -17,15 +17,8 @@
  * You should have received a copy of the GNU General Public License
  * along with "reddit is fun".  If not, see <http://www.gnu.org/licenses/>.
 -->
-<!--
-/*
- * reddit is fun
- *
- * by talklittle
- */
- -->
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" 
-        android:orientation="vertical"/>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0dip"
+    android:layout_height="0dip"
+    >
+</FrameLayout>

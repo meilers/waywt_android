@@ -3,6 +3,7 @@ package com.sobremesa.waywt.adapters;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import com.sobremesa.waywt.fragments.CommentFragment;
 import com.sobremesa.waywt.model.ThingInfo;
@@ -28,7 +29,11 @@ public class CommentPagerAdapter extends FragmentStatePagerAdapter {
 	{
 		mComments.clear();
 		mComments.addAll(comments);
-		Collections.sort(mComments);
+//		Collections.sort(mComments);
+		
+		long seed = System.nanoTime();
+		Collections.shuffle(mComments, new Random(seed));
+		
 		this.notifyDataSetChanged();
 	}
 
