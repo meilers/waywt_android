@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sobremesa.waywt.R;
-import com.sobremesa.waywt.adapters.CommentPagerAdapter;
 import com.sobremesa.waywt.adapters.ImagePagerAdapter;
 import com.sobremesa.waywt.application.WaywtApplication;
 import com.sobremesa.waywt.contentprovider.Provider;

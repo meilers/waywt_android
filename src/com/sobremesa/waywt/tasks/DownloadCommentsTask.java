@@ -19,7 +19,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import android.app.Activity;
 import android.os.AsyncTask;
+import android.support.v4.app.Fragment;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
@@ -37,6 +39,7 @@ import com.sobremesa.waywt.util.StringUtils;
 import com.sobremesa.waywt.util.Util;
 import com.sobremesa.waywt.util.Markdown;
 import com.sobremesa.waywt.settings.RedditSettings;
+import com.sobremesa.waywt.listeners.CommentsListener;
 import com.sobremesa.waywt.model.Listing;
 import com.sobremesa.waywt.model.ListingData;
 import com.sobremesa.waywt.model.ThingInfo;
@@ -65,7 +68,7 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
     
     private final Object mCurrentShowThumbnailsTaskLock = new Object();
     
-    private WaywtFragment mFragment;
+    private CommentsListener mListener;
     private String mSubreddit;
     private String mThreadId;
     private String mThreadTitle;
@@ -101,13 +104,13 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 	 * Default constructor to do normal comments page
 	 */
 	public DownloadCommentsTask(
-			WaywtFragment activity,
+			CommentsListener activity,
 			String subreddit,
 			String threadId,
 			RedditSettings settings,
 			HttpClient client
 	) {
-		this.mFragment = activity;
+		this.mListener = activity;
 		this.mSubreddit = subreddit;
 		this.mThreadId = threadId;
 		this.mSettings = settings;
@@ -155,10 +158,10 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
     		
         	if (Constants.USE_COMMENTS_CACHE) {
     			try {
-	    			if (CacheInfo.checkFreshThreadCache(mFragment.getActivity().getApplicationContext())
-	    					&& url.equals(CacheInfo.getCachedThreadUrl(mFragment.getActivity().getApplicationContext()))) {
-	    				in = mFragment.getActivity().openFileInput(Constants.FILENAME_THREAD_CACHE);
-	    				mContentLength = mFragment.getActivity().getFileStreamPath(Constants.FILENAME_THREAD_CACHE).length();
+	    			if (CacheInfo.checkFreshThreadCache(((Fragment) mListener).getActivity().getApplicationContext())
+	    					&& url.equals(CacheInfo.getCachedThreadUrl(((Fragment) mListener).getActivity().getApplicationContext()))) {
+	    				in = ((Fragment) mListener).getActivity().openFileInput(Constants.FILENAME_THREAD_CACHE);
+	    				mContentLength = ((Fragment) mListener).getActivity().getFileStreamPath(Constants.FILENAME_THREAD_CACHE).length();
 	    				currentlyUsingCache = true;
 	    				if (Constants.LOGGING) Log.d(TAG, "Using cached thread JSON, length=" + mContentLength);
 	    			}
@@ -187,9 +190,9 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
             	in = entity.getContent();
             	
             	if (Constants.USE_COMMENTS_CACHE) {
-                	in = CacheInfo.writeThenRead(mFragment.getActivity().getApplicationContext(), in, Constants.FILENAME_THREAD_CACHE);
+                	in = CacheInfo.writeThenRead(((Fragment) mListener).getActivity().getApplicationContext(), in, Constants.FILENAME_THREAD_CACHE);
                 	try {
-                		CacheInfo.setCachedThreadUrl(mFragment.getActivity().getApplicationContext(), url);
+                		CacheInfo.setCachedThreadUrl(((Fragment) mListener).getActivity().getApplicationContext(), url);
                 	} catch (IOException e) {
                 		if (Constants.LOGGING) Log.e(TAG, "error on setCachedThreadId", e);
                 	}
@@ -245,12 +248,19 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 	}
 	
 	private void disableLoadingScreenKeepProgress() {
-		mFragment.getActivity().runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-	    		mFragment.resetUI();
-			}
-		});
+		
+		Activity act = ((Fragment) mListener).getActivity();
+		
+		if( act != null )
+		{
+			((Fragment) mListener).getActivity().runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+		    		mListener.resetUI();
+				}
+			});			
+		}
+
 	}
 	
 	private void parseCommentsJSON(
@@ -339,10 +349,10 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 	private void parseOP(final ThingInfo data) {
 		data.setIndent(0);
 		
-//		mFragment.getActivity().runOnUiThread(new Runnable() {
+//		mListener.getActivity().runOnUiThread(new Runnable() {
 //			@Override
 //			public void run() {
-//				mFragment.mCommentsList.add(0, data);
+//				mListener.mCommentsList.add(0, data);
 //			}
 //		});
 
@@ -432,7 +442,7 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
      * Call from UI Thread
      */
     private void insertCommentsUI() {
-		mFragment.mPagerAdapter.setComments(mDeferredAppendList);
+    	mListener.updateComments(mDeferredAppendList);
     }
 	
     
@@ -458,17 +468,14 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 		}
 		
 		if (isInsertingEntireThread()) {
-			if (mFragment.mPagerAdapter != null);
-//				mFragment.mPagerAdapter.clear();
-			else
-				mFragment.resetUI();
+
 			
     		// Do loading screen when loading new thread; otherwise when "loading more comments" don't show it
-			mFragment.enableLoadingScreen();
+			mListener.enableLoadingScreen();
 		}
 		
 		if (mContentLength == -1)
-			mFragment.getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
+			((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
 	}
     
 	@Override
@@ -476,26 +483,26 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 		if (isInsertingEntireThread()) {
 			insertCommentsUI();
 			if (isFoundJumpTargetComment());
-//				mFragment.getListView().setSelection(;);
+//				mListener.getListView().setSelection(;);
 		}
 		
 		
 		if (mContentLength == -1)
-			mFragment.getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_OFF);
+			((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_OFF);
 		else
-			mFragment.getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_END);
+			((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_END);
 		
 		if (success) {
 			// We should clear any replies the user was composing.
-//			mFragment.setShouldClearReply(true);
+//			mListener.setShouldClearReply(true);
 //
 //			// Set title in android titlebar
 //			if (mThreadTitle != null)
-//				mFragment.setTitle(mThreadTitle + " : " + mSubreddit);
+//				mListener.setTitle(mThreadTitle + " : " + mSubreddit);
 		} else {
 			if (!isCancelled()) {
-				Common.showErrorToast("Error downloading comments. Please try again.", Toast.LENGTH_LONG, mFragment.getActivity());
-				mFragment.resetUI();
+				Common.showErrorToast("Error downloading comments. Please try again.", Toast.LENGTH_LONG, ((Fragment) mListener).getActivity());
+				mListener.resetUI();
 			}
 		}
 
@@ -507,9 +514,9 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 	@Override
 	public void onProgressUpdate(Long... progress) {
 		if (mContentLength == -1)
-			mFragment.getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
+			((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
 		else
-			mFragment.getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, progress[0].intValue() * (Window.PROGRESS_END-1) / (int) mContentLength);
+			((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, progress[0].intValue() * (Window.PROGRESS_END-1) / (int) mContentLength);
 	}
 	
 	@Override

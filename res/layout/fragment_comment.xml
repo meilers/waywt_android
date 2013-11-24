@@ -108,6 +108,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_alignParentRight="true"
+                android:clickable="true"
                 android:layout_centerVertical="true"
                 android:layout_margin="10dp"
                 android:src="@android:drawable/ic_menu_send" />

@@ -110,6 +110,13 @@ public class RepliesFragment extends Fragment {
 		ci.setIndent(mIndentation + indentLevel);
 		
 		
+		// Handle "more" entry
+		if (Constants.MORE_KIND.equals(commentThingListing.getKind())) {
+			ci.setLoadMoreCommentsPlaceholder(true);
+			if (Constants.LOGGING) Log.v(TAG, "new more position at " + (insertedCommentIndex));
+	    	return insertedCommentIndex;
+		}
+		
 		// Regular comment
 		
 		// Skip things that are not comments, which shouldn't happen
@@ -139,11 +146,13 @@ public class RepliesFragment extends Fragment {
 		
 		if( comment != null )
 		{
-			String author = comment.getAuthor();
-			String bodyHtml = comment.getBody_html();
+//			String author = comment.getAuthor();
+//			String bodyHtml = comment.getBody_html();
+//			
+//			if( author != null && !author.isEmpty() && bodyHtml != null && !bodyHtml.isEmpty() )
+//				mCommentsList.add(comment);
 			
-			if( author != null && !author.isEmpty() && bodyHtml != null && !bodyHtml.isEmpty() )
-				mCommentsList.add(comment);
+			mCommentsList.add(comment);
 		}
 	}
 	
@@ -196,7 +205,14 @@ public class RepliesFragment extends Fragment {
 			else
 				view.setBackgroundColor(Color.TRANSPARENT);
 
-            fillCommentsListItemView(view, item, mSettings);
+	    	if( item.isLoadMoreCommentsPlaceholder() )
+	    	{
+	    		view = getActivity().getLayoutInflater().inflate(R.layout.more_comments_view, null);
+	    		setCommentIndent(view, item.getIndent(), mSettings);	
+	    		
+	    	}
+	    	else
+	    		fillCommentsListItemView(view, item, mSettings);
         } catch (NullPointerException e) {
         	if (Constants.LOGGING) Log.w(TAG, "NPE in getView()", e);
         	// Probably means that the List is still being built, and OP probably got put in wrong position
@@ -214,7 +230,7 @@ public class RepliesFragment extends Fragment {
     
     public void fillCommentsListItemView(View view, ThingInfo item, RedditSettings settings) {
         // Set the values of the Views for the CommentsListItem
-        
+    	
         TextView votesView = (TextView) view.findViewById(R.id.votes);
         TextView submitterView = (TextView) view.findViewById(R.id.submitter);
         TextView bodyView = (TextView) view.findViewById(R.id.body);

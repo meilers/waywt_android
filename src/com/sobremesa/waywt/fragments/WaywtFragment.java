@@ -2,7 +2,9 @@ package com.sobremesa.waywt.fragments;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,6 +18,7 @@ import com.sobremesa.waywt.common.Constants;
 import com.sobremesa.waywt.common.RedditIsFunHttpClientFactory;
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.CommentTable;
+import com.sobremesa.waywt.listeners.CommentsListener;
 import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.model.ThingInfo;
 import com.sobremesa.waywt.service.PostService;
@@ -29,6 +32,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -39,22 +44,25 @@ import android.view.LayoutInflater;
 import android.view.View; 
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.Toast;
 
-public class WaywtFragment extends Fragment {
+public class WaywtFragment extends Fragment implements CommentsListener {
 
 	public static final String TAG = WaywtFragment.class.getCanonicalName();
 	
 	public static class Extras
 	{
-		public static String ARG_POST_ID = "post_id";
-		public static String ARG_PERMALINK = "permalink";
-		public static String ARG_DO_SORT = "do_sort";
+		public static String SUBREDDIT = "subreddit";
+		
+		public static String PERMALINK = "permalink";
+		public static String DO_SORT = "do_sort";
 	}
 	
     private final Pattern COMMENT_PATH_PATTERN = Pattern.compile(Constants.COMMENT_PATH_PATTERN_STRING);
     private final Pattern COMMENT_CONTEXT_PATTERN = Pattern.compile("context=(\\d+)");
     
-	
+	private boolean mDoSort = false;
+    
 	private ViewPager mPager;
 	public CommentPagerAdapter mPagerAdapter;
 	private TitlePageIndicator mindicator;
@@ -79,6 +87,9 @@ public class WaywtFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
     	// TODO Auto-generated method stub
     	super.onCreate(savedInstanceState);
+    	
+    	mSubreddit = getArguments().getString(Extras.SUBREDDIT);
+    	mDoSort = getArguments().getBoolean(Extras.DO_SORT);
     }
     
     
@@ -88,7 +99,7 @@ public class WaywtFragment extends Fragment {
 		View view = inflater.inflate(R.layout.fragment_waywt, null, false);
 		
 		mPager = (ViewPager)view.findViewById(R.id.pager);
-		mPagerAdapter = new CommentPagerAdapter(getChildFragmentManager(), new ArrayList<ThingInfo>(), getArguments().getBoolean(Extras.ARG_DO_SORT));
+		mPagerAdapter = new CommentPagerAdapter(getChildFragmentManager(), mSubreddit, mThreadId);
 		mPager.setAdapter(mPagerAdapter);
 		
 		mindicator = (TitlePageIndicator)view.findViewById(R.id.page_indicator);
@@ -101,7 +112,7 @@ public class WaywtFragment extends Fragment {
     	String jumpToCommentId = null;
     	int jumpToCommentContext = 0;
 		// We get the URL through getIntent().getData()
-        Uri data = Uri.parse(getArguments().getString(Extras.ARG_PERMALINK));
+        Uri data = Uri.parse(getArguments().getString(Extras.PERMALINK));
         if (data != null) {
         	// Comment path: a URL pointing to a thread or a comment in a thread.
         	commentPath = data.getPath();
@@ -166,7 +177,7 @@ public class WaywtFragment extends Fragment {
 		super.onDestroy();
 	}
 	
-	
+	@Override
     public void resetUI() {
 //    	findViewById(R.id.loading_light).setVisibility(View.GONE);
 //    	findViewById(R.id.loading_dark).setVisibility(View.GONE);
@@ -174,6 +185,7 @@ public class WaywtFragment extends Fragment {
     	mPagerAdapter.mIsLoading = false;
     }
     
+	@Override
     public void enableLoadingScreen() {
 //    	findViewById(R.id.loading_light).setVisibility(View.VISIBLE);
 //		findViewById(R.id.loading_dark).setVisibility(View.GONE);
@@ -183,4 +195,23 @@ public class WaywtFragment extends Fragment {
     		mPagerAdapter.mIsLoading = true;
     	getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_START);
     }
+
+
+	@Override
+	public void updateComments(List<ThingInfo> comments) {
+		
+		Toast.makeText(getActivity(), comments.size()+"", Toast.LENGTH_LONG).show();
+		
+		if( mDoSort )
+			Collections.sort(comments);
+		else
+		{
+			long seed = System.nanoTime();
+			Collections.shuffle(comments, new Random(seed));
+		}
+		
+		mPagerAdapter.addComments(comments);
+	}
+	
+	
 }

@@ -148,9 +148,9 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		Fragment fragment = new WaywtFragment();
 		Bundle args = new Bundle();
 		PostPermalink p = mPermalinks.get(position);
-		args.putBoolean(WaywtFragment.Extras.ARG_DO_SORT, position != 0);
-		args.putString(WaywtFragment.Extras.ARG_POST_ID,p.mId);
-		args.putString(WaywtFragment.Extras.ARG_PERMALINK,p.mPermalink);
+		args.putBoolean(WaywtFragment.Extras.DO_SORT, position != 0);
+		args.putString(WaywtFragment.Extras.SUBREDDIT,"malefashionadvice");
+		args.putString(WaywtFragment.Extras.PERMALINK,p.mPermalink);
 		fragment.setArguments(args);
 		getSupportFragmentManager().beginTransaction().replace(R.id.container, fragment).commit();
 		return true;

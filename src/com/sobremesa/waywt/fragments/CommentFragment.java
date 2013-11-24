@@ -18,6 +18,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 
 import com.sobremesa.waywt.R;
@@ -31,11 +33,12 @@ import com.sobremesa.waywt.common.RedditIsFunHttpClientFactory;
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.ImageTable;
 import com.sobremesa.waywt.database.tables.CommentTable;
-import com.sobremesa.waywt.listeners.LoginListener;
+import com.sobremesa.waywt.listeners.CommentsListener;
 import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.model.ThingInfo;
 import com.sobremesa.waywt.service.clients.ImgurServiceClient;
 import com.sobremesa.waywt.settings.RedditSettings;
+import com.sobremesa.waywt.tasks.DownloadCommentsTask;
 import com.sobremesa.waywt.tasks.DrsdTask;
 import com.sobremesa.waywt.tasks.ImgurAlbumTask;
 import com.sobremesa.waywt.tasks.VoteTask;
@@ -96,14 +99,21 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-public class CommentFragment extends Fragment implements View.OnCreateContextMenuListener
+public class CommentFragment extends Fragment implements View.OnCreateContextMenuListener, CommentsListener
 {
 	private static final String TAG = CommentFragment.class.getSimpleName();
 	
 	public static class Extras
 	{
-		public static String ARG_COMMENT = "comment";
+		public static String SUBREDDIT = "subreddit";
+		public static String THREAD_ID = "thread_id";
+		
+		public static String COMMENT = "comment";
 	}
+	
+    private String mSubreddit = "malefashionadvice";
+    private String mThreadId = null;
+    
 	private ThingInfo mComment;
 	private ArrayList<String> mImageUrls;
 	
@@ -114,9 +124,24 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 	private AspectRatioImageView mMainIv;
 	
 	private TextView mPointsTv;
+	private EditText mReplyEt;
+	private ImageView mSendBtn;
+	
 	
     private final HttpClient mClient = RedditIsFunHttpClientFactory.getGzipHttpClient();
     private final RedditSettings mSettings = new RedditSettings();
+    
+    
+    private DownloadCommentsTask getNewDownloadCommentsTask() {
+    	return new DownloadCommentsTask(
+				this,
+				mSubreddit,
+				mThreadId,
+				mSettings,
+				mClient
+		);
+    }
+    
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -125,7 +150,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		
 		mSettings.loadRedditPreferences(getActivity(), null);
 		
-		mComment = (ThingInfo)getArguments().get(Extras.ARG_COMMENT);
+		mComment = (ThingInfo)getArguments().get(Extras.COMMENT);
 		mImageUrls = new ArrayList<String>();
 		mDressedUrls = new ArrayList<String>();
 		mImgurAlbumUrls = new ArrayList<String>();
@@ -296,6 +321,20 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 			   i.remove();
 			}
 		}
+		
+		
+		// Reply
+		mReplyEt = (EditText)view.findViewById(R.id.comment_reply_et);
+		mSendBtn = (ImageView)view.findViewById(R.id.comment_reply_send_btn);
+		mSendBtn.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				new CommentReplyTask(mComment.getName()).execute(mReplyEt.getText().toString());
+			}
+		});
+		
 		
 		
 		return view;
@@ -664,6 +703,117 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     	}
     }
     
-    
+    private class CommentReplyTask extends AsyncTask<String, Void, String> {
+    	private String _mParentThingId;
+    	String _mUserError = "Error submitting reply. Please try again.";
+    	
+    	CommentReplyTask(String parentThingId) {
+    		_mParentThingId = parentThingId;
+    	}
+    	
+    	@Override
+        public String doInBackground(String... text) {
+        	HttpEntity entity = null;
+        	
+        	if (!mSettings.isLoggedIn()) {
+        		Common.showErrorToast("You must be logged in to reply.", Toast.LENGTH_LONG, CommentFragment.this.getActivity());
+        		_mUserError = "Not logged in";
+        		return null;
+        	}
+        	// Update the modhash if necessary
+        	if (mSettings.getModhash() == null) {
+        		String modhash = Common.doUpdateModhash(mClient);
+        		if (modhash == null) {
+        			// doUpdateModhash should have given an error about credentials
+        			Common.doLogout(mSettings, mClient, WaywtApplication.getContext());
+        			if (Constants.LOGGING) Log.e(TAG, "Reply failed because doUpdateModhash() failed");
+        			return null;
+        		}
+        		mSettings.setModhash(modhash);
+        	}
+        	
+        	try {
+        		// Construct data
+    			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+    			nvps.add(new BasicNameValuePair("thing_id", _mParentThingId));
+    			nvps.add(new BasicNameValuePair("text", text[0]));
+    			nvps.add(new BasicNameValuePair("r", "malefashionadvice"));
+    			nvps.add(new BasicNameValuePair("uh", mSettings.getModhash()));
+    			// Votehash is currently unused by reddit 
+//    				nvps.add(new BasicNameValuePair("vh", "0d4ab0ffd56ad0f66841c15609e9a45aeec6b015"));
+    			
+    			HttpPost httppost = new HttpPost(Constants.REDDIT_BASE_URL + "/api/comment");
+    	        httppost.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
+    	        
+    	        HttpParams params = httppost.getParams();
+    	        HttpConnectionParams.setConnectionTimeout(params, 40000);
+    	        HttpConnectionParams.setSoTimeout(params, 40000);
+    	        
+    	        if (Constants.LOGGING) Log.d(TAG, nvps.toString());
+    	        
+                // Perform the HTTP POST request
+    	    	HttpResponse response = mClient.execute(httppost);
+    	    	entity = response.getEntity();
+    	    	
+            	// Getting here means success. Create a new CommentInfo.
+            	return Common.checkIDResponse(response, entity);
+            	
+        	} catch (Exception e) {
+        		if (Constants.LOGGING) Log.e(TAG, "CommentReplyTask", e);
+        		_mUserError = e.getMessage();
+        	} finally {
+        		if (entity != null) {
+        			try {
+        				entity.consumeContent();
+        			} catch (Exception e2) {
+        				if (Constants.LOGGING) Log.e(TAG, "entity.consumeContent()", e2);
+        			}
+        		}
+        	}
+        	return null;
+        }
+    	
+    	@Override
+    	public void onPreExecute() {
+    		getActivity().showDialog(Constants.DIALOG_REPLYING);
+    	}
+    	
+    	@Override
+    	public void onPostExecute(String newId) {
+    		getActivity().removeDialog(Constants.DIALOG_REPLYING);
+    		if (newId == null) {
+    			Common.showErrorToast(_mUserError, Toast.LENGTH_LONG, CommentFragment.this.getActivity());
+    		} else {
+    			// Refresh
+    			CacheInfo.invalidateCachedThread(WaywtApplication.getContext());
+//    			getNewDownloadCommentsTask().execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+    			getNewDownloadCommentsTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+    			
+    			mReplyEt.getText().clear();
+    		}
+    	}
+    }
+
+	@Override
+	public void enableLoadingScreen() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void resetUI() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void updateComments(List<ThingInfo> comments) {
+		// TODO Auto-generated method stub
+		
+		if( getView() != null )
+			updateReplies(getView());
+	}
 
 }

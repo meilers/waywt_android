@@ -18,28 +18,24 @@ import com.viewpagerindicator.TitlePageIndicator;
 public class CommentPagerAdapter extends FragmentStatePagerAdapter {
 	public boolean mIsLoading = false;
 	
-	private ArrayList<ThingInfo> mComments;
-	private boolean mDoSort = false;
+	private ArrayList<ThingInfo> mComments = new ArrayList<ThingInfo>();
+	
+	private String mSubreddit = "";
+	private String mThreadId = "";
+	
 	
 
-	public CommentPagerAdapter(FragmentManager fragmentManager,  ArrayList<ThingInfo> comments, boolean doSort) {
+	public CommentPagerAdapter(FragmentManager fragmentManager, String subreddit, String threadId) {
 		super(fragmentManager);
-		mComments = comments;
-		mDoSort = doSort;
+		
+		mSubreddit = subreddit;
+		mThreadId = threadId;
 	}
 	
-	public void setComments( List<ThingInfo> comments )
+	public void addComments( List<ThingInfo> comments )
 	{
-		mComments.clear();
 		mComments.addAll(comments);
 		
-		if( mDoSort )
-			Collections.sort(mComments);
-		else
-		{
-			long seed = System.nanoTime();
-			Collections.shuffle(mComments, new Random(seed));
-		}
 		
 		this.notifyDataSetChanged();
 	}
@@ -49,8 +45,9 @@ public class CommentPagerAdapter extends FragmentStatePagerAdapter {
 		
 		CommentFragment fragment = new CommentFragment();
 		Bundle args = new Bundle();
-		args.putParcelable(CommentFragment.Extras.ARG_COMMENT, mComments.get(position));
-		
+		args.putString(CommentFragment.Extras.SUBREDDIT, mSubreddit);
+		args.putString(CommentFragment.Extras.THREAD_ID, mThreadId);
+		args.putParcelable(CommentFragment.Extras.COMMENT, mComments.get(position));
 		fragment.setArguments(args);
 		
 		return fragment;
