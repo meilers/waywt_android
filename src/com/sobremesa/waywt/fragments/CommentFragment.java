@@ -90,6 +90,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -288,6 +289,18 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		ImageView arrowDownIv = (ImageView)view.findViewById(R.id.comment_arrow_down_iv);	
 		arrowDownIv.setOnClickListener(mArrowDownListener);
 		
+		
+		LinearLayout pointsLayout = (LinearLayout)view.findViewById(R.id.comment_points_layout);
+		pointsLayout.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
+		
 		//Points
 		updatePoints(view);
 		
@@ -422,6 +435,14 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 					
 					Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
 					sv.startAnimation(myFadeInAnimation);
+				}
+			});
+			
+			mMainIv.setOnClickListener(new OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					startImagesActivity(0);
 				}
 			});
 			
