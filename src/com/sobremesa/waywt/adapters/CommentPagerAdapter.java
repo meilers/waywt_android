@@ -18,21 +18,28 @@ import com.viewpagerindicator.TitlePageIndicator;
 public class CommentPagerAdapter extends FragmentStatePagerAdapter {
 	public boolean mIsLoading = false;
 	
-	ArrayList<ThingInfo> mComments;
+	private ArrayList<ThingInfo> mComments;
+	private boolean mDoSort = false;
+	
 
-	public CommentPagerAdapter(FragmentManager fragmentManager,  ArrayList<ThingInfo> comments) {
+	public CommentPagerAdapter(FragmentManager fragmentManager,  ArrayList<ThingInfo> comments, boolean doSort) {
 		super(fragmentManager);
 		mComments = comments;
+		mDoSort = doSort;
 	}
 	
 	public void setComments( List<ThingInfo> comments )
 	{
 		mComments.clear();
 		mComments.addAll(comments);
-//		Collections.sort(mComments);
 		
-		long seed = System.nanoTime();
-		Collections.shuffle(mComments, new Random(seed));
+		if( mDoSort )
+			Collections.sort(mComments);
+		else
+		{
+			long seed = System.nanoTime();
+			Collections.shuffle(mComments, new Random(seed));
+		}
 		
 		this.notifyDataSetChanged();
 	}

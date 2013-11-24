@@ -48,12 +48,12 @@ public class WaywtFragment extends Fragment {
 	{
 		public static String ARG_POST_ID = "post_id";
 		public static String ARG_PERMALINK = "permalink";
+		public static String ARG_DO_SORT = "do_sort";
 	}
 	
     private final Pattern COMMENT_PATH_PATTERN = Pattern.compile(Constants.COMMENT_PATH_PATTERN_STRING);
     private final Pattern COMMENT_CONTEXT_PATTERN = Pattern.compile("context=(\\d+)");
     
-	private CursorLoader mLoader;
 	
 	private ViewPager mPager;
 	public CommentPagerAdapter mPagerAdapter;
@@ -88,7 +88,7 @@ public class WaywtFragment extends Fragment {
 		View view = inflater.inflate(R.layout.fragment_waywt, null, false);
 		
 		mPager = (ViewPager)view.findViewById(R.id.pager);
-		mPagerAdapter = new CommentPagerAdapter(getChildFragmentManager(), new ArrayList<ThingInfo>());
+		mPagerAdapter = new CommentPagerAdapter(getChildFragmentManager(), new ArrayList<ThingInfo>(), getArguments().getBoolean(Extras.ARG_DO_SORT));
 		mPager.setAdapter(mPagerAdapter);
 		
 		mindicator = (TitlePageIndicator)view.findViewById(R.id.page_indicator);

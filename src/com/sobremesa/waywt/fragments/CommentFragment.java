@@ -56,6 +56,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -330,6 +331,20 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		// Points
 		int ups = Integer.valueOf(mComment.getUps()); 
 		int downs = Integer.valueOf(mComment.getDowns());
+		
+		ImageView arrowUpIv = (ImageView)view.findViewById(R.id.comment_arrow_up_iv);
+		ImageView arrowDownIv = (ImageView)view.findViewById(R.id.comment_arrow_down_iv);
+		Resources r = getActivity().getResources();
+		
+		if( mComment.getLikes() != null && mComment.getLikes() )
+			arrowUpIv.setImageDrawable(r.getDrawable(R.drawable.arrow_up_orange));
+		else
+			arrowUpIv.setImageDrawable(r.getDrawable(R.drawable.arrow_up));
+		
+		if( mComment.getLikes() != null && !mComment.getLikes() )
+			arrowDownIv.setImageDrawable(r.getDrawable(R.drawable.arrow_down_blue));
+		else
+			arrowDownIv.setImageDrawable(r.getDrawable(R.drawable.arrow_down));
 		
 		mPointsTv.setText((ups-downs)  + "");
 		
