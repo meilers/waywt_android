@@ -7,6 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,6 +40,7 @@ import com.sobremesa.waywt.model.ThingInfo;
 import com.sobremesa.waywt.service.clients.ImgurServiceClient;
 import com.sobremesa.waywt.settings.RedditSettings;
 import com.sobremesa.waywt.tasks.DownloadCommentsTask;
+import com.sobremesa.waywt.tasks.DownloadRepliesTask;
 import com.sobremesa.waywt.tasks.DrsdTask;
 import com.sobremesa.waywt.tasks.ImgurAlbumTask;
 import com.sobremesa.waywt.tasks.VoteTask;
@@ -116,6 +118,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     private String mThreadId = null;
     
 	private ThingInfo mComment;
+	private ArrayList<ThingInfo> mRepliesList = new ArrayList<ThingInfo>();
 	private ArrayList<String> mImageUrls;
 	
 	private List<String> mDressedUrls;
@@ -133,8 +136,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     private final RedditSettings mSettings = new RedditSettings();
     
     
-    private DownloadCommentsTask getNewDownloadCommentsTask() {
-    	return new DownloadCommentsTask(
+    private DownloadRepliesTask getNewDownloadRepliesTask() {
+    	return new DownloadRepliesTask(
 				this,
 				mSubreddit,
 				mThreadId,
@@ -247,6 +250,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		super.onResume();
 		
 		mSettings.loadRedditPreferences(getActivity(), mClient);
+		
+		getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
 	}
 	
 	
@@ -354,6 +359,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 	public void onStart() {
 		// TODO Auto-generated method stub
 		super.onStart();
+		
+		
 	}
 
 	@Override
@@ -364,11 +371,13 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		super.onDestroy();
 	}
 
+	
+	
 	private void updateReplies( final View view )
 	{
 		RepliesFragment fragment = new RepliesFragment();
 		Bundle args = new Bundle();
-		args.putParcelable(RepliesFragment.Extras.ARG_COMMENT, mComment);
+		args.putParcelableArrayList(RepliesFragment.Extras.ARG_COMMENTS_LIST, mRepliesList);
 		args.putString(RepliesFragment.Extras.SUBREDDIT, mSubreddit);
 		args.putString(RepliesFragment.Extras.THREAD_ID, mThreadId);
 		fragment.setArguments(args);
@@ -832,8 +841,15 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 	public void updateComments(List<ThingInfo> comments) {
 		// TODO Auto-generated method stub
 		
-		if( getView() != null )
-			updateReplies(getView());
+		mComment = comments.get(0);
+		mRepliesList = new ArrayList<ThingInfo>(comments);
+		
+		View view = getView();
+		if( view != null )
+		{
+			updatePoints(view);
+			updateReplies(view);
+		}
 	}
 
 }

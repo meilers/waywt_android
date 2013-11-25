@@ -311,8 +311,6 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 		        	ci.setSpannedBody(spanned);
 				}
 				
-				deferCommentAppend(ci);
-				
 				insertedCommentIndex = insertNestedComment(commentThingListing, 0, insertedCommentIndex + 1);
 			}
 			
@@ -362,6 +360,7 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 	int insertNestedComment(ThingListing commentThingListing, int indentLevel, int insertedCommentIndex) {
 		ThingInfo ci = commentThingListing.getData();
 		
+		deferCommentAppend(ci);
 		// Add comment to deferred append/replace list
 //		if (isInsertingEntireThread())
 //			deferCommentAppend(ci);

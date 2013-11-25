@@ -63,14 +63,13 @@ public class RepliesFragment extends Fragment implements CommentsListener {
 		public static String SUBREDDIT = "subreddit";
 		public static String THREAD_ID = "thread_id";
 		
-		public static String ARG_COMMENT = "comment";
+		public static String ARG_COMMENTS_LIST = "comments_list";
 	}
 	
     private String mSubreddit = "malefashionadvice";
     private String mThreadId = null;
     
-	ThingInfo mComment = null;
-    ArrayList<ThingInfo> mCommentsList = null;
+    private ArrayList<ThingInfo> mCommentsList = new ArrayList<ThingInfo>();
     
     private final RedditSettings mSettings = new RedditSettings();
     private final HttpClient mClient = RedditIsFunHttpClientFactory.getGzipHttpClient();
@@ -78,7 +77,8 @@ public class RepliesFragment extends Fragment implements CommentsListener {
     private int last_found_position = -1;
     private int mIndentation = 1;
     
-    
+	private int mMorePosition = 0;
+	
     private DownloadRepliesTask getNewDownloadRepliesTask() {
     	return new DownloadRepliesTask(
 				this,
@@ -101,85 +101,9 @@ public class RepliesFragment extends Fragment implements CommentsListener {
 		mSettings.loadRedditPreferences(getActivity(), mClient);
 		mCommentsList = new ArrayList<ThingInfo>();
 		
-		mComment = (ThingInfo)getArguments().get(Extras.ARG_COMMENT);
-		
-		int insertedCommentIndex = 0;
-		
-		mCommentsList.add(mComment);
-		
-		if( mComment.getReplies() != null && mComment.getReplies().getData() != null && mComment.getReplies().getData().getChildren() != null)
-		{
-			for (ThingListing commentThingListing : mComment.getReplies().getData().getChildren()) {
-				// insert the comment and its replies, prefix traversal order
-				insertedCommentIndex = insertNestedComment(commentThingListing, 0, insertedCommentIndex + 1);
-			}
-		}
-		
-//		mCommentsList.add(comment);
+		mCommentsList = getArguments().getParcelableArrayList(Extras.ARG_COMMENTS_LIST);
 	}
 	
-	
-	int insertNestedComment(ThingListing commentThingListing, int indentLevel, int insertedCommentIndex) {
-		ThingInfo ci = commentThingListing.getData();
-		
-		// Add comment to deferred append/replace list
-		deferCommentAppend(ci);
-		
-		if (ci.getBody_html() != null) {
-        	CharSequence spanned = createSpanned(ci.getBody_html());
-        	ci.setSpannedBody(spanned);
-		}
-		
-		
-		// Formatting that applies to all items, both real comments and "more" entries
-		ci.setIndent(mIndentation + indentLevel);
-		
-		
-		// Handle "more" entry
-		if (Constants.MORE_KIND.equals(commentThingListing.getKind())) {
-			ci.setLoadMoreCommentsPlaceholder(true);
-			if (Constants.LOGGING) Log.v(TAG, "new more position at " + (insertedCommentIndex));
-	    	return insertedCommentIndex;
-		}
-		
-		// Regular comment
-		
-		// Skip things that are not comments, which shouldn't happen
-		if (!Constants.COMMENT_KIND.equals(commentThingListing.getKind())) {
-			if (Constants.LOGGING) Log.e(TAG, "comment whose kind is \""+commentThingListing.getKind()+"\" (expected "+Constants.COMMENT_KIND+")");
-			return insertedCommentIndex;
-		}
-		
-		// handle the replies
-		Listing repliesListing = ci.getReplies();
-		if (repliesListing == null)
-			return insertedCommentIndex;
-		ListingData repliesListingData = repliesListing.getData();
-		if (repliesListingData == null)
-			return insertedCommentIndex;
-		ThingListing[] replyThingListings = repliesListingData.getChildren();
-		if (replyThingListings == null)
-			return insertedCommentIndex;
-		
-		for (ThingListing replyThingListing : replyThingListings) {
-			insertedCommentIndex = insertNestedComment(replyThingListing, indentLevel + 1, insertedCommentIndex + 1);
-		}
-		return insertedCommentIndex;
-	}
-	
-	private void deferCommentAppend(ThingInfo comment) {
-		
-		if( comment != null )
-		{
-//			String author = comment.getAuthor();
-//			String bodyHtml = comment.getBody_html();
-//			
-//			if( author != null && !author.isEmpty() && bodyHtml != null && !bodyHtml.isEmpty() )
-//				mCommentsList.add(comment);
-			
-			mCommentsList.add(comment);
-		}
-	}
 	
 	
 	@Override
@@ -273,7 +197,6 @@ public class RepliesFragment extends Fragment implements CommentsListener {
 	}
         
 
-	private int mMorePosition = 0;
     public void fillCommentsListItemView(View view, final ThingInfo item, final int position, RedditSettings settings) {
         // Set the values of the Views for the CommentsListItem
     	
@@ -322,7 +245,7 @@ public class RepliesFragment extends Fragment implements CommentsListener {
 	    	}
         }
         
-        if (item.getAuthor().equalsIgnoreCase(mComment.getAuthor()))
+        if (item.getAuthor().equalsIgnoreCase(mCommentsList.get(0).getAuthor()))
         	submitterView.setText(item.getAuthor() + " [S]");
         
         
