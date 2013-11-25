@@ -90,28 +90,10 @@ public class WaywtFragment extends Fragment implements CommentsListener {
     	
     	mSubreddit = getArguments().getString(Extras.SUBREDDIT);
     	mDoSort = getArguments().getBoolean(Extras.DO_SORT);
-    }
-    
-    
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
-		View view = inflater.inflate(R.layout.fragment_waywt, null, false);
-		
-		mPager = (ViewPager)view.findViewById(R.id.pager);
-		mPagerAdapter = new CommentPagerAdapter(getChildFragmentManager(), mSubreddit, mThreadId);
-		mPager.setAdapter(mPagerAdapter);
-		
-		mindicator = (TitlePageIndicator)view.findViewById(R.id.page_indicator);
-		mindicator.setViewPager(mPager);
-		mindicator.setTypeface(FontManager.INSTANCE.getAppFont());
-		
-		
-    	String commentPath;
+    	
+    	String commentPath = null;
     	String commentQuery;
     	String jumpToCommentId = null;
-    	int jumpToCommentContext = 0;
-		// We get the URL through getIntent().getData()
         Uri data = Uri.parse(getArguments().getString(Extras.PERMALINK));
         if (data != null) {
         	// Comment path: a URL pointing to a thread or a comment in a thread.
@@ -120,7 +102,6 @@ public class WaywtFragment extends Fragment implements CommentsListener {
         } else {
     		if (Constants.LOGGING) Log.e(TAG, "Quitting because no subreddit and thread id data was passed into the Intent.");
     		getActivity().finish();
-    		return null;
         }
         
     	if (commentPath != null) {
@@ -141,24 +122,25 @@ public class WaywtFragment extends Fragment implements CommentsListener {
     	} else {
 			if (Constants.LOGGING) Log.e(TAG, "Quitting because of bad comment path.");
 			getActivity().finish();
-			return null;
 		}
-    	
-    	if (commentQuery != null) {
-    		Matcher m = COMMENT_CONTEXT_PATTERN.matcher(commentQuery);
-    		if (m.find()) {
-    			jumpToCommentContext = m.group(1) != null ? Integer.valueOf(m.group(1)) : 0;
-    		}
-    	}
-    	
-    	if (!StringUtils.isEmpty(jumpToCommentId)) {
-    		getNewDownloadCommentsTask().prepareLoadAndJumpToComment(jumpToCommentId, jumpToCommentContext)
-    				.execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
-    	}
-    	else {
-    		getNewDownloadCommentsTask().execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
-    	}
+    }
+    
+    
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		View view = inflater.inflate(R.layout.fragment_waywt, null, false);
 		
+    	
+    	
+		mPager = (ViewPager)view.findViewById(R.id.pager);
+		mPagerAdapter = new CommentPagerAdapter(getChildFragmentManager(), mSubreddit, mThreadId);
+		mPager.setAdapter(mPagerAdapter);
+		
+		mindicator = (TitlePageIndicator)view.findViewById(R.id.page_indicator);
+		mindicator.setViewPager(mPager);
+		mindicator.setTypeface(FontManager.INSTANCE.getAppFont());
+    	
 		return view;
 	}
 	
@@ -167,7 +149,7 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 		// TODO Auto-generated method stub
 		super.onStart();
 		 
-
+		getNewDownloadCommentsTask().execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
 	}
 	
 	@Override

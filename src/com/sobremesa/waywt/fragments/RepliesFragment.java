@@ -14,11 +14,14 @@ import com.sobremesa.waywt.database.tables.CommentTable;
 import com.sobremesa.waywt.database.tables.ImageTable;
 import com.sobremesa.waywt.database.tables.ReplyTable;
 import com.sobremesa.waywt.fragments.CommentFragment.Extras;
+import com.sobremesa.waywt.listeners.CommentsListener;
 import com.sobremesa.waywt.model.Listing;
 import com.sobremesa.waywt.model.ListingData;
 import com.sobremesa.waywt.model.ThingInfo;
 import com.sobremesa.waywt.model.ThingListing;
 import com.sobremesa.waywt.settings.RedditSettings;
+import com.sobremesa.waywt.tasks.DownloadCommentsTask;
+import com.sobremesa.waywt.tasks.DownloadRepliesTask;
 import com.sobremesa.waywt.util.CollectionUtils;
 import com.sobremesa.waywt.util.Util;
 import com.sobremesa.waywt.views.AspectRatioImageView;
@@ -42,6 +45,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ArrayAdapter;
@@ -51,14 +55,20 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class RepliesFragment extends Fragment {
+public class RepliesFragment extends Fragment implements CommentsListener {
 	private static final String TAG = RepliesFragment.class.getSimpleName();
 	
 	public static class Extras
 	{
+		public static String SUBREDDIT = "subreddit";
+		public static String THREAD_ID = "thread_id";
+		
 		public static String ARG_COMMENT = "comment";
 	}
 	
+    private String mSubreddit = "malefashionadvice";
+    private String mThreadId = null;
+    
 	ThingInfo mComment = null;
     ArrayList<ThingInfo> mCommentsList = null;
     
@@ -68,10 +78,25 @@ public class RepliesFragment extends Fragment {
     private int last_found_position = -1;
     private int mIndentation = 1;
     
+    
+    private DownloadRepliesTask getNewDownloadRepliesTask() {
+    	return new DownloadRepliesTask(
+				this,
+				mSubreddit,
+				mThreadId,
+				mSettings,
+				mClient
+		);
+    }
+    
+    
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
+		
+		mSubreddit = getArguments().getString(Extras.SUBREDDIT);
+		mThreadId = getArguments().getString(Extras.THREAD_ID);
 		
 		mSettings.loadRedditPreferences(getActivity(), mClient);
 		mCommentsList = new ArrayList<ThingInfo>();
@@ -162,13 +187,7 @@ public class RepliesFragment extends Fragment {
 		// TODO Auto-generated method stub
 		LinearLayout view = (LinearLayout)inflater.inflate(R.layout.fragment_replies, null, false);
 		
-		
-		
-		for(int i=0; i< mCommentsList.size(); ++i)
-		{
-			View listItemView = getListItemView(i);
-			view.addView(listItemView);
-		}
+		updateView(view);
 		
 		return view;
 	}
@@ -187,8 +206,20 @@ public class RepliesFragment extends Fragment {
 		mSettings.loadRedditPreferences(getActivity(), mClient);
 	}
 	
+	private void updateView( LinearLayout view )
+	{
+		view.removeAllViews();
+		
+		for(int i=0; i< mCommentsList.size(); ++i)
+		{
+			View listItemView = getListItemView(i);
+			view.addView(listItemView);
+		}
+		
+	}
 	
-	public View getListItemView(int position) {
+	
+	public View getListItemView(final int position) {
         View view = getActivity().getLayoutInflater().inflate(R.layout.comments_list_item, null);
         
         ThingInfo item = mCommentsList.get(position);
@@ -210,9 +241,24 @@ public class RepliesFragment extends Fragment {
 	    		view = getActivity().getLayoutInflater().inflate(R.layout.more_comments_view, null);
 	    		setCommentIndent(view, item.getIndent(), mSettings);	
 	    		
+	    		view.setTag(item);
+	    		
+	            // OnClick
+	            view.setOnClickListener(new OnClickListener() {
+	    			
+	    			@Override
+	    			public void onClick(View v) {
+	    				// TODO Auto-generated method stub
+	    				mMorePosition = position;
+	    				
+	    				ThingInfo item = (ThingInfo)v.getTag();
+	    				getNewDownloadRepliesTask().prepareLoadMoreComments(item.getId(), position, item.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+	    			}
+	    		});
+	    		
 	    	}
 	    	else
-	    		fillCommentsListItemView(view, item, mSettings);
+	    		fillCommentsListItemView(view, item, position, mSettings);
         } catch (NullPointerException e) {
         	if (Constants.LOGGING) Log.w(TAG, "NPE in getView()", e);
         	// Probably means that the List is still being built, and OP probably got put in wrong position
@@ -227,8 +273,8 @@ public class RepliesFragment extends Fragment {
 	}
         
 
-    
-    public void fillCommentsListItemView(View view, ThingInfo item, RedditSettings settings) {
+	private int mMorePosition = 0;
+    public void fillCommentsListItemView(View view, final ThingInfo item, final int position, RedditSettings settings) {
         // Set the values of the Views for the CommentsListItem
     	
         TextView votesView = (TextView) view.findViewById(R.id.votes);
@@ -259,7 +305,7 @@ public class RepliesFragment extends Fragment {
         
     	bodyView.setMovementMethod(LinkMovementMethod.getInstance());
     	
-        setCommentIndent(view, item.getIndent(), settings);
+        setCommentIndent(view, item.getIndent(), settings); 
         
         if (voteUpView != null && voteDownView != null) {
 	        if (item.getLikes() == null || "[deleted]".equals(item.getAuthor())) {
@@ -278,6 +324,9 @@ public class RepliesFragment extends Fragment {
         
         if (item.getAuthor().equalsIgnoreCase(mComment.getAuthor()))
         	submitterView.setText(item.getAuthor() + " [S]");
+        
+        
+
     }
     
     public static void setCommentIndent(View commentListItemView, int indentLevel, RedditSettings settings) {
@@ -328,5 +377,43 @@ public class RepliesFragment extends Fragment {
     		return null;
     	}
     }
+
+
+	@Override
+	public void enableLoadingScreen() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void resetUI() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void updateComments(List<ThingInfo> comments) {
+		
+		ArrayList<ThingInfo> newCommentsList = new ArrayList<ThingInfo>();
+		
+		for( int i = 0; i < mMorePosition && i < mCommentsList.size(); ++i)
+		{
+			newCommentsList.add(mCommentsList.get(i));
+		}
+		
+		newCommentsList.addAll(comments);
+		
+		for( int i = mMorePosition + 1; i < mCommentsList.size(); ++i)
+		{
+			newCommentsList.add(mCommentsList.get(i));
+		}
+		
+		mCommentsList = newCommentsList;
+		
+		if( getView() != null )
+			updateView((LinearLayout)getView().findViewById(R.id.replies_fragment_root_layout));
+	}
     
 }

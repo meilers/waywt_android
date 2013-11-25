@@ -149,6 +149,9 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		
+		mSubreddit = getArguments().getString(Extras.SUBREDDIT);
+		mThreadId = getArguments().getString(Extras.THREAD_ID);
+		
 		mSettings.loadRedditPreferences(getActivity(), null);
 		
 		mComment = (ThingInfo)getArguments().get(Extras.COMMENT);
@@ -273,6 +276,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		}
 	};
 	
+	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
@@ -306,15 +310,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		
     
 		
-		
-		
 		// Replies fragment
-		RepliesFragment fragment = new RepliesFragment();
-		Bundle args = new Bundle();
-		args.putParcelable(RepliesFragment.Extras.ARG_COMMENT, mComment);
-		fragment.setArguments(args);
-		
-		getChildFragmentManager().beginTransaction().replace(R.id.comment_replies_container, fragment, RepliesFragment.class.getCanonicalName()).commit();
+		updateReplies(view);
 		
 		
 		// images
@@ -372,6 +369,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		RepliesFragment fragment = new RepliesFragment();
 		Bundle args = new Bundle();
 		args.putParcelable(RepliesFragment.Extras.ARG_COMMENT, mComment);
+		args.putString(RepliesFragment.Extras.SUBREDDIT, mSubreddit);
+		args.putString(RepliesFragment.Extras.THREAD_ID, mThreadId);
 		fragment.setArguments(args);
 		
 		getChildFragmentManager().beginTransaction().replace(R.id.comment_replies_container, fragment, RepliesFragment.class.getCanonicalName()).commit();
@@ -808,7 +807,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     			// Refresh
     			CacheInfo.invalidateCachedThread(WaywtApplication.getContext());
 //    			getNewDownloadCommentsTask().execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
-    			getNewDownloadCommentsTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+//    			getNewDownloadCommentsTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
     			
     			mReplyEt.getText().clear();
     		}
