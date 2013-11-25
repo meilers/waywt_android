@@ -102,7 +102,7 @@ public class RedditSettings {
 			case 1:
 				return Constants.PREF_ROTATION_PORTRAIT;
 			case 0:
-				return Constants.PREF_ROTATION_LANDSCAPE;
+				return Constants.PREF_ROTATION_LANDSCAPE;  
 			default:
 				return Constants.PREF_ROTATION_UNSPECIFIED;
 			}

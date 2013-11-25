@@ -63,8 +63,8 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
     private final ObjectMapper mObjectMapper = Common.getObjectMapper();
     private final Markdown markdown = new Markdown();
 
-    private static AsyncTask<?, ?, ?> mCurrentDownloadCommentsTask = null;
-    private static final Object mCurrentDownloadCommentsTaskLock = new Object();
+//    private static AsyncTask<?, ?, ?> mCurrentDownloadCommentsTask = null;
+//    private static final Object mCurrentDownloadCommentsTaskLock = new Object();
     
     private final Object mCurrentShowThumbnailsTaskLock = new Object();
     
@@ -434,13 +434,13 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
     		this.cancel(true);
     		return;
 		}
-		synchronized (mCurrentDownloadCommentsTaskLock) {
-    		if (mCurrentDownloadCommentsTask != null) {
-    			this.cancel(true);
-    			return;
-    		}
-    		mCurrentDownloadCommentsTask = this;
-		}
+//		synchronized (mCurrentDownloadCommentsTaskLock) {
+//    		if (mCurrentDownloadCommentsTask != null) {
+//    			this.cancel(true);
+//    			return;
+//    		}
+//    		mCurrentDownloadCommentsTask = this;
+//		}
 		
 		if (isInsertingEntireThread()) {
 
@@ -455,38 +455,44 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
     
 	@Override
 	public void onPostExecute(Boolean success) {
-		insertCommentsUI();
-		
-		if (mContentLength == -1)
-			((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_OFF);
-		else
-			((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_END);
-		
-		if (success) {
-			// We should clear any replies the user was composing.
-//			mListener.setShouldClearReply(true);
-//
-//			// Set title in android titlebar
-//			if (mThreadTitle != null)
-//				mListener.setTitle(mThreadTitle + " : " + mSubreddit);
-		} else {
-			if (!isCancelled()) {
-				Common.showErrorToast("Error downloading comments. Please try again.", Toast.LENGTH_LONG, ((Fragment) mListener).getActivity());
-				mListener.resetUI();
+		if( (Fragment) mListener != null && ((Fragment) mListener).getActivity() != null)
+		{
+			insertCommentsUI();
+			
+			if (mContentLength == -1)
+				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_OFF);
+			else
+				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_END);
+			
+			if (success) {
+				// We should clear any replies the user was composing.
+	//			mListener.setShouldClearReply(true);
+	//
+	//			// Set title in android titlebar
+	//			if (mThreadTitle != null)
+	//				mListener.setTitle(mThreadTitle + " : " + mSubreddit);
+			} else {
+				if (!isCancelled()) {
+					Common.showErrorToast("No Internet Connection", Toast.LENGTH_LONG, ((Fragment) mListener).getActivity());
+					mListener.resetUI();
+				}
 			}
 		}
 
-		synchronized (mCurrentDownloadCommentsTaskLock) {
-			mCurrentDownloadCommentsTask = null;
-		}
+//		synchronized (mCurrentDownloadCommentsTaskLock) {
+//			mCurrentDownloadCommentsTask = null;
+//		}
 	}
 	
 	@Override
 	public void onProgressUpdate(Long... progress) {
-		if (mContentLength == -1)
-			((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
-		else
-			((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, progress[0].intValue() * (Window.PROGRESS_END-1) / (int) mContentLength);
+		if( (Fragment) mListener != null && ((Fragment) mListener).getActivity() != null)
+		{
+			if (mContentLength == -1)
+				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
+			else
+				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, progress[0].intValue() * (Window.PROGRESS_END-1) / (int) mContentLength);
+		}
 	}
 	
 	@Override

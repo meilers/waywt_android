@@ -9,11 +9,13 @@ import java.util.HashMap;
 import org.apache.http.client.HttpClient;
 
 import com.sobremesa.waywt.R;
+import com.sobremesa.waywt.common.Common;
 import com.sobremesa.waywt.common.Constants;
 import com.sobremesa.waywt.common.RedditIsFunHttpClientFactory;
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.PostTable;
 import com.sobremesa.waywt.dialog.LoginDialog;
+import com.sobremesa.waywt.fragments.CommentFragment;
 import com.sobremesa.waywt.fragments.WaywtFragment;
 import com.sobremesa.waywt.service.PostService;
 import com.sobremesa.waywt.settings.RedditSettings;
@@ -45,6 +47,7 @@ import android.webkit.CookieSyncManager;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ViewFlipper;
 
 public class MainActivity extends FragmentActivity implements ActionBar.OnNavigationListener, LoaderCallbacks<Cursor> {
 
@@ -70,27 +73,36 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		mSettings.loadRedditPreferences(this, null);
+		try
+		{
+			mSettings.loadRedditPreferences(this, null);
+			
+			mPermalinks = new ArrayList<PostPermalink>();
+	
+			
+			// Set up the action bar to show a dropdown list.
+			final ActionBar actionBar = getActionBar();
+			actionBar.setDisplayShowTitleEnabled(false);
+			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+	
+			mNavAdapter = new ArrayAdapter<String>(actionBar.getThemedContext(), R.layout.list_item_navigation);
+			actionBar.setDisplayShowTitleEnabled(false);
+			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+			
+			// Set up the dropdown list navigation in the action bar.
+			actionBar.setListNavigationCallbacks(mNavAdapter, this);
+			
+			
+			// load settings
+			CookieSyncManager.createInstance(getApplicationContext()); 
+			mSettings.loadRedditPreferences(this, mClient); 
+		}
+		catch( Exception e) 
+		{
+			Common.showErrorToast("No Internet Connection", Toast.LENGTH_LONG, this);
+			
+		}
 		
-		mPermalinks = new ArrayList<PostPermalink>();
-
-		
-		// Set up the action bar to show a dropdown list.
-		final ActionBar actionBar = getActionBar();
-		actionBar.setDisplayShowTitleEnabled(false);
-		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-
-		mNavAdapter = new ArrayAdapter<String>(actionBar.getThemedContext(), R.layout.list_item_navigation);
-		actionBar.setDisplayShowTitleEnabled(false);
-		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-		
-		// Set up the dropdown list navigation in the action bar.
-		actionBar.setListNavigationCallbacks(mNavAdapter, this);
-		
-		
-		// load settings
-		CookieSyncManager.createInstance(getApplicationContext());
-		mSettings.loadRedditPreferences(this, mClient);
 		
 	}
 
@@ -99,8 +111,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		// TODO Auto-generated method stub
 		super.onStart();
 
-		fetchPostData();
-		getSupportLoaderManager().initLoader(0, null, this);
+
 	}
 	
 	@Override
@@ -110,6 +121,9 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		
     	mSettings.loadRedditPreferences(this, mClient);
     	CookieSyncManager.getInstance().startSync();
+    	
+		fetchPostData();
+		getSupportLoaderManager().initLoader(0, null, this);
 	}
 
 	@Override
@@ -203,6 +217,12 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		}
 		
 		mNavAdapter.notifyDataSetChanged();
+		
+		if( cursor.getCount() > 0 )
+		{
+			ViewFlipper vf = (ViewFlipper)findViewById(R.id.vf);
+			vf.setDisplayedChild(1);
+		}
 
 		
 	}
@@ -244,7 +264,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 				@Override
 				public void onLoginChosen(String user, String password) {
 					removeDialog(Constants.DIALOG_LOGIN);
-    				new MyLoginTask(user, password).execute();
+    				new MyLoginTask(user, password).execute(); 
 				}
 			};
     		return dialog;
@@ -270,23 +290,47 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
     		if (success) {
     			Toast.makeText(MainActivity.this, "Logged in as "+mUsername, Toast.LENGTH_SHORT).show();
     		} else {
-//            	Common.showErrorToast(mUserError, Toast.LENGTH_LONG, CommentsListActivity.this);
+            	Common.showErrorToast(mUserError, Toast.LENGTH_LONG, MainActivity.this);
     		}
     	}
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        // Login/Logout
+    	if (mSettings.isLoggedIn()) {
+    		menu.findItem(R.id.login_menu_id).setVisible(false);
+    		menu.findItem(R.id.logout_menu_id).setVisible(true);
+	        menu.findItem(R.id.logout_menu_id).setTitle(
+	        		String.format(getResources().getString(R.string.logout), mSettings.getUsername())
+    		);
+    	} else {
+            menu.findItem(R.id.login_menu_id).setVisible(true);
+            menu.findItem(R.id.logout_menu_id).setVisible(false);
+    	}
+        return true;
+    }
+    
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	// TODO Auto-generated method stub
     	switch(item.getItemId() )
     	{
-    	case R.id.action_settings:
+    	case R.id.login_menu_id:
     		showDialog(Constants.DIALOG_LOGIN);
     		break;
+    	case R.id.logout_menu_id:
+    		Common.doLogout(mSettings, mClient, getApplicationContext());
+    		Toast.makeText(this, "You have been logged out.", Toast.LENGTH_SHORT).show();
+//    		getNewDownloadCommentsTask().execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+            break;
     	}
     	
     	
     	return super.onOptionsItemSelected(item);
     }
+    
+    
 
 }

@@ -501,7 +501,7 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 //				mListener.setTitle(mThreadTitle + " : " + mSubreddit);
 		} else {
 			if (!isCancelled()) {
-				Common.showErrorToast("Error downloading comments. Please try again.", Toast.LENGTH_LONG, ((Fragment) mListener).getActivity());
+				Common.showErrorToast("No Internet Connection", Toast.LENGTH_LONG, ((Fragment) mListener).getActivity());
 				mListener.resetUI();
 			}
 		}

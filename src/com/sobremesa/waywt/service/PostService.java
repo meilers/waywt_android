@@ -141,7 +141,17 @@ public class PostService extends BaseService {
 			
 			while( after != null && i < 1)
 			{
-				response = client.getPosts("hot", "", after);  
+				try{
+					response = client.getPosts("hot", "", after);  
+				}
+				catch(Exception e)
+				{
+					return;
+				}
+				
+				if( response == null )
+					return; 
+				
 				remoteData = response.data;
 				
 				posts = remoteData.children;   
@@ -168,7 +178,18 @@ public class PostService extends BaseService {
 			
 			while( after != null && i < 2)
 			{
-				response = client.getPosts("top", "today", after);  
+				try
+				{
+					response = client.getPosts("top", "today", after);  
+				}
+				catch(Exception e)
+				{
+					return;
+				}
+				
+				if( response == null )
+					return; 
+				
 				remoteData = response.data;
 				
 				posts = remoteData.children;  
@@ -194,7 +215,18 @@ public class PostService extends BaseService {
 			
 			while( after != null && i < 2)
 			{
-				response = client.getPosts("top", "week", after);  
+				try
+				{
+					response = client.getPosts("top", "week", after);  
+				}
+				catch(Exception e)
+				{
+					return;
+				}
+				
+				if( response == null )
+					return; 
+				
 				remoteData = response.data;
 				
 				posts = remoteData.children;  
@@ -221,7 +253,19 @@ public class PostService extends BaseService {
 			
 			while( after != null && i < 5)
 			{
-				response = client.getPosts("top", "month", after);  
+				
+				try
+				{
+					response = client.getPosts("top", "month", after);  
+				}
+				catch(Exception e)
+				{
+					return;
+				}
+				
+				if( response == null )
+					return; 
+				
 				remoteData = response.data;
 				
 				posts = remoteData.children;  

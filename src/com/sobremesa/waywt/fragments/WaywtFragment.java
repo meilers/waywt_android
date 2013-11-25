@@ -45,6 +45,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Toast;
+import android.widget.ViewFlipper;
 
 public class WaywtFragment extends Fragment implements CommentsListener {
 
@@ -182,7 +183,6 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 	@Override
 	public void updateComments(List<ThingInfo> comments) {
 		
-		Toast.makeText(getActivity(), comments.size()+"", Toast.LENGTH_LONG).show();
 		
 		if( mDoSort )
 			Collections.sort(comments);
@@ -193,6 +193,13 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 		}
 		
 		mPagerAdapter.addComments(comments);
+		
+		if( getView() != null )
+		{
+			ViewFlipper vf = (ViewFlipper)getView().findViewById(R.id.vf);
+			vf.setDisplayedChild(1);
+		}
+
 	}
 	
 	

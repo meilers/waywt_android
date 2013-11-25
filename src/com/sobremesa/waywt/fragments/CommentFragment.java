@@ -82,12 +82,14 @@ import android.view.ContextThemeWrapper;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -97,6 +99,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.widget.ViewFlipper;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -424,6 +427,10 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 					
 					Log.d("yes", mainImageUrl);
 					
+					
+					ViewFlipper vf = (ViewFlipper)view.findViewById(R.id.vf);
+					vf.setDisplayedChild(1);
+					
 					ScrollView sv = (ScrollView)view.findViewById(R.id.container);
 					sv.setVisibility(View.VISIBLE);
 					
@@ -437,6 +444,9 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 					// bitmap = getResizedBitmap(bitmap, 200);
 					
 					imageView.setImageBitmap(bitmap);
+					
+					ViewFlipper vf = (ViewFlipper)view.findViewById(R.id.vf);
+					vf.setDisplayedChild(1);
 					
 					ScrollView sv = (ScrollView)view.findViewById(R.id.container);
 					sv.setVisibility(View.VISIBLE);
@@ -815,10 +825,19 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     		} else {
     			// Refresh
     			CacheInfo.invalidateCachedThread(WaywtApplication.getContext());
-//    			getNewDownloadCommentsTask().execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
-//    			getNewDownloadCommentsTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+    			
+    			try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+    			
+    			getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
     			
     			mReplyEt.getText().clear();
+    			InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+    			imm.hideSoftInputFromWindow(mReplyEt.getWindowToken(), 0);
     		}
     	}
     }
@@ -851,5 +870,20 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 			updateReplies(view);
 		}
 	}
+	
+	
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+    	// TODO Auto-generated method stub
+    	switch(item.getItemId() )
+    	{
+    	case R.id.logout_menu_id:
+    		getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+            break;
+    	}
+    	
+    	
+    	return super.onOptionsItemSelected(item);
+    }
 
 }

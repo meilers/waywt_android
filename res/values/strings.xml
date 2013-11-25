@@ -5,11 +5,7 @@
     <string name="action_settings">Settings</string>
     <string name="quotations">\"</string>
 
-    
-    
-    
-        <string name="app_name">reddit is fun</string>
-    <string name="user_agent">reddit is fun (Android) %s</string>
+    <string name="user_agent">WAYWT (Android) %s</string>
     
     <string name="yes">Yes</string>
     <string name="no">No</string>
