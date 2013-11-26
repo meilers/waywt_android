@@ -39,7 +39,6 @@ import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.model.ThingInfo;
 import com.sobremesa.waywt.service.clients.ImgurServiceClient;
 import com.sobremesa.waywt.settings.RedditSettings;
-import com.sobremesa.waywt.tasks.DownloadCommentsTask;
 import com.sobremesa.waywt.tasks.DownloadRepliesTask;
 import com.sobremesa.waywt.tasks.DrsdTask;
 import com.sobremesa.waywt.tasks.ImgurAlbumTask;
@@ -135,8 +134,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 	private ImageView mSendBtn;
 	
 	
-    private final HttpClient mClient = RedditIsFunHttpClientFactory.getGzipHttpClient();
-    private final RedditSettings mSettings = new RedditSettings();
+    private final HttpClient mClient = MainActivity.getClient();
+    private final RedditSettings mSettings = MainActivity.getSettings();
     
     
     private DownloadRepliesTask getNewDownloadRepliesTask() {
@@ -178,7 +177,6 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 			while (matcher.find()) {
 				url = matcher.group(1);
 				
-				Log.d(mComment.getAuthor(), bodyHtml);
 				
 				if( url.contains("imgur.com"))
 				{
@@ -254,6 +252,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		
 		mSettings.loadRedditPreferences(getActivity(), mClient);
 		
+		Log.d("comment", mComment.getAuthor());
+		
 		getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
 	}
 	
@@ -262,6 +262,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		
 		@Override
 		public void onClick(View v) {
+			mSettings.saveRedditPreferences(WaywtApplication.getContext());
+			
 	    	getActivity().removeDialog(Constants.DIALOG_COMMENT_CLICK);
 	    	String thingFullname = mComment.getName();
 			if (mComment.getLikes() != null && mComment.getLikes())
@@ -275,6 +277,9 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		
 		@Override
 		public void onClick(View v) {
+			
+			mSettings.saveRedditPreferences(WaywtApplication.getContext());
+			
 	    	getActivity().removeDialog(Constants.DIALOG_COMMENT_CLICK);
 	    	String thingFullname = mComment.getName();
 			if (mComment.getLikes() != null && !mComment.getLikes())
@@ -348,6 +353,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 			
 			@Override
 			public void onClick(View v) {
+				
 				// TODO Auto-generated method stub
 				new CommentReplyTask(mComment.getName()).execute(mReplyEt.getText().toString());
 			}
@@ -857,17 +863,21 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 
 
 	@Override
-	public void updateComments(List<ThingInfo> comments) {
+	public void updateComments(List<ThingInfo> comments) {  
 		// TODO Auto-generated method stub
 		
-		mComment = comments.get(0);
-		mRepliesList = new ArrayList<ThingInfo>(comments);
-		
 		View view = getView();
-		if( view != null )
+		
+		if( view != null && comments != null && comments.get(0) != null )
 		{
-			updatePoints(view);
-			updateReplies(view);
+			mComment = comments.get(0);
+			mRepliesList = new ArrayList<ThingInfo>(comments);
+			
+			if( view != null )
+			{
+				updatePoints(view);
+				updateReplies(view);
+			}
 		}
 	}
 	
@@ -877,7 +887,12 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     	// TODO Auto-generated method stub
     	switch(item.getItemId() )
     	{
+    	case R.id.login_menu_id:
+    		mSettings.loadRedditPreferences(getActivity(), null);
+    		break;
+    	
     	case R.id.logout_menu_id:
+    		mSettings.loadRedditPreferences(getActivity(), null);
     		getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
             break;
     	}

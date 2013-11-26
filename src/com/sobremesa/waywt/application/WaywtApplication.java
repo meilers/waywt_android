@@ -33,7 +33,7 @@ public class WaywtApplication extends Application {
 	}
 	
 	
-	public static final Context getContext() {
+	public static final Context getContext() { 
 		return sContext;
 	}
 	

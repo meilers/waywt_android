@@ -183,19 +183,18 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 	@Override
 	public void updateComments(List<ThingInfo> comments) {
 		
-		
-		if( mDoSort )
-			Collections.sort(comments);
-		else
+		if(getView() != null )
 		{
-			long seed = System.nanoTime();
-			Collections.shuffle(comments, new Random(seed));
-		}
-		
-		mPagerAdapter.addComments(comments);
-		
-		if( getView() != null )
-		{
+			if( mDoSort )
+				Collections.sort(comments);
+			else
+			{
+				long seed = System.nanoTime();
+				Collections.shuffle(comments, new Random(seed));
+			}
+			
+			mPagerAdapter.addComments(comments);
+			
 			ViewFlipper vf = (ViewFlipper)getView().findViewById(R.id.vf);
 			vf.setDisplayedChild(1);
 		}

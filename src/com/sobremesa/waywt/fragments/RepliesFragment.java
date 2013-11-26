@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.http.client.HttpClient;
 
 import com.sobremesa.waywt.R;
+import com.sobremesa.waywt.activities.MainActivity;
 import com.sobremesa.waywt.application.WaywtApplication;
 import com.sobremesa.waywt.common.Constants;
 import com.sobremesa.waywt.common.RedditIsFunHttpClientFactory;
@@ -20,7 +21,6 @@ import com.sobremesa.waywt.model.ListingData;
 import com.sobremesa.waywt.model.ThingInfo;
 import com.sobremesa.waywt.model.ThingListing;
 import com.sobremesa.waywt.settings.RedditSettings;
-import com.sobremesa.waywt.tasks.DownloadCommentsTask;
 import com.sobremesa.waywt.tasks.DownloadRepliesTask;
 import com.sobremesa.waywt.util.CollectionUtils;
 import com.sobremesa.waywt.util.Util;
@@ -71,8 +71,8 @@ public class RepliesFragment extends Fragment implements CommentsListener {
     
     private ArrayList<ThingInfo> mCommentsList = new ArrayList<ThingInfo>();
     
-    private final RedditSettings mSettings = new RedditSettings();
-    private final HttpClient mClient = RedditIsFunHttpClientFactory.getGzipHttpClient();
+    private final HttpClient mClient = MainActivity.getClient();
+    private final RedditSettings mSettings = MainActivity.getSettings();
 	
     private int last_found_position = -1;
     private int mIndentation = 1;
@@ -319,24 +319,26 @@ public class RepliesFragment extends Fragment implements CommentsListener {
 	@Override
 	public void updateComments(List<ThingInfo> comments) {
 		
-		ArrayList<ThingInfo> newCommentsList = new ArrayList<ThingInfo>();
-		
-		for( int i = 0; i < mMorePosition && i < mCommentsList.size(); ++i)
-		{
-			newCommentsList.add(mCommentsList.get(i));
-		}
-		
-		newCommentsList.addAll(comments);
-		
-		for( int i = mMorePosition + 1; i < mCommentsList.size(); ++i)
-		{
-			newCommentsList.add(mCommentsList.get(i));
-		}
-		
-		mCommentsList = newCommentsList;
-		
 		if( getView() != null )
+		{
+			ArrayList<ThingInfo> newCommentsList = new ArrayList<ThingInfo>();
+			
+			for( int i = 0; i < mMorePosition && i < mCommentsList.size(); ++i)
+			{
+				newCommentsList.add(mCommentsList.get(i));
+			}
+			
+			newCommentsList.addAll(comments);
+			
+			for( int i = mMorePosition + 1; i < mCommentsList.size(); ++i)
+			{
+				newCommentsList.add(mCommentsList.get(i));
+			}
+			
+			mCommentsList = newCommentsList;
+			
 			updateView((LinearLayout)getView().findViewById(R.id.replies_fragment_root_layout));
+		}
 	}
     
 }

@@ -5,9 +5,11 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,10 +65,9 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
     private final ObjectMapper mObjectMapper = Common.getObjectMapper();
     private final Markdown markdown = new Markdown();
 
-//    private static AsyncTask<?, ?, ?> mCurrentDownloadCommentsTask = null;
-//    private static final Object mCurrentDownloadCommentsTaskLock = new Object();
+    private static HashMap<CommentsListener, AsyncTask<?, ?, ?>> mCurrentDownloadCommentsTasks = new HashMap<CommentsListener, AsyncTask<?, ?, ?>>();
+    private static final Object mCurrentDownloadCommentsTaskLock = new Object();
     
-    private final Object mCurrentShowThumbnailsTaskLock = new Object();
     
     private CommentsListener mListener;
     private String mSubreddit;
@@ -430,17 +431,30 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
     @Override
 	public void onPreExecute() {
 		if (mThreadId == null) {
-			if (Constants.LOGGING) Log.e(TAG, "mSettings.threadId == null");
+			if (Constants.LOGGING) Log.e(TAG, "mSettings.threadId == null"); 
     		this.cancel(true);
     		return;
 		}
-//		synchronized (mCurrentDownloadCommentsTaskLock) {
-//    		if (mCurrentDownloadCommentsTask != null) {
-//    			this.cancel(true);
-//    			return;
-//    		}
-//    		mCurrentDownloadCommentsTask = this;
-//		}
+		Iterator<Map.Entry<CommentsListener, AsyncTask<?, ?, ?>>> it = mCurrentDownloadCommentsTasks.entrySet().iterator();
+	    while (it.hasNext()) {
+	        Map.Entry<CommentsListener, AsyncTask<?, ?, ?>> pairs = (Map.Entry<CommentsListener, AsyncTask<?, ?, ?>>)it.next();
+	        if( pairs.getKey() == null || pairs.getValue() == null)
+	        {
+	        	if( pairs.getValue() != null )
+	        		pairs.getValue().cancel(true);
+	        	
+	        	it.remove(); // avoids a ConcurrentModificationException	
+	        }
+	    }
+	    
+	    if( mCurrentDownloadCommentsTasks.containsKey(mListener) )
+	    {
+	    	mCurrentDownloadCommentsTasks.get(mListener).cancel(true);
+	    }
+	    else
+	    {
+	    	mCurrentDownloadCommentsTasks.put(mListener, this);
+	    }
 		
 		if (isInsertingEntireThread()) {
 
@@ -479,9 +493,9 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 			}
 		}
 
-//		synchronized (mCurrentDownloadCommentsTaskLock) {
-//			mCurrentDownloadCommentsTask = null;
-//		}
+		if( mCurrentDownloadCommentsTasks.containsKey(mListener) ) {
+			mCurrentDownloadCommentsTasks.put(mListener, null);
+		}
 	}
 	
 	@Override

@@ -63,8 +63,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 	private ArrayList<PostPermalink> mPermalinks;
 
 	
-	private final HttpClient mClient = RedditIsFunHttpClientFactory.getGzipHttpClient();
-	private final RedditSettings mSettings = new RedditSettings();
+	private static final HttpClient mClient = RedditIsFunHttpClientFactory.getGzipHttpClient();
+	private static final RedditSettings mSettings = new RedditSettings();
 	
 	private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
 
@@ -289,6 +289,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
     		removeDialog(Constants.DIALOG_LOGGING_IN);
     		if (success) {
     			Toast.makeText(MainActivity.this, "Logged in as "+mUsername, Toast.LENGTH_SHORT).show();
+    			mSettings.saveRedditPreferences(MainActivity.this);
     		} else {
             	Common.showErrorToast(mUserError, Toast.LENGTH_LONG, MainActivity.this);
     		}
@@ -323,12 +324,23 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
     	case R.id.logout_menu_id:
     		Common.doLogout(mSettings, mClient, getApplicationContext());
     		Toast.makeText(this, "You have been logged out.", Toast.LENGTH_SHORT).show();
-//    		getNewDownloadCommentsTask().execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+    		
+    		mSettings.saveRedditPreferences(this);
             break;
     	}
     	
     	
     	return super.onOptionsItemSelected(item);
+    }
+    
+    public static RedditSettings getSettings()
+    {
+    	return mSettings;
+    }
+    
+    public static HttpClient getClient()
+    {
+    	return mClient;
     }
     
     

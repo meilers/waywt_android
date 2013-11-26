@@ -50,6 +50,8 @@ public class CommentPagerAdapter extends FragmentStatePagerAdapter {
 		args.putParcelable(CommentFragment.Extras.COMMENT, mComments.get(position));
 		fragment.setArguments(args);
 		
+		
+		
 		return fragment;
 	}
 

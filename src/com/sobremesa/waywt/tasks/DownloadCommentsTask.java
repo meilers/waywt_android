@@ -64,7 +64,7 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
     private final Markdown markdown = new Markdown();
 
     private static AsyncTask<?, ?, ?> mCurrentDownloadCommentsTask = null;
-    private static final Object mCurrentDownloadCommentsTaskLock = new Object();
+    private static final Object mCurrentDownloadCommentsTaskLock = new Object();  
     
     private final Object mCurrentShowThumbnailsTaskLock = new Object();
     
@@ -114,7 +114,7 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 		this.mSubreddit = subreddit;
 		this.mThreadId = threadId;
 		this.mSettings = settings;
-		this.mClient = client;
+		this.mClient = client;  
 	}
 	
 	/**
@@ -461,8 +461,7 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 		}
 		synchronized (mCurrentDownloadCommentsTaskLock) {
     		if (mCurrentDownloadCommentsTask != null) {
-    			this.cancel(true);
-    			return;
+    			mCurrentDownloadCommentsTask.cancel(true);
     		}
     		mCurrentDownloadCommentsTask = this;
 		}
@@ -480,32 +479,36 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
     
 	@Override
 	public void onPostExecute(Boolean success) {
-		if (isInsertingEntireThread()) {
-			insertCommentsUI();
-			if (isFoundJumpTargetComment());
-//				mListener.getListView().setSelection(;);
-		}
 		
-		
-		if (mContentLength == -1)
-			((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_OFF);
-		else
-			((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_END);
-		
-		if (success) {
-			// We should clear any replies the user was composing.
-//			mListener.setShouldClearReply(true);
-//
-//			// Set title in android titlebar
-//			if (mThreadTitle != null)
-//				mListener.setTitle(mThreadTitle + " : " + mSubreddit);
-		} else {
-			if (!isCancelled()) {
-				Common.showErrorToast("No Internet Connection", Toast.LENGTH_LONG, ((Fragment) mListener).getActivity());
-				mListener.resetUI();
+		if( (Fragment) mListener != null && ((Fragment) mListener).getActivity() != null )
+		{
+			if (isInsertingEntireThread()) {
+				insertCommentsUI();
+				if (isFoundJumpTargetComment());
+	//				mListener.getListView().setSelection(;);
+			}
+			
+			
+			if (mContentLength == -1)
+				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_OFF);
+			else
+				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_END);
+			
+			if (success) {
+				// We should clear any replies the user was composing.
+	//			mListener.setShouldClearReply(true);
+	//
+	//			// Set title in android titlebar
+	//			if (mThreadTitle != null)
+	//				mListener.setTitle(mThreadTitle + " : " + mSubreddit);
+			} else {
+				if (!isCancelled()) {
+					Common.showErrorToast("No Internet Connection", Toast.LENGTH_LONG, ((Fragment) mListener).getActivity());
+					mListener.resetUI();
+				}
 			}
 		}
-
+		
 		synchronized (mCurrentDownloadCommentsTaskLock) {
 			mCurrentDownloadCommentsTask = null;
 		}
@@ -513,10 +516,14 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 	
 	@Override
 	public void onProgressUpdate(Long... progress) {
-		if (mContentLength == -1)
-			((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
-		else
-			((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, progress[0].intValue() * (Window.PROGRESS_END-1) / (int) mContentLength);
+		
+		if( mListener != null && ((Fragment) mListener).getActivity() != null )
+		{
+			if (mContentLength == -1)
+				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
+			else
+				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, progress[0].intValue() * (Window.PROGRESS_END-1) / (int) mContentLength);
+		}
 	}
 	
 	@Override
