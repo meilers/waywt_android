@@ -252,7 +252,6 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		
 		mSettings.loadRedditPreferences(getActivity(), mClient);
 		
-		Log.d("comment", mComment.getAuthor());
 		
 		getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
 	}
@@ -375,9 +374,10 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 	@Override
 	public void onDestroy() {
 		// TODO Auto-generated method stub
-		mImageLoader.destroy();
 		
 		super.onDestroy();
+		
+		mImageLoader.destroy();
 	}
 
 	
@@ -391,7 +391,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		args.putString(RepliesFragment.Extras.THREAD_ID, mThreadId);
 		fragment.setArguments(args);
 		
-		getChildFragmentManager().beginTransaction().replace(R.id.comment_replies_container, fragment, RepliesFragment.class.getCanonicalName()).commit();
+		getChildFragmentManager().beginTransaction().replace(R.id.comment_replies_container, fragment, RepliesFragment.class.getCanonicalName()).commitAllowingStateLoss();
 	}
 	
 	

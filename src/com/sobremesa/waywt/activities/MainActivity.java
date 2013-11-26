@@ -166,7 +166,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		args.putString(WaywtFragment.Extras.SUBREDDIT,"malefashionadvice");
 		args.putString(WaywtFragment.Extras.PERMALINK,p.mPermalink);
 		fragment.setArguments(args);
-		getSupportFragmentManager().beginTransaction().replace(R.id.container, fragment).commit();
+		getSupportFragmentManager().beginTransaction().replace(R.id.container, fragment).commitAllowingStateLoss();
 		return true;
 	}
 

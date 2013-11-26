@@ -442,14 +442,23 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 	        {
 	        	if( pairs.getValue() != null )
 	        		pairs.getValue().cancel(true);
+
+	        	CommentsListener listener = pairs.getKey();
+	        	AsyncTask<?, ?, ?> task = pairs.getValue();
+	        	
+	        	listener = null;
+	        	task = null;
 	        	
 	        	it.remove(); // avoids a ConcurrentModificationException	
+	        	
+
 	        }
 	    }
 	    
 	    if( mCurrentDownloadCommentsTasks.containsKey(mListener) )
 	    {
 	    	mCurrentDownloadCommentsTasks.get(mListener).cancel(true);
+	    	mCurrentDownloadCommentsTasks.put(mListener, this);
 	    }
 	    else
 	    {
@@ -493,9 +502,11 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 			}
 		}
 
+		Log.d("size", mCurrentDownloadCommentsTasks.size() + ""); 
 		if( mCurrentDownloadCommentsTasks.containsKey(mListener) ) {
-			mCurrentDownloadCommentsTasks.put(mListener, null);
+			mCurrentDownloadCommentsTasks.remove(mListener);
 		}
+		mListener = null;
 	}
 	
 	@Override
@@ -506,15 +517,15 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
 			else
 				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, progress[0].intValue() * (Window.PROGRESS_END-1) / (int) mContentLength);
-		}
+		}  
 	}
 	
 	@Override
-	public void propertyChange(PropertyChangeEvent event) {
+	public void propertyChange(PropertyChangeEvent event) {  
 		publishProgress((Long) event.getNewValue());
 	}
 	
-    private CharSequence createSpanned(String bodyHtml) {
+    private CharSequence createSpanned(String bodyHtml) { 
     	try {
     		// get unescaped HTML
     		bodyHtml = Html.fromHtml(bodyHtml).toString();

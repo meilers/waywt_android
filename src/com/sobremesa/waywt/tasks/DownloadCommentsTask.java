@@ -512,6 +512,8 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 		synchronized (mCurrentDownloadCommentsTaskLock) {
 			mCurrentDownloadCommentsTask = null;
 		}
+		
+		mListener = null;
 	}
 	
 	@Override

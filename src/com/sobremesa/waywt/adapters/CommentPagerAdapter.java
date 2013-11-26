@@ -40,7 +40,7 @@ public class CommentPagerAdapter extends FragmentStatePagerAdapter {
 		this.notifyDataSetChanged();
 	}
 
-	@Override
+	@Override  
 	public Fragment getItem(int position) {
 		
 		CommentFragment fragment = new CommentFragment();
