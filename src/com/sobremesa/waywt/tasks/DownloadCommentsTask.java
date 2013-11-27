@@ -33,6 +33,7 @@ import com.sobremesa.waywt.common.CacheInfo;
 import com.sobremesa.waywt.common.Common;
 import com.sobremesa.waywt.common.Constants;
 import com.sobremesa.waywt.common.ProgressInputStream;
+import com.sobremesa.waywt.fragments.CommentFragment;
 import com.sobremesa.waywt.fragments.WaywtFragment;
 import com.sobremesa.waywt.util.Assert;
 import com.sobremesa.waywt.util.StringUtils;

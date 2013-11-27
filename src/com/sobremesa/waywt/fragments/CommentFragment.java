@@ -44,6 +44,7 @@ import com.sobremesa.waywt.tasks.DrsdTask;
 import com.sobremesa.waywt.tasks.ImgurAlbumTask;
 import com.sobremesa.waywt.tasks.VoteTask;
 import com.sobremesa.waywt.util.CollectionUtils;
+import com.sobremesa.waywt.util.StringUtils;
 import com.sobremesa.waywt.util.Util;
 import com.sobremesa.waywt.views.AspectRatioImageView;
 import com.sobremesa.waywt.views.WaywtSecondaryTextView;
@@ -89,6 +90,8 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -104,7 +107,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-public class CommentFragment extends Fragment implements View.OnCreateContextMenuListener, CommentsListener
+public class CommentFragment extends Fragment implements View.OnCreateContextMenuListener, CommentsListener, OnItemClickListener
 {
 	private static final String TAG = CommentFragment.class.getSimpleName();
 	
@@ -120,7 +123,6 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     private String mThreadId = null;
     
 	private ThingInfo mComment;
-	private ArrayList<ThingInfo> mRepliesList = new ArrayList<ThingInfo>();
 	private ArrayList<String> mImageUrls;
 	
 	private List<String> mDressedUrls;
@@ -132,6 +134,14 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 	private TextView mPointsTv;
 	private EditText mReplyEt;
 	private ImageView mSendBtn;
+	
+	// ListView
+	private ListView mListView;
+	private RepliesListAdapter mRepliesAdapter = null;
+	private ArrayList<ThingInfo> mRepliesList = new ArrayList<ThingInfo>();
+    
+	private View mHeaderListView;
+	private int last_found_position = -1;
 	
 	
     private final HttpClient mClient = MainActivity.getClient();
@@ -295,18 +305,25 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		final View view = inflater.inflate(R.layout.fragment_comment, null, false);
 		
 		
-		mMainIv = (AspectRatioImageView)view.findViewById(R.id.comment_image_iv);
-		mPointsTv = (TextView)view.findViewById(R.id.comment_points_tv);
+		// ListView
+		mListView = (ListView)view.findViewById(R.id.replies_lv);
+		mRepliesList = new ArrayList<ThingInfo>();
+        mRepliesAdapter = new RepliesListAdapter(getActivity(), mRepliesList);
+        
+        View footerListView = inflater.inflate(R.layout.footer_comment, null);
+		mHeaderListView = inflater.inflate(R.layout.header_comment, null);
 		
-	    
-		ImageView arrowUpIv = (ImageView)view.findViewById(R.id.comment_arrow_up_iv);
+		
+		mMainIv = (AspectRatioImageView)mHeaderListView.findViewById(R.id.comment_image_iv);
+		mPointsTv = (TextView)mHeaderListView.findViewById(R.id.comment_points_tv);
+		
+		ImageView arrowUpIv = (ImageView)mHeaderListView.findViewById(R.id.comment_arrow_up_iv);
 		arrowUpIv.setOnClickListener(mArrowUpListener);
 		
-		ImageView arrowDownIv = (ImageView)view.findViewById(R.id.comment_arrow_down_iv);	
+		ImageView arrowDownIv = (ImageView)mHeaderListView.findViewById(R.id.comment_arrow_down_iv);	
 		arrowDownIv.setOnClickListener(mArrowDownListener);
 		
-		
-		LinearLayout pointsLayout = (LinearLayout)view.findViewById(R.id.comment_points_layout);
+		LinearLayout pointsLayout = (LinearLayout)mHeaderListView.findViewById(R.id.comment_points_layout);
 		pointsLayout.setOnClickListener(new OnClickListener() {
 			
 			@Override
@@ -316,21 +333,16 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 			}
 		});
 		
+		updatePoints(mHeaderListView);
 		
-		//Points
-		updatePoints(view);
+		updateImages(mHeaderListView);
 		
-    
-		
-		// Replies fragment
-		updateReplies(view);
-		
-		
-		// images
 		if(mImgurAlbumUrls.isEmpty() && mDressedUrls.isEmpty())
-			updateImages(view);
+			;//updateImages(mHeaderListView);
 		else
 		{
+			Log.d("ici", mComment.getAuthor());
+			
 			Iterator<String> i = mImgurAlbumUrls.iterator();
 			while (i.hasNext()) {
 			   new ImgurAlbumTask(this).execute(i.next());
@@ -343,7 +355,11 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 			   i.remove();
 			}
 		}
-		
+		mListView.addFooterView(footerListView);
+		mListView.addHeaderView(mHeaderListView);
+        mListView.setAdapter(mRepliesAdapter);
+        mListView.setOnItemClickListener(this);
+        
 		
 		// Reply
 		mReplyEt = (EditText)view.findViewById(R.id.comment_reply_et);
@@ -382,17 +398,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 
 	
 	
-	private void updateReplies( final View view )
-	{
-		RepliesFragment fragment = new RepliesFragment();
-		Bundle args = new Bundle();
-		args.putParcelableArrayList(RepliesFragment.Extras.ARG_COMMENTS_LIST, mRepliesList);
-		args.putString(RepliesFragment.Extras.SUBREDDIT, mSubreddit);
-		args.putString(RepliesFragment.Extras.THREAD_ID, mThreadId);
-		fragment.setArguments(args);
-		
-		getChildFragmentManager().beginTransaction().replace(R.id.comment_replies_container, fragment, RepliesFragment.class.getCanonicalName()).commitAllowingStateLoss();
-	}
+
 	
 	
 	private void updatePoints( final View view )
@@ -431,34 +437,40 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 				@Override
 				public void onImageLoadError(String arg0) { 
 					
-					Log.d("yes", mainImageUrl);
+					Log.d("fail", mainImageUrl);
+					View parentView = CommentFragment.this.getView();
 					
-					
-					ViewFlipper vf = (ViewFlipper)view.findViewById(R.id.vf);
-					vf.setDisplayedChild(1);
-					
-					ScrollView sv = (ScrollView)view.findViewById(R.id.container);
-					sv.setVisibility(View.VISIBLE);
-					
-					Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
-					sv.startAnimation(myFadeInAnimation);
+					if( parentView != null )
+					{
+						ViewFlipper vf = (ViewFlipper)parentView.findViewById(R.id.vf);
+						vf.setDisplayedChild(1);
+						
+						ListView lv = (ListView)parentView.findViewById(R.id.replies_lv);
+						lv.setVisibility(View.VISIBLE);
+						
+						Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
+						lv.startAnimation(myFadeInAnimation);
+					}
 				}
 				
 				@Override
 				public void onImageAvailable(ImageView imageView, Bitmap bitmap, ImageReturnedFrom imageReturnedFrom) {
 					
-					// bitmap = getResizedBitmap(bitmap, 200);
+					View parentView = CommentFragment.this.getView();
 					
-					imageView.setImageBitmap(bitmap);
+					if( parentView != null )
+					{
+						imageView.setImageBitmap(bitmap);
 					
-					ViewFlipper vf = (ViewFlipper)view.findViewById(R.id.vf);
-					vf.setDisplayedChild(1);
-					
-					ScrollView sv = (ScrollView)view.findViewById(R.id.container);
-					sv.setVisibility(View.VISIBLE);
-					
-					Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
-					sv.startAnimation(myFadeInAnimation);
+						ViewFlipper vf = (ViewFlipper)parentView.findViewById(R.id.vf);
+						vf.setDisplayedChild(1);
+						
+						ListView lv = (ListView)parentView.findViewById(R.id.replies_lv);
+						lv.setVisibility(View.VISIBLE);
+						
+						Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
+						lv.startAnimation(myFadeInAnimation);
+					}
 				}
 			});
 			
@@ -540,6 +552,22 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 					imagesLayout.addView(innerLayout);
 			}
 			
+		}
+		else
+		{
+			View parentView = getView();
+			
+			if( parentView != null )
+			{
+				ViewFlipper vf = (ViewFlipper)parentView.findViewById(R.id.vf);
+				vf.setDisplayedChild(1);
+				
+				ListView lv = (ListView)parentView.findViewById(R.id.replies_lv);
+				lv.setVisibility(View.VISIBLE);
+				
+				Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
+				lv.startAnimation(myFadeInAnimation);
+			}
 		}
 	}
 	
@@ -661,7 +689,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     	
     	public void onPreExecute() {
         	if (!mSettings.isLoggedIn()) {
-        		Common.showErrorToast("You must be logged in to vote.", Toast.LENGTH_LONG, CommentFragment.this.getActivity());
+        		if( CommentFragment.this.getActivity() != null )
+        			Common.showErrorToast("You must be logged in to vote.", Toast.LENGTH_LONG, CommentFragment.this.getActivity());
         		cancel(true);
         		return;
         	}
@@ -723,7 +752,6 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     		if( getView() != null )
     		{
     			updatePoints(getView());
-    			updateReplies(getView());
     		}
     	}
     	
@@ -740,13 +768,234 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
         		if( getView() != null )
         		{
         			updatePoints(getView());
-        			updateReplies(getView());
         		}
         			
-    			Common.showErrorToast(_mUserError, Toast.LENGTH_LONG, CommentFragment.this.getActivity());
+        		if( CommentFragment.this.getActivity() != null )
+        			Common.showErrorToast(_mUserError, Toast.LENGTH_LONG, CommentFragment.this.getActivity());
     		}
     	}
     }
+    
+    final class RepliesListAdapter extends ArrayAdapter<ThingInfo> {
+    	public static final int OP_ITEM_VIEW_TYPE = 0;
+    	public static final int COMMENT_ITEM_VIEW_TYPE = 1;
+    	public static final int MORE_ITEM_VIEW_TYPE = 2;
+    	public static final int HIDDEN_ITEM_HEAD_VIEW_TYPE = 3;
+    	// The number of view types
+    	public static final int VIEW_TYPE_COUNT = 4;
+    	
+    	public boolean mIsLoading = true;
+    	
+    	private LayoutInflater mInflater;
+        private int mFrequentSeparatorPos = ListView.INVALID_POSITION;
+        
+        public RepliesListAdapter(Context context, List<ThingInfo> objects) {
+            super(context, 0, objects);
+            mInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+        	if (position == mFrequentSeparatorPos) {
+                // We don't want the separator view to be recycled.
+                return IGNORE_ITEM_VIEW_TYPE;
+            }
+        	
+            ThingInfo item = getItem(position);
+            if (item.isHiddenCommentDescendant())
+            	return IGNORE_ITEM_VIEW_TYPE;
+            if (item.isHiddenCommentHead())
+            	return HIDDEN_ITEM_HEAD_VIEW_TYPE;
+            if (item.isLoadMoreCommentsPlaceholder())
+            	return MORE_ITEM_VIEW_TYPE;
+            
+            return COMMENT_ITEM_VIEW_TYPE;
+        }
+        
+        @Override
+        public int getViewTypeCount() {
+        	return VIEW_TYPE_COUNT;
+        }
+        
+        @Override
+        public boolean isEmpty() {
+        	if (mIsLoading)
+        		return false;
+        	return super.isEmpty();
+        }
+        
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View view = convertView;
+            
+            ThingInfo item = this.getItem(position);
+            
+            try {
+	            if (isHiddenCommentDescendantPosition(position)) { 
+	            	if (view == null) {
+	            		// Doesn't matter which view we inflate since it's gonna be invisible
+	            		view = mInflater.inflate(R.layout.zero_size_layout, null);
+	            	}
+	            } else if (isHiddenCommentHeadPosition(position)) {
+	            	if (view == null) {
+	            		view = mInflater.inflate(R.layout.comments_list_item_hidden, null);
+	            	}
+	            	TextView votesView = (TextView) view.findViewById(R.id.votes);
+		            TextView submitterView = (TextView) view.findViewById(R.id.submitter);
+	                TextView submissionTimeView = (TextView) view.findViewById(R.id.submissionTime);
+		            
+		            try {
+		            	votesView.setText(Util.showNumPoints(item.getUps() - item.getDowns()));
+		            } catch (NumberFormatException e) {
+		            	// This happens because "ups" comes after the potentially long "replies" object,
+		            	// so the ListView might try to display the View before "ups" in JSON has been parsed.
+		            	if (Constants.LOGGING) Log.e(TAG, "getView, hidden comment heads", e);
+		            }
+		            if (getOpThingInfo() != null && item.getAuthor().equalsIgnoreCase(getOpThingInfo().getAuthor()))
+		            	submitterView.setText(item.getAuthor() + " [S]");
+		            else
+		            	submitterView.setText(item.getAuthor());
+		            submissionTimeView.setText(Util.getTimeAgo(item.getCreated_utc()));
+		            
+		            setCommentIndent(view, item.getIndent(), mSettings);
+		            
+            	} else if (isLoadMoreCommentsPosition(position)) {
+	            	// "load more comments"
+	            	if (view == null) {
+	            		view = mInflater.inflate(R.layout.more_comments_view, null);
+	            	}
+
+	            	setCommentIndent(view, item.getIndent(), mSettings);
+	            	
+	            } else {  // Regular comment
+	            	// Here view may be passed in for re-use, or we make a new one.
+		            if (view == null) {
+		                view = mInflater.inflate(R.layout.comments_list_item, null);
+		            } else {
+		                view = convertView;
+		            }
+
+					// Sometimes (when in touch mode) the "selection" highlight disappears.
+					// So we make our own persistent highlight. This background color must
+					// be set explicitly on every element, however, or the "cached" list
+					// item views will show up with the color.
+					if (position == last_found_position)
+						view.setBackgroundResource(R.color.translucent_yellow);
+					else
+						view.setBackgroundColor(Color.TRANSPARENT);
+
+		            fillCommentsListItemView(view, item, mSettings);
+	            }
+            } catch (NullPointerException e) {
+            	if (Constants.LOGGING) Log.w(TAG, "NPE in getView()", e);
+            	// Probably means that the List is still being built, and OP probably got put in wrong position
+            	if (view == null) {
+            		if (position == 0)
+            			view = mInflater.inflate(R.layout.threads_list_item, null);
+            		else
+            			view = mInflater.inflate(R.layout.comments_list_item, null);
+	            }
+            }
+            return view;
+        }
+    } // End of RepliesListAdapter
+    
+    public static void setCommentIndent(View commentListItemView, int indentLevel, RedditSettings settings) {
+        View[] indentViews = new View[] {
+        	commentListItemView.findViewById(R.id.left_indent1),
+        	commentListItemView.findViewById(R.id.left_indent2),
+        	commentListItemView.findViewById(R.id.left_indent3),
+        	commentListItemView.findViewById(R.id.left_indent4),
+        	commentListItemView.findViewById(R.id.left_indent5),
+        	commentListItemView.findViewById(R.id.left_indent6),
+        	commentListItemView.findViewById(R.id.left_indent7),
+        	commentListItemView.findViewById(R.id.left_indent8)
+        };
+        for (int i = 0; i < indentLevel && i < indentViews.length; i++) {
+        	if (settings.isShowCommentGuideLines()) {
+            	indentViews[i].setVisibility(View.VISIBLE);
+            	indentViews[i].setBackgroundResource(R.color.light_light_gray);
+        	} else {
+        		indentViews[i].setVisibility(View.INVISIBLE);
+        	}
+        }
+        for (int i = indentLevel; i < indentViews.length; i++) {
+        	indentViews[i].setVisibility(View.GONE);
+        }
+    }
+    
+    public void fillCommentsListItemView(View view, ThingInfo item, RedditSettings settings) {
+        // Set the values of the Views for the CommentsListItem
+        
+        TextView votesView = (TextView) view.findViewById(R.id.votes);
+        TextView submitterView = (TextView) view.findViewById(R.id.submitter);
+        TextView bodyView = (TextView) view.findViewById(R.id.body);
+        
+        TextView submissionTimeView = (TextView) view.findViewById(R.id.submissionTime);
+        ImageView voteUpView = (ImageView) view.findViewById(R.id.vote_up_image);
+        ImageView voteDownView = (ImageView) view.findViewById(R.id.vote_down_image);
+        
+        try {
+        	votesView.setText(Util.showNumPoints(item.getUps() - item.getDowns()));
+        } catch (NumberFormatException e) {
+        	// This happens because "ups" comes after the potentially long "replies" object,
+        	// so the ListView might try to display the View before "ups" in JSON has been parsed.
+        	if (Constants.LOGGING) Log.e(TAG, "getView, normal comment", e);
+        }
+        
+        
+        if (getOpThingInfo() != null && item.getAuthor().equalsIgnoreCase(getOpThingInfo().getAuthor()))
+        	submitterView.setText(item.getAuthor() + " [S]");
+        else
+        	submitterView.setText(item.getAuthor());
+        
+        submissionTimeView.setText(Util.getTimeAgo(item.getCreated_utc()));
+        
+    	if (item.getSpannedBody() != null)
+    		bodyView.setText(item.getSpannedBody());
+    	else
+    		bodyView.setText(item.getBody());
+        
+    	
+        
+    	bodyView.setMovementMethod(LinkMovementMethod.getInstance());
+    	
+        setCommentIndent(view, item.getIndent(), settings);
+        
+        if (voteUpView != null && voteDownView != null) {
+	        if (item.getLikes() == null || "[deleted]".equals(item.getAuthor())) {
+	        	voteUpView.setVisibility(View.GONE);
+	        	voteDownView.setVisibility(View.GONE);
+	    	}
+	        else if (Boolean.TRUE.equals(item.getLikes())) {
+	    		voteUpView.setVisibility(View.VISIBLE);
+	    		voteDownView.setVisibility(View.GONE);
+	    	}
+	        else if (Boolean.FALSE.equals(item.getLikes())) {
+	    		voteUpView.setVisibility(View.GONE);
+	    		voteDownView.setVisibility(View.VISIBLE);
+	    	}
+        }
+    }
+    
+    public ThingInfo getOpThingInfo() {
+    	return mComment;
+    }
+    
+    private boolean isHiddenCommentHeadPosition(int position) {
+    	return mRepliesAdapter != null && mRepliesAdapter.getItemViewType(position) == RepliesListAdapter.HIDDEN_ITEM_HEAD_VIEW_TYPE;
+    }
+    
+    private boolean isHiddenCommentDescendantPosition(int position) {
+    	return mRepliesAdapter != null && mRepliesAdapter.getItem(position).isHiddenCommentDescendant();
+    }
+    
+    private boolean isLoadMoreCommentsPosition(int position) {
+    	return mRepliesAdapter != null && mRepliesAdapter.getItemViewType(position) == RepliesListAdapter.MORE_ITEM_VIEW_TYPE;
+    }
+    
+    
+    
     
     private class CommentReplyTask extends AsyncTask<String, Void, String> {
     	private String _mParentThingId;
@@ -761,7 +1010,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
         	HttpEntity entity = null;
         	
         	if (!mSettings.isLoggedIn()) {
-        		Common.showErrorToast("You must be logged in to reply.", Toast.LENGTH_LONG, CommentFragment.this.getActivity());
+        		if( CommentFragment.this.getActivity() != null )
+        			Common.showErrorToast("You must be logged in to reply.", Toast.LENGTH_LONG, CommentFragment.this.getActivity());
         		_mUserError = "Not logged in";
         		return null;
         	}
@@ -827,7 +1077,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     	public void onPostExecute(String newId) {
     		getActivity().removeDialog(Constants.DIALOG_REPLYING);
     		if (newId == null) {
-    			Common.showErrorToast(_mUserError, Toast.LENGTH_LONG, CommentFragment.this.getActivity());
+    			if( CommentFragment.this.getActivity() != null )
+    				Common.showErrorToast(_mUserError, Toast.LENGTH_LONG, CommentFragment.this.getActivity());
     		} else {
     			// Refresh
     			CacheInfo.invalidateCachedThread(WaywtApplication.getContext());
@@ -861,23 +1112,58 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		
 	}
 
-
+	private int mMorePosition = 0;
+	
 	@Override
 	public void updateComments(List<ThingInfo> comments) {  
-		// TODO Auto-generated method stub
 		
-		View view = getView();
+		Log.d("author", mComment.getAuthor());
 		
-		if( view != null && comments != null && comments.get(0) != null )
+
+		
+		if( getView() != null && mHeaderListView != null && comments != null && comments.size() > 0 && comments.get(0) != null )
 		{
-			mComment = comments.get(0);
-			mRepliesList = new ArrayList<ThingInfo>(comments);
-			
-			if( view != null )
+			if( comments.get(0).getAuthor().equals(mComment.getAuthor()) )
 			{
-				updatePoints(view);
-				updateReplies(view);
+			
+				mComment = comments.get(0);
+				mRepliesList.clear();
+				mRepliesList.addAll(comments);
+				mRepliesAdapter.notifyDataSetChanged();
+				
+				if( mHeaderListView != null )
+				{
+					updatePoints(mHeaderListView);
+				}
 			}
+			else
+			{
+				ArrayList<ThingInfo> newCommentsList = new ArrayList<ThingInfo>();
+				
+				for( int i = 0; i < mMorePosition && i < mRepliesList.size(); ++i)
+				{
+					newCommentsList.add(mRepliesList.get(i));
+				}
+				
+				newCommentsList.addAll(comments);
+				 
+				for( int i = mMorePosition + 1; i < mRepliesList.size(); ++i)
+				{
+					newCommentsList.add(mRepliesList.get(i));
+				}
+				
+				mRepliesList.clear();
+				mRepliesList.addAll(newCommentsList);
+				mRepliesAdapter.notifyDataSetChanged();
+				
+				if( mHeaderListView != null )
+				{
+					updatePoints(mHeaderListView);
+				}
+			}
+			
+//			ViewFlipper vf = (ViewFlipper)getView().findViewById(R.id.vf);
+//			vf.setDisplayedChild(1);
 		}
 	}
 	
@@ -900,5 +1186,33 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     	
     	return super.onOptionsItemSelected(item);
     }
+
+
+	@Override
+	public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
+		// TODO Auto-generated method stub
+        ThingInfo item = mRepliesAdapter.getItem(position);
+        
+//        if (isHiddenCommentHeadPosition(position)) {
+//        	showComment(position);
+//        	return;
+//        }
+        
+//        // Mark the OP post/regular comment as selected
+//        mVoteTargetThing = item;
+//        mReplyTargetName = mVoteTargetThing.getName();
+		
+        mMorePosition = position;
+        
+        if (isLoadMoreCommentsPosition(position)) {
+        	// Use this constructor to tell it to load more comments inline
+        	getNewDownloadRepliesTask().prepareLoadMoreComments(item.getId(), position, item.getIndent())
+        			.execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+        } else {
+//        	if (!"[deleted]".equals(item.getAuthor()))
+//        		showDialog(Constants.DIALOG_COMMENT_CLICK);
+        }
+	    
+	}
 
 }

@@ -7,7 +7,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import retrofit.http.EncodedPath;
 import retrofit.http.GET;
@@ -15,13 +18,15 @@ import retrofit.http.Header;
 
 import com.sobremesa.waywt.application.WaywtApplication;
 import com.sobremesa.waywt.fragments.CommentFragment;
+import com.sobremesa.waywt.listeners.CommentsListener;
+
 import android.os.AsyncTask;
 import android.util.Log;
 
 public class DrsdTask  extends AsyncTask<String, Long, String>
 implements PropertyChangeListener {
 
-    private static AsyncTask<?, ?, ?> mCurrentDownloadCommentsTask = null;
+    private static HashMap<CommentFragment, AsyncTask<?, ?, ?>> mCurrentDownloadCommentsTasks = new HashMap<CommentFragment, AsyncTask<?, ?, ?>>();
     private static final Object mCurrentDownloadCommentsTaskLock = new Object();
     
     private CommentFragment mFragment;
@@ -63,13 +68,35 @@ implements PropertyChangeListener {
 	protected void onPreExecute() {
 		super.onPreExecute();
 		
-		synchronized (mCurrentDownloadCommentsTaskLock) {
-    		if (mCurrentDownloadCommentsTask != null) {
-    			this.cancel(true);
-    			return;
-    		}
-    		mCurrentDownloadCommentsTask = this;
-		}
+		Iterator<Map.Entry<CommentFragment, AsyncTask<?, ?, ?>>> it = mCurrentDownloadCommentsTasks.entrySet().iterator();
+	    while (it.hasNext()) {
+	        Map.Entry<CommentFragment, AsyncTask<?, ?, ?>> pairs = (Map.Entry<CommentFragment, AsyncTask<?, ?, ?>>)it.next();
+	        if( pairs.getKey() == null || pairs.getValue() == null)
+	        {
+	        	if( pairs.getValue() != null )
+	        		pairs.getValue().cancel(true);
+
+	        	CommentsListener listener = pairs.getKey();
+	        	AsyncTask<?, ?, ?> task = pairs.getValue();
+	        	
+	        	listener = null;
+	        	task = null;
+	        	
+	        	it.remove(); // avoids a ConcurrentModificationException	
+	        	
+
+	        }
+	    }
+	    
+	    if( mCurrentDownloadCommentsTasks.containsKey(mFragment) )
+	    {
+	    	mCurrentDownloadCommentsTasks.get(mFragment).cancel(true); 
+	    	mCurrentDownloadCommentsTasks.put(mFragment, this);
+	    }
+	    else
+	    {
+	    	mCurrentDownloadCommentsTasks.put(mFragment, this);
+	    }
 	}
 	
 	
@@ -108,17 +135,18 @@ implements PropertyChangeListener {
 	@Override
 	protected void onPostExecute(String result) {
 		super.onPostExecute(result);
-		
-		
-		synchronized (mCurrentDownloadCommentsTaskLock) {
-			mCurrentDownloadCommentsTask = null;
-		}
+
 		
 		List<String> urls = new ArrayList<String>();
 		urls.add(result != null ? result : "");
 		
 		if( mFragment != null )
 			mFragment.addImageUrls(urls);
+		
+		if( mCurrentDownloadCommentsTasks.containsKey(mFragment) ) {
+			mCurrentDownloadCommentsTasks.remove(mFragment);
+		}
+		mFragment = null;
 	}
 	
 	

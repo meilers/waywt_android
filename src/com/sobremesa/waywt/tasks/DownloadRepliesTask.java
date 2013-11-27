@@ -457,7 +457,7 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 	    
 	    if( mCurrentDownloadCommentsTasks.containsKey(mListener) )
 	    {
-	    	mCurrentDownloadCommentsTasks.get(mListener).cancel(true);
+	    	mCurrentDownloadCommentsTasks.get(mListener).cancel(true); 
 	    	mCurrentDownloadCommentsTasks.put(mListener, this);
 	    }
 	    else
