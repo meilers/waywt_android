@@ -2,4 +2,7 @@
 
     <item android:id="@+id/login_menu_id" android:title="@string/login" />
 	<item android:id="@+id/logout_menu_id" android:title="@string/logout" />
+	
+	<item android:id="@+id/sort_by_menu_id" android:title="@string/sort_by" />
+	<item android:id="@+id/subreddit_menu_id" android:title="@string/subreddit" />
 </menu>

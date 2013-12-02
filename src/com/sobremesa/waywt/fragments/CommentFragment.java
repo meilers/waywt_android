@@ -45,6 +45,7 @@ import com.sobremesa.waywt.tasks.ImgurAlbumTask;
 import com.sobremesa.waywt.tasks.VoteTask;
 import com.sobremesa.waywt.util.CollectionUtils;
 import com.sobremesa.waywt.util.StringUtils;
+import com.sobremesa.waywt.util.UserUtil;
 import com.sobremesa.waywt.util.Util;
 import com.sobremesa.waywt.views.AspectRatioImageView;
 import com.sobremesa.waywt.views.WaywtSecondaryTextView;
@@ -72,6 +73,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -90,6 +92,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.CookieSyncManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -119,7 +122,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		public static String COMMENT = "comment";
 	}
 	
-    private String mSubreddit = "malefashionadvice";
+    private String mSubreddit = UserUtil.getSubreddit();
     private String mThreadId = null;
     
 	private ThingInfo mComment;
@@ -188,60 +191,87 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 				url = matcher.group(1);
 				
 				
-				if( url.contains("imgur.com"))
+				try
 				{
-					url = url.replace("gallery/", "");
-					
-					if( !url.contains("i.imgur.com"))
+					if( url.contains("imgur.com"))
 					{
-						if( url.contains("imgur.com/a/"))
-						{
-							mImgurAlbumUrls.add(url);
+						url = url.replace("gallery/", "");
 						
+						if( !url.contains("i.imgur.com"))
+						{
+							if( url.contains(",") )
+							{
+								List<String> urls = new ArrayList<String>();
+								
+								String[] split = url.split("imgur.com/");
+								String scheme = split[0];
+								String path = split[1];
+								String[] ids = path.split(",");
+								
+								for( String id : ids )
+								{
+									urls.add(scheme + "imgur.com/" + id + ".jpg");
+								}
+								
+								for( String u : urls )
+								{
+									if( mComment.getAuthor().toLowerCase().equals("mydogisnoodles"))
+										Log.d("noodles", u);
+									
+									if( !mImageUrls.contains( u ))
+										mImageUrls.add(u);	
+								}
+							}
+							else if( url.contains("imgur.com/a/"))
+							{
+								mImgurAlbumUrls.add(url);
+							
+							}
+							else
+							{
+								url = url.replace("imgur", "i.imgur");
+								url += ".jpg";
+								
+								if( !mImageUrls.contains( url ))
+									mImageUrls.add(url);
+							}
 						}
 						else
 						{
-							url = url.replace("imgur", "i.imgur");
-							url += ".jpg";
+							if( !url.contains(".jpg"))
+								url += ".jpg";
+							
+							if( !mImageUrls.contains( url ))
+								mImageUrls.add(url);	
+	
+							
+						}
+					}
+					
+					else if( url.contains("drsd.so") || url.contains("dressed.so"))
+					{
+						if( url.contains("drsd.so") )
+						{
+							mDressedUrls.add(url);
+							
+						}
+						else
+						{
+							if( !url.contains("cdn.dressed.so") )
+							{
+								url = url.replace("dressed.so/post/view", "cdn.dressed.so/i");
+								
+		
+								
+								url += "m.jpg";  
+							}
 							
 							if( !mImageUrls.contains( url ))
 								mImageUrls.add(url);
 						}
 					}
-					else
-					{
-						if( !url.contains(".jpg"))
-							url += ".jpg";
-						
-						if( !mImageUrls.contains( url ))
-							mImageUrls.add(url);
-						
-					}
 				}
-				
-				else if( url.contains("drsd.so") || url.contains("dressed.so"))
-				{
-					if( url.contains("drsd.so") )
-					{
-						mDressedUrls.add(url);
-						
-					}
-					else
-					{
-						if( !url.contains("cdn.dressed.so") )
-						{
-							url = url.replace("dressed.so/post/view", "cdn.dressed.so/i");
-							
-	
-							
-							url += "m.jpg";  
-						}
-						
-						if( !mImageUrls.contains( url ))
-							mImageUrls.add(url);
-					}
-				}
-				
+				catch(Exception e) {}
 			
 			}
 				
@@ -266,6 +296,36 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
 	}
 	
+    @Override
+    public void onPause() {
+    	super.onPause();
+		CookieSyncManager.getInstance().stopSync();
+		mSettings.saveRedditPreferences(getActivity());
+    }
+    
+    @Override
+    public void onDestroyView() {
+    	// TODO Auto-generated method stub
+    	super.onDestroyView();
+    	
+    	unbindDrawables(getView().findViewById(R.id.vf));
+    }
+	
+	private void unbindDrawables(View view)
+	{
+        if (view.getBackground() != null)
+        {
+                view.getBackground().setCallback(null);
+        }
+        if (view instanceof ViewGroup && !(view instanceof AdapterView))
+        {
+                for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++)
+                {
+                        unbindDrawables(((ViewGroup) view).getChildAt(i));
+                }
+                ((ViewGroup) view).removeAllViews();
+        }
+	}
 	
 	private OnClickListener mArrowUpListener = new OnClickListener() {
 		
@@ -308,7 +368,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		// ListView
 		mListView = (ListView)view.findViewById(R.id.replies_lv);
 		mRepliesList = new ArrayList<ThingInfo>();
-        mRepliesAdapter = new RepliesListAdapter(getActivity(), mRepliesList);
+        mRepliesAdapter = new RepliesListAdapter(WaywtApplication.getContext(), mRepliesList);
         
         View footerListView = inflater.inflate(R.layout.footer_comment, null);
 		mHeaderListView = inflater.inflate(R.layout.header_comment, null);
@@ -396,7 +456,6 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		mImageLoader.destroy();
 	}
 
-	
 	
 
 	
@@ -653,7 +712,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
     			nvps.add(new BasicNameValuePair("id", _mThingFullname.toString()));
     			nvps.add(new BasicNameValuePair("dir", String.valueOf(_mDirection)));
-    			nvps.add(new BasicNameValuePair("r", "malefashionadvice"));
+    			nvps.add(new BasicNameValuePair("r", UserUtil.getSubreddit()));
     			nvps.add(new BasicNameValuePair("uh", mSettings.getModhash().toString()));
     			// Votehash is currently unused by reddit 
 //    				nvps.add(new BasicNameValuePair("vh", "0d4ab0ffd56ad0f66841c15609e9a45aeec6b015"));
@@ -690,7 +749,10 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     	public void onPreExecute() {
         	if (!mSettings.isLoggedIn()) {
         		if( CommentFragment.this.getActivity() != null )
-        			Common.showErrorToast("You must be logged in to vote.", Toast.LENGTH_LONG, CommentFragment.this.getActivity());
+        		{
+        			getActivity().showDialog(Constants.DIALOG_LOGIN);
+        		}
+//        			Common.showErrorToast("You must be logged in to vote.", Toast.LENGTH_LONG, CommentFragment.this.getActivity());
         		cancel(true);
         		return;
         	}
@@ -770,8 +832,10 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
         			updatePoints(getView());
         		}
         			
-        		if( CommentFragment.this.getActivity() != null )
-        			Common.showErrorToast(_mUserError, Toast.LENGTH_LONG, CommentFragment.this.getActivity());
+//        		if( CommentFragment.this.getActivity() != null )
+//        			Common.showErrorToast(_mUserError, Toast.LENGTH_LONG, CommentFragment.this.getActivity());
+        		
+        		getActivity().showDialog(Constants.DIALOG_LOGIN);
     		}
     	}
     }
@@ -1010,8 +1074,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
         	HttpEntity entity = null;
         	
         	if (!mSettings.isLoggedIn()) {
-        		if( CommentFragment.this.getActivity() != null )
-        			Common.showErrorToast("You must be logged in to reply.", Toast.LENGTH_LONG, CommentFragment.this.getActivity());
+//        		if( CommentFragment.this.getActivity() != null )
+//        			Common.showErrorToast("You must be logged in to reply.", Toast.LENGTH_LONG, CommentFragment.this.getActivity());
         		_mUserError = "Not logged in";
         		return null;
         	}
@@ -1032,7 +1096,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
     			nvps.add(new BasicNameValuePair("thing_id", _mParentThingId));
     			nvps.add(new BasicNameValuePair("text", text[0]));
-    			nvps.add(new BasicNameValuePair("r", "malefashionadvice"));
+    			nvps.add(new BasicNameValuePair("r", UserUtil.getSubreddit()));
     			nvps.add(new BasicNameValuePair("uh", mSettings.getModhash()));
     			// Votehash is currently unused by reddit 
 //    				nvps.add(new BasicNameValuePair("vh", "0d4ab0ffd56ad0f66841c15609e9a45aeec6b015"));
@@ -1077,8 +1141,10 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     	public void onPostExecute(String newId) {
     		getActivity().removeDialog(Constants.DIALOG_REPLYING);
     		if (newId == null) {
-    			if( CommentFragment.this.getActivity() != null )
-    				Common.showErrorToast(_mUserError, Toast.LENGTH_LONG, CommentFragment.this.getActivity());
+//    			if( CommentFragment.this.getActivity() != null )
+//    				Common.showErrorToast(_mUserError, Toast.LENGTH_LONG, CommentFragment.this.getActivity());
+    			
+    			getActivity().showDialog(Constants.DIALOG_LOGIN);
     		} else {
     			// Refresh
     			CacheInfo.invalidateCachedThread(WaywtApplication.getContext());
@@ -1214,5 +1280,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
         }
 	    
 	}
+	
+	
+	
 
 }

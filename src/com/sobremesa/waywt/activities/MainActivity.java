@@ -15,11 +15,13 @@ import com.sobremesa.waywt.common.RedditIsFunHttpClientFactory;
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.PostTable;
 import com.sobremesa.waywt.dialog.LoginDialog;
+import com.sobremesa.waywt.enums.SortByType;
 import com.sobremesa.waywt.fragments.CommentFragment;
 import com.sobremesa.waywt.fragments.WaywtFragment;
 import com.sobremesa.waywt.service.PostService;
 import com.sobremesa.waywt.settings.RedditSettings;
 import com.sobremesa.waywt.tasks.LoginTask;
+import com.sobremesa.waywt.util.UserUtil;
 
 import android.app.ActionBar;
 import android.app.AlertDialog;
@@ -103,6 +105,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 			
 		}
 		
+		getSupportLoaderManager().initLoader(0, null, this);
+		
 		
 	}
 
@@ -123,7 +127,6 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
     	CookieSyncManager.getInstance().startSync();
     	
 		fetchPostData();
-		getSupportLoaderManager().initLoader(0, null, this);
 	}
 
 	@Override
@@ -157,17 +160,20 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 
 	@Override
 	public boolean onNavigationItemSelected(int position, long id) {
-		// When the given dropdown item is selected, show its contents in the
-		// container view.
+		refreshNavigationBar(position);
+		return true;
+	}
+	
+	private void refreshNavigationBar(int position)
+	{
 		Fragment fragment = new WaywtFragment();
 		Bundle args = new Bundle();
 		PostPermalink p = mPermalinks.get(position);
 		args.putBoolean(WaywtFragment.Extras.DO_SORT, position != 0);
-		args.putString(WaywtFragment.Extras.SUBREDDIT,"malefashionadvice");
+		args.putString(WaywtFragment.Extras.SUBREDDIT,UserUtil.getSubreddit());
 		args.putString(WaywtFragment.Extras.PERMALINK,p.mPermalink);
 		fragment.setArguments(args);
 		getSupportFragmentManager().beginTransaction().replace(R.id.container, fragment).commitAllowingStateLoss();
-		return true;
 	}
 
 	@Override
@@ -180,37 +186,27 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 
 		Intent i = new Intent(this, PostService.class);
 		i.setAction(Intent.ACTION_SYNC);
+		i.putExtra(PostService.Extras.IS_MALE, UserUtil.getIsMale());
 		startService(i);
 	}
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		mLoader = new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, null, null, PostTable.CREATED + " DESC");
+		mLoader = new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, PostTable.IS_MALE + "=?", new String[] { UserUtil.getIsMale() ? "1":"0" }, PostTable.CREATED + " DESC");
 
 		return mLoader;
 	}
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> arg0, Cursor cursor) {
-		// TODO Auto-generated method stub
-		
 		mNavAdapter.clear();
+		mPermalinks.clear();
 		
 		for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) { 
-//			SimpleDateFormat formatter=new SimpleDateFormat("DD-MMM-yyyy");  
-//			
-//			Date date = new Date(cursor.getLong(cursor.getColumnIndex(PostTable.CREATED))*1000);
-//			Calendar c = Calendar.getInstance();
-//			c.setTime(date);
-//			
-//			String str = formatter.format(date);
-//			
-//			mNavAdapter.add(new SimpleDateFormat("MMM").format(c.getTime()) + " " + c.get(Calendar.DATE) + " " +  c.get(Calendar.YEAR));
 			
 			mNavAdapter.add( cursor.getString(cursor.getColumnIndex(PostTable.TITLE)));
 			
 			PostPermalink p = new PostPermalink();
-			String id = cursor.getString(cursor.getColumnIndex(PostTable.ID));
 			p.mId = cursor.getString(cursor.getColumnIndex(PostTable.ID));
 			p.mPermalink = cursor.getString(cursor.getColumnIndex(PostTable.PERMALINK));
 			mPermalinks.add(p); 
@@ -222,6 +218,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		{
 			ViewFlipper vf = (ViewFlipper)findViewById(R.id.vf);
 			vf.setDisplayedChild(1);
+			
+			refreshNavigationBar(0);
 		}
 
 		
@@ -309,6 +307,28 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
     	} else {
             menu.findItem(R.id.login_menu_id).setVisible(true);
             menu.findItem(R.id.logout_menu_id).setVisible(false);
+
+            String sortByTxt = "RANDOM";
+            
+            switch( UserUtil.getSortBy() )
+            {
+            case 0:
+        		sortByTxt = "RANDOM";
+        		break;
+        		
+            case 1:
+        		sortByTxt = "VOTES";
+        		break;
+        		
+            case 2:
+        		sortByTxt = "COMMENTS";
+        		break;
+            }
+            
+            menu.findItem(R.id.sort_by_menu_id).setTitle(String.format(getResources().getString(R.string.sort_by), sortByTxt));
+            
+            menu.findItem(R.id.subreddit_menu_id).setTitle(String.format(getResources().getString(R.string.subreddit), UserUtil.getSubredditAcronym()));
+
     	}
         return true;
     }
@@ -326,6 +346,12 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
     		Toast.makeText(this, "You have been logged out.", Toast.LENGTH_SHORT).show();
     		
     		mSettings.saveRedditPreferences(this);
+            break;
+            
+    	case R.id.sort_by_menu_id:
+            break;
+            
+    	case R.id.subreddit_menu_id:
             break;
     	}
     	

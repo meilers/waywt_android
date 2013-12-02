@@ -4,6 +4,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -60,19 +61,29 @@ import com.sobremesa.waywt.model.ThingListing;
 public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 		implements PropertyChangeListener {
 	
-	
 	private static final String TAG = "CommentsListActivity.DownloadCommentsTask";
+	
+	public static class ListenerTask
+	{
+		public AsyncTask<?, ?, ?> mCurrentDownloadCommentsTask = null;
+		public WeakReference<CommentsListener> mListenerReference;
+	}
+	
+	private static ListenerTask[] mTasks = new ListenerTask[3];
+	private static int mInc = 0;
+
+	public int mIndex = 0;
+	
+	
+	
+	
     private final ObjectMapper mObjectMapper = Common.getObjectMapper();
     private final Markdown markdown = new Markdown();
 
-    private static HashMap<CommentsListener, AsyncTask<?, ?, ?>> mCurrentDownloadCommentsTasks = new HashMap<CommentsListener, AsyncTask<?, ?, ?>>();
-    private static final Object mCurrentDownloadCommentsTaskLock = new Object();
     
     
-    private CommentsListener mListener;
     private String mSubreddit;
     private String mThreadId;
-    private String mThreadTitle;
     private RedditSettings mSettings;
     private HttpClient mClient;
 	
@@ -111,11 +122,35 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 			RedditSettings settings,
 			HttpClient client
 	) {
-		this.mListener = activity;
 		this.mSubreddit = subreddit;
 		this.mThreadId = threadId;
 		this.mSettings = settings;
 		this.mClient = client;
+		this.mIndex = mInc;
+		
+		ListenerTask task = mTasks[mInc];
+		
+		if( task != null )
+		{
+			if( task.mCurrentDownloadCommentsTask != null )
+			{
+				task.mCurrentDownloadCommentsTask.cancel(true);
+				task.mCurrentDownloadCommentsTask = null;
+				
+				task.mListenerReference.clear();
+				task.mListenerReference = null;
+			}
+		}
+		
+		mTasks[mInc] = new ListenerTask();
+		
+		mTasks[mInc].mCurrentDownloadCommentsTask = this;
+		mTasks[mInc].mListenerReference = new WeakReference<CommentsListener>(activity);
+		
+		if( mInc < 2)
+			++mInc;
+		else
+			mInc = 0;
 	}
 	
 	/**
@@ -159,10 +194,10 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
     		
         	if (Constants.USE_COMMENTS_CACHE) {
     			try {
-	    			if (CacheInfo.checkFreshThreadCache(((Fragment) mListener).getActivity().getApplicationContext())
-	    					&& url.equals(CacheInfo.getCachedThreadUrl(((Fragment) mListener).getActivity().getApplicationContext()))) {
-	    				in = ((Fragment) mListener).getActivity().openFileInput(Constants.FILENAME_THREAD_CACHE);
-	    				mContentLength = ((Fragment) mListener).getActivity().getFileStreamPath(Constants.FILENAME_THREAD_CACHE).length();
+	    			if (CacheInfo.checkFreshThreadCache(((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity().getApplicationContext())
+	    					&& url.equals(CacheInfo.getCachedThreadUrl(((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity().getApplicationContext()))) {
+	    				in = ((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity().openFileInput(Constants.FILENAME_THREAD_CACHE);
+	    				mContentLength = ((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity().getFileStreamPath(Constants.FILENAME_THREAD_CACHE).length();
 	    				currentlyUsingCache = true;
 	    				if (Constants.LOGGING) Log.d(TAG, "Using cached thread JSON, length=" + mContentLength);
 	    			}
@@ -191,9 +226,9 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
             	in = entity.getContent();
             	
             	if (Constants.USE_COMMENTS_CACHE) {
-                	in = CacheInfo.writeThenRead(((Fragment) mListener).getActivity().getApplicationContext(), in, Constants.FILENAME_THREAD_CACHE);
+                	in = CacheInfo.writeThenRead(((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity().getApplicationContext(), in, Constants.FILENAME_THREAD_CACHE);
                 	try {
-                		CacheInfo.setCachedThreadUrl(((Fragment) mListener).getActivity().getApplicationContext(), url);
+                		CacheInfo.setCachedThreadUrl(((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity().getApplicationContext(), url);
                 	} catch (IOException e) {
                 		if (Constants.LOGGING) Log.e(TAG, "error on setCachedThreadId", e);
                 	}
@@ -250,14 +285,14 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 	
 	private void disableLoadingScreenKeepProgress() {
 		
-		Activity act = ((Fragment) mListener).getActivity();
+		Activity act = ((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity();
 		
 		if( act != null )
 		{
-			((Fragment) mListener).getActivity().runOnUiThread(new Runnable() {
+			((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity().runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-		    		mListener.resetUI();
+					mTasks[mIndex].mListenerReference.get().resetUI();
 				}
 			});			
 		}
@@ -347,7 +382,6 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 		}
 		
 		// We might not have a title if we've intercepted a plain link to a thread.
-		mThreadTitle = data.getTitle();
 		mSubreddit = data.getSubreddit();
 		mThreadId = data.getId();
 		
@@ -360,6 +394,18 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 	 */
 	int insertNestedComment(ThingListing commentThingListing, int indentLevel, int insertedCommentIndex) {
 		ThingInfo ci = commentThingListing.getData();
+		
+		if( ci.getBody_html() != null)
+		{
+			String unescapedHtmlSelftext = Html.fromHtml(ci.getBody_html()).toString();
+			Spanned sbody = Html.fromHtml(Util.convertHtmlTags(unescapedHtmlSelftext));
+			
+			// remove last 2 newline characters
+			if (sbody.length() > 2)
+				ci.setSpannedBody(sbody.subSequence(0, sbody.length()-2));
+		}
+
+		
 		
 		deferCommentAppend(ci);
 		// Add comment to deferred append/replace list
@@ -418,7 +464,7 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
      * Call from UI Thread
      */
     private void insertCommentsUI() {
-    	mListener.updateComments(mDeferredAppendList);
+    	mTasks[mIndex].mListenerReference.get().updateComments(mDeferredAppendList);
     }
 	
     
@@ -435,57 +481,28 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
     		this.cancel(true);
     		return;
 		}
-		Iterator<Map.Entry<CommentsListener, AsyncTask<?, ?, ?>>> it = mCurrentDownloadCommentsTasks.entrySet().iterator();
-	    while (it.hasNext()) {
-	        Map.Entry<CommentsListener, AsyncTask<?, ?, ?>> pairs = (Map.Entry<CommentsListener, AsyncTask<?, ?, ?>>)it.next();
-	        if( pairs.getKey() == null || pairs.getValue() == null)
-	        {
-	        	if( pairs.getValue() != null )
-	        		pairs.getValue().cancel(true);
-
-	        	CommentsListener listener = pairs.getKey();
-	        	AsyncTask<?, ?, ?> task = pairs.getValue();
-	        	
-	        	listener = null;
-	        	task = null;
-	        	
-	        	it.remove(); // avoids a ConcurrentModificationException	
-	        	
-
-	        }
-	    }
-	    
-	    if( mCurrentDownloadCommentsTasks.containsKey(mListener) )
-	    {
-	    	mCurrentDownloadCommentsTasks.get(mListener).cancel(true); 
-	    	mCurrentDownloadCommentsTasks.put(mListener, this);
-	    }
-	    else
-	    {
-	    	mCurrentDownloadCommentsTasks.put(mListener, this);
-	    }
 		
 		if (isInsertingEntireThread()) {
 
 			
     		// Do loading screen when loading new thread; otherwise when "loading more comments" don't show it
-			mListener.enableLoadingScreen();
+			mTasks[mIndex].mListenerReference.get().enableLoadingScreen();
 		}
 		
 		if (mContentLength == -1)
-			((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
+			((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
 	}
     
 	@Override
 	public void onPostExecute(Boolean success) {
-		if( (Fragment) mListener != null && ((Fragment) mListener).getActivity() != null)
+		if( (Fragment) mTasks[mIndex].mListenerReference.get() != null && ((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity() != null)
 		{
 			insertCommentsUI();
 			
 			if (mContentLength == -1)
-				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_OFF);
+				((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_OFF);
 			else
-				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_END);
+				((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_END);
 			
 			if (success) {
 				// We should clear any replies the user was composing.
@@ -496,27 +513,22 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 	//				mListener.setTitle(mThreadTitle + " : " + mSubreddit);
 			} else {
 				if (!isCancelled()) {
-					Common.showErrorToast("No Internet Connection", Toast.LENGTH_LONG, ((Fragment) mListener).getActivity());
-					mListener.resetUI();
+					Common.showErrorToast("No Internet Connection", Toast.LENGTH_LONG, ((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity());
+					mTasks[mIndex].mListenerReference.get().resetUI();
 				}
 			}
 		}
 
-		Log.d("size", mCurrentDownloadCommentsTasks.size() + ""); 
-		if( mCurrentDownloadCommentsTasks.containsKey(mListener) ) {
-			mCurrentDownloadCommentsTasks.remove(mListener);
-		}
-		mListener = null;
 	}
 	
 	@Override
 	public void onProgressUpdate(Long... progress) {
-		if( (Fragment) mListener != null && ((Fragment) mListener).getActivity() != null)
+		if( (Fragment) mTasks[mIndex].mListenerReference.get() != null && ((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity() != null)
 		{
 			if (mContentLength == -1)
-				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
+				((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
 			else
-				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, progress[0].intValue() * (Window.PROGRESS_END-1) / (int) mContentLength);
+				((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, progress[0].intValue() * (Window.PROGRESS_END-1) / (int) mContentLength);
 		}  
 	}
 	

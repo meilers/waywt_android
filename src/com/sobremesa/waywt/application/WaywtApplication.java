@@ -40,4 +40,9 @@ public class WaywtApplication extends Application {
 	public static WaywtApplication getApplication(){
 		return sApplication;
 	}
+	
+	public static SharedPreferences getSharedPreferences() {
+		SharedPreferences prefs = sContext.getSharedPreferences(sContext.getPackageName(), Context.MODE_PRIVATE);
+		return prefs;
+	}
 }

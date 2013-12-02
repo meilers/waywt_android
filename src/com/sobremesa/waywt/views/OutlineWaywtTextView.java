@@ -37,9 +37,9 @@ public class OutlineWaywtTextView extends WaywtTextView {
 		
 		 paint.setStyle(Style.STROKE);
 		 paint.setStrokeJoin(Join.ROUND);
-		 paint.setStrokeMiter(10);
+		 paint.setStrokeMiter(5);
 		 this.setTextColor(WaywtApplication.getContext().getResources().getColor(android.R.color.black));
-		 paint.setStrokeWidth(12.0f);
+		 paint.setStrokeWidth(6.0f);
 		
 		 super.onDraw(canvas);
 		 paint.setStyle(Style.FILL);

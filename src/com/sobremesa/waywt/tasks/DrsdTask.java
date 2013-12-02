@@ -3,6 +3,7 @@ package com.sobremesa.waywt.tasks;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -19,6 +20,7 @@ import retrofit.http.Header;
 import com.sobremesa.waywt.application.WaywtApplication;
 import com.sobremesa.waywt.fragments.CommentFragment;
 import com.sobremesa.waywt.listeners.CommentsListener;
+import com.sobremesa.waywt.tasks.DownloadRepliesTask.ListenerTask;
 
 import android.os.AsyncTask;
 import android.util.Log;
@@ -26,8 +28,16 @@ import android.util.Log;
 public class DrsdTask  extends AsyncTask<String, Long, String>
 implements PropertyChangeListener {
 
-    private static HashMap<CommentFragment, AsyncTask<?, ?, ?>> mCurrentDownloadCommentsTasks = new HashMap<CommentFragment, AsyncTask<?, ?, ?>>();
-    private static final Object mCurrentDownloadCommentsTaskLock = new Object();
+	public static class ListenerTask
+	{
+		public AsyncTask<?, ?, ?> mCurrentDownloadCommentsTask = null;
+		public WeakReference<CommentFragment> mListenerReference;
+	}
+	
+	private static ListenerTask[] mTasks = new ListenerTask[3];
+	private static int mInc = 0;
+
+	public int mIndex = 0;
     
     private CommentFragment mFragment;
     
@@ -62,41 +72,35 @@ implements PropertyChangeListener {
     public DrsdTask( CommentFragment fragment )
     {
     	this.mFragment = fragment;
+    	
+		ListenerTask task = mTasks[mInc];
+		
+		if( task != null )
+		{
+			if( task.mCurrentDownloadCommentsTask != null )
+			{
+				task.mCurrentDownloadCommentsTask.cancel(true);
+				task.mCurrentDownloadCommentsTask = null;
+				
+				task.mListenerReference.clear();
+				task.mListenerReference = null;
+			}
+		}
+		
+		mTasks[mInc] = new ListenerTask();
+		
+		mTasks[mInc].mCurrentDownloadCommentsTask = this;
+		mTasks[mInc].mListenerReference = new WeakReference<CommentFragment>(fragment);
+		
+		if( mInc < 2)
+			++mInc;
+		else
+			mInc = 0;
     }
     
 	@Override
 	protected void onPreExecute() {
 		super.onPreExecute();
-		
-		Iterator<Map.Entry<CommentFragment, AsyncTask<?, ?, ?>>> it = mCurrentDownloadCommentsTasks.entrySet().iterator();
-	    while (it.hasNext()) {
-	        Map.Entry<CommentFragment, AsyncTask<?, ?, ?>> pairs = (Map.Entry<CommentFragment, AsyncTask<?, ?, ?>>)it.next();
-	        if( pairs.getKey() == null || pairs.getValue() == null)
-	        {
-	        	if( pairs.getValue() != null )
-	        		pairs.getValue().cancel(true);
-
-	        	CommentsListener listener = pairs.getKey();
-	        	AsyncTask<?, ?, ?> task = pairs.getValue();
-	        	
-	        	listener = null;
-	        	task = null;
-	        	
-	        	it.remove(); // avoids a ConcurrentModificationException	
-	        	
-
-	        }
-	    }
-	    
-	    if( mCurrentDownloadCommentsTasks.containsKey(mFragment) )
-	    {
-	    	mCurrentDownloadCommentsTasks.get(mFragment).cancel(true); 
-	    	mCurrentDownloadCommentsTasks.put(mFragment, this);
-	    }
-	    else
-	    {
-	    	mCurrentDownloadCommentsTasks.put(mFragment, this);
-	    }
 	}
 	
 	
@@ -143,10 +147,6 @@ implements PropertyChangeListener {
 		if( mFragment != null )
 			mFragment.addImageUrls(urls);
 		
-		if( mCurrentDownloadCommentsTasks.containsKey(mFragment) ) {
-			mCurrentDownloadCommentsTasks.remove(mFragment);
-		}
-		mFragment = null;
 	}
 	
 	

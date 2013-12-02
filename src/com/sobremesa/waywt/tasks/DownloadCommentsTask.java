@@ -4,6 +4,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -67,9 +68,7 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
     private static AsyncTask<?, ?, ?> mCurrentDownloadCommentsTask = null;
     private static final Object mCurrentDownloadCommentsTaskLock = new Object();  
     
-    private final Object mCurrentShowThumbnailsTaskLock = new Object();
-    
-    private CommentsListener mListener;
+    private WeakReference<CommentsListener> mListenerRef;
     private String mSubreddit;
     private String mThreadId;
     private String mThreadTitle;
@@ -111,7 +110,7 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 			RedditSettings settings,
 			HttpClient client
 	) {
-		this.mListener = activity;
+		this.mListenerRef = new WeakReference<CommentsListener>(activity);
 		this.mSubreddit = subreddit;
 		this.mThreadId = threadId;
 		this.mSettings = settings;
@@ -150,8 +149,9 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
         		.append("/z/").append(mMoreChildrenId).append("/.json?")
         		.append(mSettings.getCommentsSortByUrl()).append("&");
         	if (mJumpToCommentContext != 0)
-        		sb.append("context=").append(mJumpToCommentContext).append("&");
+        		sb.append("context=").append(mJumpToCommentContext).append("&");  
         	
+        	sb.append("limit=500&depth=1");
         	String url = sb.toString();
         	
         	InputStream in = null;
@@ -159,10 +159,10 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
     		
         	if (Constants.USE_COMMENTS_CACHE) {
     			try {
-	    			if (CacheInfo.checkFreshThreadCache(((Fragment) mListener).getActivity().getApplicationContext())
-	    					&& url.equals(CacheInfo.getCachedThreadUrl(((Fragment) mListener).getActivity().getApplicationContext()))) {
-	    				in = ((Fragment) mListener).getActivity().openFileInput(Constants.FILENAME_THREAD_CACHE);
-	    				mContentLength = ((Fragment) mListener).getActivity().getFileStreamPath(Constants.FILENAME_THREAD_CACHE).length();
+	    			if (CacheInfo.checkFreshThreadCache(((Fragment) mListenerRef.get()).getActivity().getApplicationContext())
+	    					&& url.equals(CacheInfo.getCachedThreadUrl(((Fragment) mListenerRef.get()).getActivity().getApplicationContext()))) {
+	    				in = ((Fragment) mListenerRef.get()).getActivity().openFileInput(Constants.FILENAME_THREAD_CACHE);
+	    				mContentLength = ((Fragment) mListenerRef.get()).getActivity().getFileStreamPath(Constants.FILENAME_THREAD_CACHE).length();
 	    				currentlyUsingCache = true;
 	    				if (Constants.LOGGING) Log.d(TAG, "Using cached thread JSON, length=" + mContentLength);
 	    			}
@@ -191,9 +191,9 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
             	in = entity.getContent();
             	
             	if (Constants.USE_COMMENTS_CACHE) {
-                	in = CacheInfo.writeThenRead(((Fragment) mListener).getActivity().getApplicationContext(), in, Constants.FILENAME_THREAD_CACHE);
+                	in = CacheInfo.writeThenRead(((Fragment) mListenerRef.get()).getActivity().getApplicationContext(), in, Constants.FILENAME_THREAD_CACHE);
                 	try {
-                		CacheInfo.setCachedThreadUrl(((Fragment) mListener).getActivity().getApplicationContext(), url);
+                		CacheInfo.setCachedThreadUrl(((Fragment) mListenerRef.get()).getActivity().getApplicationContext(), url);
                 	} catch (IOException e) {
                 		if (Constants.LOGGING) Log.e(TAG, "error on setCachedThreadId", e);
                 	}
@@ -250,16 +250,19 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 	
 	private void disableLoadingScreenKeepProgress() {
 		
-		Activity act = ((Fragment) mListener).getActivity();
-		
-		if( act != null )
+		if( mListenerRef.get() != null )
 		{
-			((Fragment) mListener).getActivity().runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-		    		mListener.resetUI();
-				}
-			});			
+			Activity act = ((Fragment) mListenerRef.get()).getActivity();
+			
+			if( act != null )
+			{
+				((Fragment) mListenerRef.get()).getActivity().runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+			    		mListenerRef.get().resetUI();
+					}
+				});			
+			}
 		}
 
 	}
@@ -289,18 +292,13 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 			ThingListing threadThingListing = threadListingData.getChildren()[0];
 			Assert.assertEquals(Constants.THREAD_KIND, threadThingListing.getKind(), genericListingError);
 
-			if (isInsertingEntireThread()) {
-				parseOP(threadThingListing.getData());
-				insertedCommentIndex = 0;  // we just inserted the OP into position 0
-				
-				// at this point we've started displaying comments, so disable the loading screen
-				disableLoadingScreenKeepProgress();
-			}
-			else {
-				insertedCommentIndex = mPositionOffset - 1;  // -1 because we +1 for the first comment
-			}
+			parseOP(threadThingListing.getData());
+			insertedCommentIndex = 0;  // we just inserted the OP into position 0
 			
-			// listings[1] is a comment Listing for the comments
+			// at this point we've started displaying comments, so disable the loading screen
+			disableLoadingScreenKeepProgress();
+			
+			// listings[1] is a comment Listing for the comments 
 			// Go through the children and get the ThingInfos
 			Pattern pattern1 = Pattern.compile("href=\"[^\"]+?imgur.com[^\"]+?\"");
 			Pattern pattern2 = Pattern.compile("href=\"[^\"]+?dressed.so[^\"]+?\"");
@@ -331,14 +329,18 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 				        	ci.setSpannedBody(spanned);
 						}
 						
-						if (isInsertingEntireThread())
-							deferCommentAppend(ci);
-						else
-							deferCommentReplacement(ci);
+						deferCommentAppend(ci);
 						
 //						insertedCommentIndex = insertNestedComment(commentThingListing, 0, insertedCommentIndex + 1);
 					}
 				}
+//				else if (Constants.MORE_KIND.equals(commentThingListing.getKind()))
+//				{
+//					ThingInfo ci = commentThingListing.getData();
+//					ci.setLoadMoreCommentsPlaceholder(true);
+//					
+//					deferCommentAppend(ci);
+//				}
 			}
 			
 			
@@ -350,10 +352,10 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 	private void parseOP(final ThingInfo data) {
 		data.setIndent(0);
 		
-//		mListener.getActivity().runOnUiThread(new Runnable() {
+//		mListenerRef.get().getActivity().runOnUiThread(new Runnable() {
 //			@Override
 //			public void run() {
-//				mListener.mCommentsList.add(0, data);
+//				mListenerRef.get().mCommentsList.add(0, data);
 //			}
 //		});
 
@@ -380,58 +382,6 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 		mOpThingInfo = data;
 	}
 	
-	/**
-	 * Recursive method to insert comment tree into the mCommentsList,
-	 * with proper list order and indentation
-	 */
-	int insertNestedComment(ThingListing commentThingListing, int indentLevel, int insertedCommentIndex) {
-		ThingInfo ci = commentThingListing.getData();
-		
-		// Add comment to deferred append/replace list
-//		if (isInsertingEntireThread())
-//			deferCommentAppend(ci);
-//		else
-//			deferCommentReplacement(ci);
-
-		
-		// Formatting that applies to all items, both real comments and "more" entries
-		ci.setIndent(mIndentation + indentLevel);
-		
-		// Handle "more" entry
-		if (Constants.MORE_KIND.equals(commentThingListing.getKind())) {
-			ci.setLoadMoreCommentsPlaceholder(true);
-			if (Constants.LOGGING) Log.v(TAG, "new more position at " + (insertedCommentIndex));
-	    	return insertedCommentIndex;
-		}
-		
-		// Regular comment
-		
-		// Skip things that are not comments, which shouldn't happen
-		if (!Constants.COMMENT_KIND.equals(commentThingListing.getKind())) {
-			if (Constants.LOGGING) Log.e(TAG, "comment whose kind is \""+commentThingListing.getKind()+"\" (expected "+Constants.COMMENT_KIND+")");
-			return insertedCommentIndex;
-		}
-		
-		// handle the replies
-		Listing repliesListing = ci.getReplies();
-		if (repliesListing == null)
-			return insertedCommentIndex;
-		ListingData repliesListingData = repliesListing.getData();
-		if (repliesListingData == null)
-			return insertedCommentIndex;
-		ThingListing[] replyThingListings = repliesListingData.getChildren();
-		if (replyThingListings == null)
-			return insertedCommentIndex;
-		
-		for (ThingListing replyThingListing : replyThingListings) {
-			insertedCommentIndex = insertNestedComment(replyThingListing, indentLevel + 1, insertedCommentIndex + 1);
-		}
-		return insertedCommentIndex;
-	}
-	
-	private boolean isHasJumpTarget() {
-		return ! StringUtils.isEmpty(mJumpToCommentId);
-	}
 	
 	private boolean isFoundJumpTargetComment() {
 		return mJumpToCommentFoundIndex != -1;
@@ -443,7 +393,7 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
      * Call from UI Thread
      */
     private void insertCommentsUI() {
-    	mListener.updateComments(mDeferredAppendList);
+    	mListenerRef.get().updateComments(mDeferredAppendList);
     }
 	
     
@@ -471,41 +421,37 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 
 			
     		// Do loading screen when loading new thread; otherwise when "loading more comments" don't show it
-			mListener.enableLoadingScreen();
+			mListenerRef.get().enableLoadingScreen();
 		}
 		
 		if (mContentLength == -1)
-			((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
+			((Fragment) mListenerRef.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
 	}
     
 	@Override
 	public void onPostExecute(Boolean success) {
 		
-		if( (Fragment) mListener != null && ((Fragment) mListener).getActivity() != null )
+		if( (Fragment) mListenerRef.get() != null && ((Fragment) mListenerRef.get()).getActivity() != null )
 		{
-			if (isInsertingEntireThread()) {
-				insertCommentsUI();
-				if (isFoundJumpTargetComment());
-	//				mListener.getListView().setSelection(;);
-			}
+			insertCommentsUI();
 			
 			
 			if (mContentLength == -1)
-				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_OFF);
+				((Fragment) mListenerRef.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_OFF);
 			else
-				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_END);
+				((Fragment) mListenerRef.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_END);
 			
 			if (success) {
 				// We should clear any replies the user was composing.
-	//			mListener.setShouldClearReply(true);
+	//			mListenerRef.get().setShouldClearReply(true);
 	//
 	//			// Set title in android titlebar
 	//			if (mThreadTitle != null)
-	//				mListener.setTitle(mThreadTitle + " : " + mSubreddit);
+	//				mListenerRef.get().setTitle(mThreadTitle + " : " + mSubreddit);
 			} else {
 				if (!isCancelled()) {
-					Common.showErrorToast("No Internet Connection", Toast.LENGTH_LONG, ((Fragment) mListener).getActivity());
-					mListener.resetUI();
+					Common.showErrorToast("No Internet Connection", Toast.LENGTH_LONG, ((Fragment) mListenerRef.get()).getActivity());
+					mListenerRef.get().resetUI();
 				}
 			}
 		}
@@ -514,18 +460,18 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 			mCurrentDownloadCommentsTask = null;
 		}
 		
-		mListener = null;
+		mListenerRef = null;
 	}
 	
 	@Override
 	public void onProgressUpdate(Long... progress) {
 		
-		if( mListener != null && ((Fragment) mListener).getActivity() != null )
+		if( mListenerRef.get() != null && ((Fragment) mListenerRef.get()).getActivity() != null )
 		{
 			if (mContentLength == -1)
-				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
+				((Fragment) mListenerRef.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
 			else
-				((Fragment) mListener).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, progress[0].intValue() * (Window.PROGRESS_END-1) / (int) mContentLength);
+				((Fragment) mListenerRef.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, progress[0].intValue() * (Window.PROGRESS_END-1) / (int) mContentLength);
 		}
 	}
 	

@@ -226,4 +226,6 @@
     <string name="thumbnail_content_description">thumbnail (click to view link)</string>
     
     
+    <string name="sort_by">Sort by: %s</string>
+    <string name="subreddit">Subreddit: %s</string>
 </resources>

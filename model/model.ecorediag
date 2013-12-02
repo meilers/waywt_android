@@ -27,6 +27,10 @@
         <element xmi:type="ecore:EAttribute" href="model.ecore#//Post/title"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_BBnFoEszEeOYTZMdEDikXQ"/>
       </children>
+      <children xmi:type="notation:Node" xmi:id="_AZhxQFryEeOAJpMQPoJVSA" type="2001">
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Post/is_male"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_AZhxQVryEeOAJpMQPoJVSA"/>
+      </children>
       <styles xmi:type="notation:DrawerStyle" xmi:id="_Jss88UaSEeOAhZ6b1CwEtg"/>
       <styles xmi:type="notation:SortingStyle" xmi:id="_Jss88kaSEeOAhZ6b1CwEtg"/>
       <styles xmi:type="notation:FilteringStyle" xmi:id="_Jss880aSEeOAhZ6b1CwEtg"/>

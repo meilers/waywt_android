@@ -59,7 +59,7 @@ public class ImageFragment extends Fragment {
 			
 			@Override
 			public void onImageAvailable(ImageView imageView, Bitmap bitmap, ImageReturnedFrom imageReturnedFrom) {
-				
+				  
 				
 				
 				if( getActivity() != null )

@@ -11,9 +11,10 @@ import java.util.regex.Pattern;
 import org.apache.http.client.HttpClient;
 
 import com.sobremesa.waywt.util.StringUtils;
+import com.sobremesa.waywt.util.UserUtil;
 import com.sobremesa.waywt.util.Util;
 import com.sobremesa.waywt.R;
-import com.sobremesa.waywt.adapters.CommentPagerAdapter;
+import com.sobremesa.waywt.activities.MainActivity;
 import com.sobremesa.waywt.common.Constants;
 import com.sobremesa.waywt.common.RedditIsFunHttpClientFactory;
 import com.sobremesa.waywt.contentprovider.Provider;
@@ -44,6 +45,7 @@ import android.view.LayoutInflater;
 import android.view.View; 
 import android.view.ViewGroup;
 import android.view.Window;
+import android.webkit.CookieSyncManager;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
@@ -68,10 +70,10 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 	public CommentPagerAdapter mPagerAdapter;
 	private TitlePageIndicator mindicator;
 	
-    private String mSubreddit = "malefashionadvice";
+    private String mSubreddit = UserUtil.getSubreddit();
     private String mThreadId = null;
-    private final HttpClient mClient = RedditIsFunHttpClientFactory.getGzipHttpClient();
-    private final RedditSettings mSettings = new RedditSettings();
+    private final HttpClient mClient = MainActivity.getClient();
+    private final RedditSettings mSettings = MainActivity.getSettings();
     
     private DownloadCommentsTask getNewDownloadCommentsTask() {
     	return new DownloadCommentsTask(
@@ -153,6 +155,13 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 		getNewDownloadCommentsTask().execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
 	}
 	
+    @Override
+    public void onPause() {
+    	super.onPause();
+		CookieSyncManager.getInstance().stopSync();
+		mSettings.saveRedditPreferences(getActivity());
+    }
+    
 	@Override
 	public void onDestroy() {
 		mPagerAdapter = null;
@@ -195,11 +204,66 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 			
 			mPagerAdapter.addComments(comments);
 			
-			ViewFlipper vf = (ViewFlipper)getView().findViewById(R.id.vf);
+			ViewFlipper vf = (ViewFlipper)getView().findViewById(R.id.vf); 
 			vf.setDisplayedChild(1);
 		}
 
 	}
 	
 	
+
+	public static class CommentPagerAdapter extends FragmentStatePagerAdapter {
+		public boolean mIsLoading = false;
+		
+		private ArrayList<ThingInfo> mComments = new ArrayList<ThingInfo>();
+		
+		private String mSubreddit = "";
+		private String mThreadId = "";
+		
+		
+
+		public CommentPagerAdapter(FragmentManager fragmentManager, String subreddit, String threadId) {
+			super(fragmentManager);
+			
+			mSubreddit = subreddit;
+			mThreadId = threadId;
+		}
+		
+		public void addComments( List<ThingInfo> comments )
+		{
+			mComments.addAll(comments);
+			
+			
+			this.notifyDataSetChanged();
+		}
+
+		@Override  
+		public Fragment getItem(int position) {
+			
+			CommentFragment fragment = new CommentFragment();
+			Bundle args = new Bundle();
+			args.putString(CommentFragment.Extras.SUBREDDIT, mSubreddit);
+			args.putString(CommentFragment.Extras.THREAD_ID, mThreadId);
+			args.putParcelable(CommentFragment.Extras.COMMENT, mComments.get(position));
+			fragment.setArguments(args);
+			
+			return fragment;
+			
+		}
+
+		@Override
+		public int getCount() {
+			return mComments.size();
+		}
+		
+		@Override
+	    public CharSequence getPageTitle(int position) {
+			if( mComments.get(position).getAuthor() != null )
+				return mComments.get(position).getAuthor().toUpperCase();
+			
+			return null;
+	    }
+		
+		
+	}
 }

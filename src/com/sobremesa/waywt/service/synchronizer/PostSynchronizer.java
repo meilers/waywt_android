@@ -36,14 +36,17 @@ import android.widget.Toast;
 
 public class PostSynchronizer extends Synchronizer<PostService.RemoteRedditPost> {
 
-	HashMap<String, String> mImageUrlMap;
+	private boolean mIsMale = true;
 	
 	public PostSynchronizer(Context context) {
 		super(context);
-		
-		mImageUrlMap = new HashMap<String, String>();
 	}
 
+	public void setIsMale(boolean isMale)
+	{
+		mIsMale = isMale;
+	}
+	
 	@Override
 	protected void performSynchronizationOperations(Context context, List<RemoteRedditPost> inserts, List<RemoteRedditPost> updates, List<Long> deletions) {
 		ArrayList<ContentProviderOperation> operations = new ArrayList<ContentProviderOperation>();
@@ -101,7 +104,8 @@ public class PostSynchronizer extends Synchronizer<PostService.RemoteRedditPost>
 		values.put(PostTable.DOWNS, t.data.downs);
 		values.put(PostTable.PERMALINK, t.data.permalink);
 		values.put(PostTable.TITLE, t.data.title);
-
+		values.put(PostTable.IS_MALE, mIsMale ? 1 : 0);
+		
 		return values;
 	}
 
