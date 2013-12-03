@@ -42,9 +42,9 @@ public class ImageActivity extends FragmentActivity {
 	private CirclePageIndicator mindicator;
 	
 	@Override
-	protected void onCreate(Bundle arg0) {
+	protected void onCreate(Bundle savedExtras) {
 		// TODO Auto-generated method stub
-		super.onCreate(arg0);
+		super.onCreate(savedExtras);
 		
 		setContentView(R.layout.activity_image);
 		
@@ -65,7 +65,11 @@ public class ImageActivity extends FragmentActivity {
 		
 		mPagerAdapter = new ImagePagerAdapter(getSupportFragmentManager(), imageUrls);
 		mPager.setAdapter(mPagerAdapter);
-		mPager.setCurrentItem(extras.getInt(Extras.ARG_IMAGE_SELECTED_POSITION,0));
+		
+		if( savedExtras != null )
+			mPager.setCurrentItem(savedExtras.getInt(Extras.ARG_IMAGE_SELECTED_POSITION,0));
+		else
+			mPager.setCurrentItem(extras.getInt(Extras.ARG_IMAGE_SELECTED_POSITION,0));
 		
 		mindicator = (CirclePageIndicator)findViewById(R.id.indicator);
 		mindicator.setViewPager(mPager);
@@ -75,6 +79,14 @@ public class ImageActivity extends FragmentActivity {
 	protected void onStart() {
 		// TODO Auto-generated method stub
 		super.onStart();
+	}
+	
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		// TODO Auto-generated method stub
+		super.onSaveInstanceState(outState);
+		
+		outState.putInt(Extras.ARG_IMAGE_SELECTED_POSITION, mPager.getCurrentItem());
 	}
 
 //	@Override

@@ -20,18 +20,4 @@ public class WaywtSecondaryTextView extends TextView {
 		super(context, attrs, defStyle);
 	}
 
-	@Override
-	public void setTypeface(Typeface tf, int style) {
-		switch (style) {
-		case Typeface.ITALIC:
-		case Typeface.BOLD_ITALIC:
-			tf = FontManager.INSTANCE.getGeorgiaItalicFont();
-			break;
-		default:
-			tf = FontManager.INSTANCE.getGeorgiaFont();
-			break;
-		}
-
-		super.setTypeface(tf);
-	}
 }

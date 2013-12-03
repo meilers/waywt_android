@@ -34,7 +34,7 @@ public class ImageFragment extends Fragment {
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub 
 		super.onCreate(savedInstanceState);
 		
 		Options options = new Options();

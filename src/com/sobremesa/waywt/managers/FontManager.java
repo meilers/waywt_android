@@ -1,6 +1,7 @@
 package com.sobremesa.waywt.managers;
 
 import com.sobremesa.waywt.application.WaywtApplication;
+import com.sobremesa.waywt.util.UserUtil;
 
 import android.content.res.AssetManager;
 import android.graphics.Typeface;
@@ -11,27 +12,21 @@ public enum FontManager {
 	INSTANCE;
 
 	private Typeface mAppFont;
-	private Typeface mGeorgiaTypeFace;
-	private Typeface mGeorgiaItalicFont;
-
+	private Typeface mFFAAppFont;
+	
 	private FontManager() {
 		AssetManager assetManager = WaywtApplication.getContext().getResources().getAssets();
 		mAppFont = Typeface.createFromAsset(assetManager, "fonts/DINCondensedC.otf");
-		mGeorgiaTypeFace = Typeface.createFromAsset(assetManager, "fonts/Georgia.ttf");
-		mGeorgiaItalicFont = Typeface.createFromAsset(assetManager, "fonts/GeorgiaItalic.ttf");
+		mFFAAppFont = Typeface.createFromAsset(assetManager, "fonts/OpenSans-CondBold.ttf");
 	}
 
 	public Typeface getAppFont() {
-		return mAppFont;
+		if(UserUtil.getIsMale())
+			return mAppFont;
+		else
+			return mFFAAppFont;
 	}
 
-	public Typeface getGeorgiaFont() {
-		return mGeorgiaTypeFace;
-	}
-
-	public Typeface getGeorgiaItalicFont() {
-		return mGeorgiaItalicFont;
-	}
 	
 	public String wrapTextWithHTMLColorTag(String text, int colorResId) {
 		int colorInt = WaywtApplication.getContext().getResources().getColor(colorResId);

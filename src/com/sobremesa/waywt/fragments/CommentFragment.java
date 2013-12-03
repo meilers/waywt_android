@@ -368,7 +368,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		// ListView
 		mListView = (ListView)view.findViewById(R.id.replies_lv);
 		mRepliesList = new ArrayList<ThingInfo>();
-        mRepliesAdapter = new RepliesListAdapter(WaywtApplication.getContext(), mRepliesList);
+        mRepliesAdapter = new RepliesListAdapter(getActivity(), mRepliesList);
         
         View footerListView = inflater.inflate(R.layout.footer_comment, null);
 		mHeaderListView = inflater.inflate(R.layout.header_comment, null);
