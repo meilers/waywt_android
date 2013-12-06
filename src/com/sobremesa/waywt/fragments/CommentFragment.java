@@ -147,8 +147,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 	private int last_found_position = -1;
 	
 	
-    private final HttpClient mClient = MainActivity.getClient();
-    private final RedditSettings mSettings = MainActivity.getSettings();
+    private final HttpClient mRedditClient = WaywtApplication.getRedditClient();
+    private final RedditSettings mRedditSettings = WaywtApplication.getRedditSettings();
     
     
     private DownloadRepliesTask getNewDownloadRepliesTask() {
@@ -156,8 +156,8 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 				this,
 				mSubreddit,
 				mThreadId,
-				mSettings,
-				mClient
+				mRedditSettings,
+				mRedditClient
 		);
     }
     
@@ -170,7 +170,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		mSubreddit = getArguments().getString(Extras.SUBREDDIT);
 		mThreadId = getArguments().getString(Extras.THREAD_ID);
 		
-		mSettings.loadRedditPreferences(getActivity(), null);
+		mRedditSettings.loadRedditPreferences(getActivity(), null);
 		
 		mComment = (ThingInfo)getArguments().get(Extras.COMMENT);
 		mImageUrls = new ArrayList<String>();
@@ -290,7 +290,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 	public void onResume() {
 		super.onResume();
 		
-		mSettings.loadRedditPreferences(getActivity(), mClient);
+		mRedditSettings.loadRedditPreferences(getActivity(), mRedditClient);
 		
 		
 		getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
@@ -300,7 +300,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     public void onPause() {
     	super.onPause();
 		CookieSyncManager.getInstance().stopSync();
-		mSettings.saveRedditPreferences(getActivity());
+		mRedditSettings.saveRedditPreferences(getActivity());
     }
     
     @Override
@@ -331,7 +331,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		
 		@Override
 		public void onClick(View v) {
-			mSettings.saveRedditPreferences(WaywtApplication.getContext());
+			mRedditSettings.saveRedditPreferences(WaywtApplication.getContext());
 			
 	    	getActivity().removeDialog(Constants.DIALOG_COMMENT_CLICK);
 	    	String thingFullname = mComment.getName();
@@ -347,7 +347,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		@Override
 		public void onClick(View v) {
 			
-			mSettings.saveRedditPreferences(WaywtApplication.getContext());
+			mRedditSettings.saveRedditPreferences(WaywtApplication.getContext());
 			
 	    	getActivity().removeDialog(Constants.DIALOG_COMMENT_CLICK);
 	    	String thingFullname = mComment.getName();
@@ -690,21 +690,21 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     	public Boolean doInBackground(Void... v) {
         	HttpEntity entity = null;
         	
-        	if (!mSettings.isLoggedIn()) {
+        	if (!mRedditSettings.isLoggedIn()) {
         		_mUserError = "You must be logged in to vote.";
         		return false;
         	}
         	
         	// Update the modhash if necessary
-        	if (mSettings.getModhash() == null) {
-        		String modhash = Common.doUpdateModhash(mClient); 
+        	if (mRedditSettings.getModhash() == null) {
+        		String modhash = Common.doUpdateModhash(mRedditClient); 
         		if (modhash == null) {
         			// doUpdateModhash should have given an error about credentials
-        			Common.doLogout(mSettings, mClient, WaywtApplication.getContext());
+        			Common.doLogout(mRedditSettings, mRedditClient, WaywtApplication.getContext());
         			if (Constants.LOGGING) Log.e(TAG, "Vote failed because doUpdateModhash() failed");
         			return false;
         		}
-        		mSettings.setModhash(modhash);
+        		mRedditSettings.setModhash(modhash);
         	}
         	
         	try {
@@ -713,7 +713,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     			nvps.add(new BasicNameValuePair("id", _mThingFullname.toString()));
     			nvps.add(new BasicNameValuePair("dir", String.valueOf(_mDirection)));
     			nvps.add(new BasicNameValuePair("r", UserUtil.getSubreddit()));
-    			nvps.add(new BasicNameValuePair("uh", mSettings.getModhash().toString()));
+    			nvps.add(new BasicNameValuePair("uh", mRedditSettings.getModhash().toString()));
     			// Votehash is currently unused by reddit 
 //    				nvps.add(new BasicNameValuePair("vh", "0d4ab0ffd56ad0f66841c15609e9a45aeec6b015"));
     			
@@ -723,7 +723,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     	        if (Constants.LOGGING) Log.d(TAG, nvps.toString());
     	        
                 // Perform the HTTP POST request
-    	    	HttpResponse response = mClient.execute(httppost);
+    	    	HttpResponse response = mRedditClient.execute(httppost);
             	entity = response.getEntity();
 
             	String error = Common.checkResponseErrors(response, entity);
@@ -747,7 +747,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
         }
     	
     	public void onPreExecute() {
-        	if (!mSettings.isLoggedIn()) {
+        	if (!mRedditSettings.isLoggedIn()) {
         		if( CommentFragment.this.getActivity() != null )
         		{
         			getActivity().showDialog(Constants.DIALOG_LOGIN);
@@ -921,7 +921,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		            	submitterView.setText(item.getAuthor());
 		            submissionTimeView.setText(Util.getTimeAgo(item.getCreated_utc()));
 		            
-		            setCommentIndent(view, item.getIndent(), mSettings);
+		            setCommentIndent(view, item.getIndent(), mRedditSettings);
 		            
             	} else if (isLoadMoreCommentsPosition(position)) {
 	            	// "load more comments"
@@ -929,7 +929,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 	            		view = mInflater.inflate(R.layout.more_comments_view, null);
 	            	}
 
-	            	setCommentIndent(view, item.getIndent(), mSettings);
+	            	setCommentIndent(view, item.getIndent(), mRedditSettings);
 	            	
 	            } else {  // Regular comment
 	            	// Here view may be passed in for re-use, or we make a new one.
@@ -948,7 +948,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 					else
 						view.setBackgroundColor(Color.TRANSPARENT);
 
-		            fillCommentsListItemView(view, item, mSettings);
+		            fillCommentsListItemView(view, item, mRedditSettings);
 	            }
             } catch (NullPointerException e) {
             	if (Constants.LOGGING) Log.w(TAG, "NPE in getView()", e);
@@ -1073,22 +1073,22 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
         public String doInBackground(String... text) {
         	HttpEntity entity = null;
         	
-        	if (!mSettings.isLoggedIn()) {
+        	if (!mRedditSettings.isLoggedIn()) {
 //        		if( CommentFragment.this.getActivity() != null )
 //        			Common.showErrorToast("You must be logged in to reply.", Toast.LENGTH_LONG, CommentFragment.this.getActivity());
         		_mUserError = "Not logged in";
         		return null;
         	}
         	// Update the modhash if necessary
-        	if (mSettings.getModhash() == null) {
-        		String modhash = Common.doUpdateModhash(mClient);
+        	if (mRedditSettings.getModhash() == null) {
+        		String modhash = Common.doUpdateModhash(mRedditClient);
         		if (modhash == null) {
         			// doUpdateModhash should have given an error about credentials
-        			Common.doLogout(mSettings, mClient, WaywtApplication.getContext());
+        			Common.doLogout(mRedditSettings, mRedditClient, WaywtApplication.getContext());
         			if (Constants.LOGGING) Log.e(TAG, "Reply failed because doUpdateModhash() failed");
         			return null;
         		}
-        		mSettings.setModhash(modhash);
+        		mRedditSettings.setModhash(modhash);
         	}
         	
         	try {
@@ -1097,7 +1097,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     			nvps.add(new BasicNameValuePair("thing_id", _mParentThingId));
     			nvps.add(new BasicNameValuePair("text", text[0]));
     			nvps.add(new BasicNameValuePair("r", UserUtil.getSubreddit()));
-    			nvps.add(new BasicNameValuePair("uh", mSettings.getModhash()));
+    			nvps.add(new BasicNameValuePair("uh", mRedditSettings.getModhash()));
     			// Votehash is currently unused by reddit 
 //    				nvps.add(new BasicNameValuePair("vh", "0d4ab0ffd56ad0f66841c15609e9a45aeec6b015"));
     			
@@ -1111,7 +1111,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     	        if (Constants.LOGGING) Log.d(TAG, nvps.toString());
     	        
                 // Perform the HTTP POST request
-    	    	HttpResponse response = mClient.execute(httppost);
+    	    	HttpResponse response = mRedditClient.execute(httppost);
     	    	entity = response.getEntity();
     	    	
             	// Getting here means success. Create a new CommentInfo.
@@ -1239,14 +1239,14 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     	// TODO Auto-generated method stub
     	switch(item.getItemId() )
     	{
-    	case R.id.login_menu_id:
-    		mSettings.loadRedditPreferences(getActivity(), null);
-    		break;
-    	
-    	case R.id.logout_menu_id:
-    		mSettings.loadRedditPreferences(getActivity(), null);
-    		getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
-            break;
+//    	case R.id.login_menu_id:
+//    		mRedditSettings.loadRedditPreferences(getActivity(), null);
+//    		break;
+//    	
+//    	case R.id.logout_menu_id:
+//    		mRedditSettings.loadRedditPreferences(getActivity(), null);
+//    		getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+//            break;
     	}
     	
     	

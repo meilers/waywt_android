@@ -16,6 +16,7 @@ import com.sobremesa.waywt.util.UserUtil;
 import com.sobremesa.waywt.util.Util;
 import com.sobremesa.waywt.R;
 import com.sobremesa.waywt.activities.MainActivity;
+import com.sobremesa.waywt.application.WaywtApplication;
 import com.sobremesa.waywt.common.Constants;
 import com.sobremesa.waywt.common.RedditIsFunHttpClientFactory;
 import com.sobremesa.waywt.contentprovider.Provider;
@@ -69,11 +70,11 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 
 	private String mSubreddit = UserUtil.getSubreddit();
 	private String mThreadId = null;
-	private final HttpClient mClient = MainActivity.getClient();
-	private final RedditSettings mSettings = MainActivity.getSettings();
+	private final HttpClient mRedditClient = WaywtApplication.getRedditClient();
+	private final RedditSettings mRedditSettings = WaywtApplication.getRedditSettings();
 
 	private DownloadCommentsTask getNewDownloadCommentsTask() {
-		return new DownloadCommentsTask(this, mSubreddit, mThreadId, mSettings, mClient);
+		return new DownloadCommentsTask(this, mSubreddit, mThreadId, mRedditSettings, mRedditClient);
 	}
 
 	@Override
@@ -149,7 +150,7 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 	public void onPause() {
 		super.onPause();
 		CookieSyncManager.getInstance().stopSync();
-		mSettings.saveRedditPreferences(getActivity());
+		mRedditSettings.saveRedditPreferences(getActivity());
 	}
 
 	@Override

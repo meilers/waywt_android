@@ -1,5 +1,6 @@
 package com.sobremesa.waywt.activities;
 
+import java.lang.reflect.Field;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,6 +11,8 @@ import java.util.List;
 import org.apache.http.client.HttpClient;
 
 import com.sobremesa.waywt.R;
+import com.sobremesa.waywt.adapters.DrawerListAdapter;
+import com.sobremesa.waywt.application.WaywtApplication;
 import com.sobremesa.waywt.common.Common;
 import com.sobremesa.waywt.common.Constants;
 import com.sobremesa.waywt.common.RedditIsFunHttpClientFactory;
@@ -31,16 +34,19 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 
+import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.Gravity;
@@ -48,10 +54,13 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.webkit.CookieSyncManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
@@ -63,6 +72,25 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		public String mPermalink;
 	}
 
+	public static class DrawerTabIndex {
+		public static final int WAYWT = 0;
+//		public static final int TOP_POSTERS = 1;
+//		public static final int MY_POSTS = 2;
+//		public static final int PROFILE = 3;
+		public static final int SETTINGS = 1;
+	}
+
+	// DRAWER
+	private ListView mDrawerList;
+	private DrawerListAdapter mDrawerListAdapter;
+	private ActionBarDrawerToggle mDrawerToggle;
+	private DrawerLayout mDrawerLayout;
+	private CharSequence mDrawerTitle;
+	
+	// META
+	private int mSelectedTabFromDrawer = -1;
+	private CharSequence mTitle = "";
+	
 	private CursorLoader mLoader;
 
 	private ArrayAdapter<String> mNavAdapter;
@@ -71,8 +99,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 
 	private ArrayList<PostPermalink> mPermalinks;
 
-	private static final HttpClient mClient = RedditIsFunHttpClientFactory.getGzipHttpClient();
-	private static final RedditSettings mSettings = new RedditSettings();
+	private static final HttpClient mRedditClient = WaywtApplication.getRedditClient();
+	private static final RedditSettings mRedditSettings = WaywtApplication.getRedditSettings();
 
 	private static final String STATE_SELECTED_NAVIGATION_ITEM = "selected_navigation_item";
 
@@ -80,45 +108,89 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		getOverflowMenu();
+		
+		mPermalinks = new ArrayList<PostPermalink>();
 
-		try {
-			mSettings.loadRedditPreferences(this, null);
-
-			mPermalinks = new ArrayList<PostPermalink>();
-
-			// Set up the action bar to show a dropdown list.
-			final ActionBar actionBar = getActionBar();
-			
-			if( UserUtil.getIsMale() )
-			{
-				actionBar.setBackgroundDrawable(getResources().getDrawable(R.drawable.actionbar));
-				actionBar.setIcon(getResources().getDrawable(R.drawable.ic_logo));
-			}
-			else
-			{
-				actionBar.setBackgroundDrawable(getResources().getDrawable(R.drawable.actionbar_ffa));
-				actionBar.setIcon(getResources().getDrawable(R.drawable.ic_logo_ffa));
-			}
-			
-			actionBar.setDisplayShowTitleEnabled(false);
-			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-
-			mNavAdapter = new ArrayAdapter<String>(actionBar.getThemedContext(), R.layout.list_item_navigation);
-			actionBar.setDisplayShowTitleEnabled(false);
-			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-
-			// Set up the dropdown list navigation in the action bar.
-			actionBar.setListNavigationCallbacks(mNavAdapter, this);
-
-			
-			
-			// load settings
-			CookieSyncManager.createInstance(getApplicationContext());
-			mSettings.loadRedditPreferences(this, mClient);
-		} catch (Exception e) {
-			Common.showErrorToast("No Internet Connection", Toast.LENGTH_LONG, this);
-
+		// ACTION BAR
+		final ActionBar actionBar = getActionBar();
+		
+		if( UserUtil.getIsMale() )
+		{
+			actionBar.setBackgroundDrawable(getResources().getDrawable(R.drawable.actionbar));
+			actionBar.setIcon(getResources().getDrawable(R.drawable.ic_logo));
 		}
+		else
+		{
+			actionBar.setBackgroundDrawable(getResources().getDrawable(R.drawable.actionbar_ffa));
+			actionBar.setIcon(getResources().getDrawable(R.drawable.ic_logo_ffa));
+		}
+		
+		actionBar.setDisplayShowTitleEnabled(false);
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+		actionBar.setDisplayHomeAsUpEnabled(true);
+		actionBar.setHomeButtonEnabled(true);
+
+		mTitle = mDrawerTitle = getString(R.string.app_name);
+		setTitle(mTitle);
+		
+		mNavAdapter = new ArrayAdapter<String>(actionBar.getThemedContext(), R.layout.list_item_navigation);
+		actionBar.setDisplayShowTitleEnabled(false);
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+
+		// Set up the dropdown list navigation in the action bar.
+		actionBar.setListNavigationCallbacks(mNavAdapter, this);
+		
+		CookieSyncManager.createInstance(getApplicationContext());
+		
+		
+		
+		// DRAWER
+		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+		mDrawerList = (ListView) findViewById(R.id.left_drawer);
+
+		mDrawerList.setOnItemClickListener(new ListView.OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> adapterView, View arg1, int position, long arg3) {
+				int selectedItem = position;
+				position = position - 1;
+				if (mDrawerListAdapter != null) {
+					if (selectedItem > 0) {
+						mDrawerListAdapter.setSelectedItem(position);
+					}
+				}
+
+				onDrawerItemSelected(selectedItem);
+			}
+		});
+
+		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.drawable.ic_drawer, R.string.app_name, R.string.app_name) {
+
+			public void onDrawerClosed(View view) {
+				setTitle(mTitle);
+				invalidateOptionsMenu(); // creates call to
+											// onPrepareOptionsMenu()
+
+				updateMainView();
+
+			}
+
+			public void onDrawerOpened(View drawerView) {
+				setTitle(mDrawerTitle);
+				invalidateOptionsMenu(); // creates call to
+											// onPrepareOptionsMenu()
+
+			}
+		};
+		mDrawerLayout.setDrawerListener(mDrawerToggle);
+		mDrawerListAdapter = new DrawerListAdapter(this.getApplicationContext());
+
+		mDrawerList.setScrollContainer(false);
+		mDrawerList.setAdapter(mDrawerListAdapter);  
+		
+		
+		
 
 		if( UserUtil.getHasChosenSubreddit() )
 		{
@@ -129,6 +201,44 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 			showSubredditDialog();
 	}
 
+	public void onDrawerItemSelected(int position) {
+		setTitle(getString(R.string.app_name));
+
+		mSelectedTabFromDrawer = position - 1;
+
+		closeDrawer();
+
+	}
+	
+	private void closeDrawer() {
+		if (mDrawerLayout.isDrawerOpen(mDrawerList)) {
+			mDrawerLayout.closeDrawer(mDrawerList);
+		}
+	}
+	
+	private void getOverflowMenu() {
+
+	     try {
+	        ViewConfiguration config = ViewConfiguration.get(this);
+	        Field menuKeyField = ViewConfiguration.class.getDeclaredField("sHasPermanentMenuKey");
+	        if(menuKeyField != null) {
+	            menuKeyField.setAccessible(true);
+	            menuKeyField.setBoolean(config, false);
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	public void updateMainView() {
+		switch (mSelectedTabFromDrawer) {
+		case DrawerTabIndex.WAYWT:
+//			showShops();
+			break;
+		}
+	}
+	
+	
 	@Override
 	protected void onStart() {
 		// TODO Auto-generated method stub
@@ -141,7 +251,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		// TODO Auto-generated method stub
 		super.onResume();
 
-		mSettings.loadRedditPreferences(this, mClient);
+		mRedditSettings.loadRedditPreferences(this, mRedditClient);
 		CookieSyncManager.getInstance().startSync();
 
 
@@ -152,7 +262,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		super.onPause();
 
 		CookieSyncManager.getInstance().stopSync();
-		mSettings.saveRedditPreferences(this);
+		mRedditSettings.saveRedditPreferences(this);
 	}
 
 	@Override
@@ -190,7 +300,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		args.putString(WaywtFragment.Extras.SUBREDDIT, UserUtil.getSubreddit());
 		args.putString(WaywtFragment.Extras.PERMALINK, p.mPermalink);
 		fragment.setArguments(args);
-		getSupportFragmentManager().beginTransaction().replace(R.id.container, fragment).commitAllowingStateLoss();
+		getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragment).commitAllowingStateLoss();
 	}
 
 	@Override
@@ -199,6 +309,22 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		super.onActivityResult(arg0, arg1, arg2);
 	}
 
+	@Override
+	protected void onPostCreate(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onPostCreate(savedInstanceState);
+		
+		mDrawerToggle.syncState();
+	}
+	
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		// TODO Auto-generated method stub
+		super.onConfigurationChanged(newConfig);
+		
+		mDrawerToggle.onConfigurationChanged(newConfig);
+	}
+	
 	private void fetchPostData() {
 
 		Intent i = new Intent(this, PostService.class);
@@ -233,8 +359,6 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		mNavAdapter.notifyDataSetChanged();
 
 		if (cursor.getCount() > 0) {
-			ViewFlipper vf = (ViewFlipper) findViewById(R.id.vf);
-			vf.setDisplayedChild(1);
 
 			refreshNavigationBar(0);
 		}
@@ -254,9 +378,9 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 
 		switch (id) {
 		case Constants.DIALOG_LOGIN:
-			if (mSettings.getUsername() != null) {
+			if (mRedditSettings.getUsername() != null) {
 				final TextView loginUsernameInput = (TextView) dialog.findViewById(R.id.login_username_input);
-				loginUsernameInput.setText(mSettings.getUsername());
+				loginUsernameInput.setText(mRedditSettings.getUsername());
 			}
 			final TextView loginPasswordInput = (TextView) dialog.findViewById(R.id.login_password_input);
 			loginPasswordInput.setText("");
@@ -274,7 +398,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 
 		switch (id) {
 		case Constants.DIALOG_LOGIN:
-			dialog = new LoginDialog(this, mSettings, false) {
+			dialog = new LoginDialog(this, mRedditSettings, false) {
 				@Override
 				public void onLoginChosen(String user, String password) {
 					removeDialog(Constants.DIALOG_LOGIN);
@@ -289,7 +413,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 
 	private class MyLoginTask extends LoginTask {
 		public MyLoginTask(String username, String password) {
-			super(username, password, mSettings, mClient, getApplicationContext());
+			super(username, password, mRedditSettings, mRedditClient, getApplicationContext());
 		}
 
 		@Override
@@ -302,7 +426,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 			removeDialog(Constants.DIALOG_LOGGING_IN);
 			if (success) {
 				Toast.makeText(MainActivity.this, "Logged in as " + mUsername, Toast.LENGTH_SHORT).show();
-				mSettings.saveRedditPreferences(MainActivity.this);
+				mRedditSettings.saveRedditPreferences(MainActivity.this);
 			} else {
 				Common.showErrorToast(mUserError, Toast.LENGTH_LONG, MainActivity.this);
 			}
@@ -313,43 +437,43 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 	public boolean onPrepareOptionsMenu(final Menu menu) {
 
 		
-		// Login/Logout
-		if (mSettings.isLoggedIn()) {
-			menu.findItem(R.id.login_menu_id).setVisible(false);
-			menu.findItem(R.id.logout_menu_id).setVisible(true);
-			menu.findItem(R.id.logout_menu_id).setTitle(String.format(getResources().getString(R.string.logout), mSettings.getUsername()));
-		} else {
-			menu.findItem(R.id.login_menu_id).setVisible(true);
-			menu.findItem(R.id.logout_menu_id).setVisible(false);
-		}
-		
-		String sortByTxt = "RANDOM";
-
-		switch (UserUtil.getSortBy()) {
-		case 0:
-			sortByTxt = "RANDOM";
-			break;
-
-		case 1:
-			sortByTxt = "VOTES";
-			break;
-
-		case 2:
-			sortByTxt = "COMMENTS";
-			break;
-		}
-
-		menu.findItem(R.id.sort_by_menu_id).setTitle(String.format(getResources().getString(R.string.sort_by), sortByTxt));
-		
-		
-		String subredditTxt = "MFA";
-
-		if( UserUtil.getIsMale() )
-			subredditTxt = "MFA";
-		else
-			subredditTxt = "FFA";
-		
-		menu.findItem(R.id.subreddit_menu_id).setTitle(String.format(getResources().getString(R.string.subreddit), subredditTxt));
+//		// Login/Logout
+//		if (mRedditSettings.isLoggedIn()) {
+//			menu.findItem(R.id.login_menu_id).setVisible(false);
+//			menu.findItem(R.id.logout_menu_id).setVisible(true);
+//			menu.findItem(R.id.logout_menu_id).setTitle(String.format(getResources().getString(R.string.logout), mRedditSettings.getUsername()));
+//		} else {
+//			menu.findItem(R.id.login_menu_id).setVisible(true);
+//			menu.findItem(R.id.logout_menu_id).setVisible(false);
+//		}
+//		
+//		String sortByTxt = "RANDOM";
+//
+//		switch (UserUtil.getSortBy()) {
+//		case 0:
+//			sortByTxt = "RANDOM";
+//			break;
+//
+//		case 1:
+//			sortByTxt = "VOTES";
+//			break;
+//
+//		case 2:
+//			sortByTxt = "COMMENTS";
+//			break;
+//		}
+//
+//		menu.findItem(R.id.sort_by_menu_id).setTitle(String.format(getResources().getString(R.string.sort_by), sortByTxt));
+//		
+//		
+//		String subredditTxt = "MFA";
+//
+//		if( UserUtil.getIsMale() )
+//			subredditTxt = "MFA";
+//		else
+//			subredditTxt = "FFA";
+//		
+//		menu.findItem(R.id.subreddit_menu_id).setTitle(String.format(getResources().getString(R.string.subreddit), subredditTxt));
 
 		
 //		List<Integer> optionIds = new ArrayList<Integer>();
@@ -391,36 +515,45 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// TODO Auto-generated method stub
 		switch (item.getItemId()) {
-		case R.id.login_menu_id:
-			showDialog(Constants.DIALOG_LOGIN);
-			break;
-		case R.id.logout_menu_id:
-			Common.doLogout(mSettings, mClient, getApplicationContext());
-			Toast.makeText(this, "You have been logged out.", Toast.LENGTH_SHORT).show();
-
-			mSettings.saveRedditPreferences(this);
-			break;
-
-		case R.id.sort_by_menu_id:
-			showSortByDialog();
-			break;
+		
+		case android.R.id.home:
+			toggleDrawer();
+			return true;
 			
-		case R.id.subreddit_menu_id:
-			showSubredditDialog();
-			break;
+//		case R.id.login_menu_id:
+//			showDialog(Constants.DIALOG_LOGIN);
+//			break;
+//		case R.id.logout_menu_id:
+//			Common.doLogout(mRedditSettings, mRedditClient, getApplicationContext());
+//			Toast.makeText(this, "You have been logged out.", Toast.LENGTH_SHORT).show();
+//
+//			mRedditSettings.saveRedditPreferences(this);
+//			break;
+//
+//		case R.id.sort_by_menu_id:
+//			showSortByDialog();
+//			break;
+//			
+//		case R.id.subreddit_menu_id:
+//			showSubredditDialog();
+//			break;
 
 		}
 
 		return super.onOptionsItemSelected(item);
 	}
 
-	public static RedditSettings getSettings() {
-		return mSettings;
+	private void toggleDrawer() {
+		if (mDrawerLayout.isDrawerOpen(mDrawerList)) {
+			mDrawerLayout.closeDrawer(mDrawerList);
+		} else {
+			mDrawerListAdapter.notifyDataSetChanged();
+			mDrawerLayout.openDrawer(mDrawerList);
+
+		}
+
 	}
 
-	public static HttpClient getClient() {
-		return mClient;
-	}
 
 	private void showSortByDialog() {
 		AlertDialog.Builder builderSingle = new AlertDialog.Builder(this);
@@ -493,7 +626,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 					break;
 				}
 				
-				getSupportFragmentManager().beginTransaction().replace(R.id.container, new Fragment()).commitAllowingStateLoss();
+				getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, new Fragment()).commitAllowingStateLoss();
 				
 				UserUtil.setHasChosenSubreddit(true);
 				

@@ -218,12 +218,9 @@ public class ThingInfo implements Serializable, Parcelable, Comparable<ThingInfo
 	}
 
 	public String getThumbnail() {
-		return thumbnail;
+		return thumbnail; 
 	}
-
-	public Bitmap getThumbnailBitmap() {
-		return mThumbnailBitmap;
-	}
+ 
 	
 	public Integer getThumbnailResource() {
 		return mThumbnailResource;
@@ -446,10 +443,6 @@ public class ThingInfo implements Serializable, Parcelable, Comparable<ThingInfo
 		this.thumbnail = thumbnail;
 	}
 
-	public void setThumbnailBitmap(Bitmap thumbnailBitmap) {
-		this.mThumbnailBitmap = thumbnailBitmap;
-	}
-	
 	public void setThumbnailResource(Integer thumbnailResource) {
 		this.mThumbnailResource = thumbnailResource;
 	}
