@@ -42,6 +42,8 @@ import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
@@ -90,6 +92,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 	// META
 	private int mSelectedTabFromDrawer = -1;
 	private CharSequence mTitle = "";
+	private int mCurrentTab = -1;
 	
 	private CursorLoader mLoader;
 
@@ -233,8 +236,48 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 	public void updateMainView() {
 		switch (mSelectedTabFromDrawer) {
 		case DrawerTabIndex.WAYWT:
-//			showShops();
+			showWaywt();
 			break;
+		}
+	}
+	
+	public void showWaywt() {
+
+		if (mCurrentTab != DrawerTabIndex.WAYWT) {
+			setSelectedDrawerAdapterPosition(DrawerTabIndex.WAYWT);
+//			mTabBackStack.add(mCurrentTab);
+			mCurrentTab = DrawerTabIndex.WAYWT;
+			refreshNavigationBar(mCurrentWaywtIndex);
+		}
+
+	}
+	
+	private void setSelectedDrawerAdapterPosition(int position) {
+		mDrawerListAdapter.setSelectedItem(position);
+		mSelectedTabFromDrawer = position;
+	}
+	
+	private void goToFragment(Fragment fragment, String tag, String title, boolean animate) {
+		FragmentManager manager = getSupportFragmentManager();
+		FragmentTransaction fragmentTransaction = manager.beginTransaction();
+
+		if (animate)
+			fragmentTransaction.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out);
+
+		fragmentTransaction.replace(R.id.content_frame, new Fragment());
+		fragmentTransaction.addToBackStack(null);
+		fragmentTransaction.commit();
+
+		FragmentTransaction ft = manager.beginTransaction();
+		ft.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out);
+		ft.replace(R.id.content_frame, fragment, tag);
+		ft.addToBackStack(null);
+		ft.commit();
+		closeDrawer();
+
+		if (title != null) {
+			mTitle = title;
+			setTitle(title);
 		}
 	}
 	
@@ -281,7 +324,6 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
@@ -519,6 +561,11 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		case android.R.id.home:
 			toggleDrawer();
 			return true;
+			
+			case R.id.camera_menu_id:
+			Intent intent = new Intent(this, CameraActivity.class);
+			startActivity(intent);
+			break;
 			
 //		case R.id.login_menu_id:
 //			showDialog(Constants.DIALOG_LOGIN);
