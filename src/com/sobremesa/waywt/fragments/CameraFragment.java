@@ -149,17 +149,22 @@ public class CameraFragment extends Fragment implements SurfaceHolder.Callback, 
      * Start the mCamera preview.
      */
     private synchronized void startCameraPreview() {
-        determineDisplayOrientation();
-        setupCamera();
+    	
+    	if( mCamera != null )
+    	{
+            determineDisplayOrientation();
+            setupCamera();
 
-        try {
-            mCamera.setPreviewDisplay(surfaceHolder);
-            mCamera.startPreview();
-        } catch (Exception exception) {
-            Log.e(TAG, "Can't start mCamera preview due to Exception", exception);
+            try {
+                mCamera.setPreviewDisplay(surfaceHolder);
+                mCamera.startPreview();
+            } catch (Exception exception) {
+                Log.e(TAG, "Can't start mCamera preview due to Exception", exception);
 
-            listener.onCameraError();
-        }
+                listener.onCameraError();
+            }    		
+    	}
+
     }
 
     /**

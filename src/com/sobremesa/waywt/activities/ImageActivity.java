@@ -27,7 +27,7 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.view.MenuItem;
 
-public class ImageActivity extends FragmentActivity {
+public class ImageActivity extends BaseFragmentActivity {
 
 	public static class Extras
 	{
@@ -52,13 +52,12 @@ public class ImageActivity extends FragmentActivity {
 		
 		Bundle extras = getIntent().getExtras();
 		
-		SpannableString s = new SpannableString(extras.getString(Extras.ARG_AUTHOR).toUpperCase());
-		s.setSpan(new TypefaceSpan(WaywtApplication.getContext()), 0, s.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		
 		ActionBar actionbar = getActionBar();
 		actionbar.setDisplayHomeAsUpEnabled(true);
 		actionbar.setHomeButtonEnabled(true); 
-		actionbar.setTitle(s);
+		
+		setTitle(extras.getString(Extras.ARG_AUTHOR));
 		
 		
 		List<String> imageUrls = extras.getStringArrayList(Extras.ARG_IMAGE_URLS);

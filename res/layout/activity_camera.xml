@@ -2,22 +2,58 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
-    android:gravity="center_horizontal"
     android:orientation="vertical" >
 
     <FrameLayout
         android:id="@+id/camera_fragment"
         android:layout_width="match_parent"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
         android:layout_height="0dp"
-        android:layout_gravity="center"
         android:layout_weight="1" />
 
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="takePicture"
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:padding="15dp"
-        android:src="@drawable/ic_camera" />
+        android:layout_height="wrap_content" >
+
+        <ImageButton
+            android:id="@+id/img_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:onClick="takePicture"
+            android:src="@drawable/ic_camera_black" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:paddingRight="@dimen/padding_medium"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@id/img_btn"
+            android:layout_centerVertical="true"
+            android:orientation="vertical" >
+
+            <com.sobremesa.waywt.views.WaywtTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1. TAKE A PICTURE"
+                android:textColor="@color/black"
+                android:textSize="12sp" />
+
+            <com.sobremesa.waywt.views.WaywtTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" 
+                android:text="2. ADD A CAPTION"
+                android:textColor="@color/gray_50"
+                android:textSize="12sp" />
+
+            <com.sobremesa.waywt.views.WaywtTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3. POST TO WAYWT"
+                android:textColor="@color/gray_50"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </RelativeLayout>
 
 </LinearLayout>

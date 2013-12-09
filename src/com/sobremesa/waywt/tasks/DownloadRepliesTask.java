@@ -43,6 +43,7 @@ import com.sobremesa.waywt.util.Util;
 import com.sobremesa.waywt.util.Markdown;
 import com.sobremesa.waywt.settings.RedditSettings;
 import com.sobremesa.waywt.listeners.CommentsListener;
+import com.sobremesa.waywt.listeners.RepliesListener;
 import com.sobremesa.waywt.model.Listing;
 import com.sobremesa.waywt.model.ListingData;
 import com.sobremesa.waywt.model.ThingInfo;
@@ -66,7 +67,7 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 	public static class ListenerTask
 	{
 		public AsyncTask<?, ?, ?> mCurrentDownloadCommentsTask = null;
-		public WeakReference<CommentsListener> mListenerReference;
+		public WeakReference<RepliesListener> mListenerReference;
 	}
 	
 	private static ListenerTask[] mTasks = new ListenerTask[3];
@@ -116,7 +117,7 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 	 * Default constructor to do normal comments page
 	 */
 	public DownloadRepliesTask(
-			CommentsListener activity,
+			RepliesListener activity,
 			String subreddit,
 			String threadId,
 			RedditSettings settings,
@@ -145,7 +146,7 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 		mTasks[mInc] = new ListenerTask();
 		
 		mTasks[mInc].mCurrentDownloadCommentsTask = this;
-		mTasks[mInc].mListenerReference = new WeakReference<CommentsListener>(activity);
+		mTasks[mInc].mListenerReference = new WeakReference<RepliesListener>(activity);
 		
 		if( mInc < 2)
 			++mInc;

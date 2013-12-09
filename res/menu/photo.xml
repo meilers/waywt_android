@@ -1,0 +1,8 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/post_menu_id"
+        android:title="POST"
+        android:showAsAction="always"/>
+
+</menu>

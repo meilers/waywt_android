@@ -67,7 +67,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
-public class MainActivity extends FragmentActivity implements ActionBar.OnNavigationListener, LoaderCallbacks<Cursor> {
+public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNavigationListener, LoaderCallbacks<Cursor> {
 
 	public static class PostPermalink {
 		public String mId;
@@ -323,12 +323,6 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
-
-	@Override
 	public boolean onNavigationItemSelected(int position, long id) {
 		mCurrentWaywtIndex = position;
 		refreshNavigationBar(position);
@@ -475,120 +469,6 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		}
 	}
 
-	@Override
-	public boolean onPrepareOptionsMenu(final Menu menu) {
-
-		
-//		// Login/Logout
-//		if (mRedditSettings.isLoggedIn()) {
-//			menu.findItem(R.id.login_menu_id).setVisible(false);
-//			menu.findItem(R.id.logout_menu_id).setVisible(true);
-//			menu.findItem(R.id.logout_menu_id).setTitle(String.format(getResources().getString(R.string.logout), mRedditSettings.getUsername()));
-//		} else {
-//			menu.findItem(R.id.login_menu_id).setVisible(true);
-//			menu.findItem(R.id.logout_menu_id).setVisible(false);
-//		}
-//		
-//		String sortByTxt = "RANDOM";
-//
-//		switch (UserUtil.getSortBy()) {
-//		case 0:
-//			sortByTxt = "RANDOM";
-//			break;
-//
-//		case 1:
-//			sortByTxt = "VOTES";
-//			break;
-//
-//		case 2:
-//			sortByTxt = "COMMENTS";
-//			break;
-//		}
-//
-//		menu.findItem(R.id.sort_by_menu_id).setTitle(String.format(getResources().getString(R.string.sort_by), sortByTxt));
-//		
-//		
-//		String subredditTxt = "MFA";
-//
-//		if( UserUtil.getIsMale() )
-//			subredditTxt = "MFA";
-//		else
-//			subredditTxt = "FFA";
-//		
-//		menu.findItem(R.id.subreddit_menu_id).setTitle(String.format(getResources().getString(R.string.subreddit), subredditTxt));
-
-		
-//		List<Integer> optionIds = new ArrayList<Integer>();
-//		optionIds.add(R.id.login_menu_id);
-//		optionIds.add(R.id.logout_menu_id);
-//		optionIds.add(R.id.sort_by_menu_id);
-//		
-//		for (Integer id : optionIds) {
-//			final MenuItem item = menu.findItem(id);
-//
-//			if (item != null) {
-//				View actionView = item.getActionView();
-//
-//				if (actionView == null) {
-//					Log.d("ACTIONBAR", "creating action view");
-//					actionView = this.getLayoutInflater().inflate(R.layout.action_menu_button_layout, null, false);
-//					((TextView) actionView.findViewById(R.id.action_menu_button_text)).setText(item.getTitle());
-//					((TextView) actionView.findViewById(R.id.action_menu_button_text)).setTypeface(FontManager.INSTANCE.getAppFont());
-////					actionView.setBackgroundResource(Common.);
-//					actionView.setOnClickListener(new OnClickListener() {
-//
-//						@Override
-//						public void onClick(View v) {
-//							menu.performIdentifierAction(item.getItemId(), 0);
-//
-//						}
-//					});
-//					item.setActionView(actionView);
-//				} else if (actionView instanceof TextView) {
-//					((TextView) actionView).setTypeface(FontManager.INSTANCE.getAppFont());
-//				}
-//			}
-//		}
-			
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// TODO Auto-generated method stub
-		switch (item.getItemId()) {
-		
-		case android.R.id.home:
-			toggleDrawer();
-			return true;
-			
-			case R.id.camera_menu_id:
-			Intent intent = new Intent(this, CameraActivity.class);
-			startActivity(intent);
-			break;
-			
-//		case R.id.login_menu_id:
-//			showDialog(Constants.DIALOG_LOGIN);
-//			break;
-//		case R.id.logout_menu_id:
-//			Common.doLogout(mRedditSettings, mRedditClient, getApplicationContext());
-//			Toast.makeText(this, "You have been logged out.", Toast.LENGTH_SHORT).show();
-//
-//			mRedditSettings.saveRedditPreferences(this);
-//			break;
-//
-//		case R.id.sort_by_menu_id:
-//			showSortByDialog();
-//			break;
-//			
-//		case R.id.subreddit_menu_id:
-//			showSubredditDialog();
-//			break;
-
-		}
-
-		return super.onOptionsItemSelected(item);
-	}
 
 	private void toggleDrawer() {
 		if (mDrawerLayout.isDrawerOpen(mDrawerList)) {
@@ -688,5 +568,21 @@ public class MainActivity extends FragmentActivity implements ActionBar.OnNaviga
 		
 		builderSingle.show();
 	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		switch (item.getItemId()) {
+		
+		case android.R.id.home:
+			toggleDrawer();
+			return true;
+			
+
+		}
+
+		return super.onOptionsItemSelected(item);
+	}
+
 
 }

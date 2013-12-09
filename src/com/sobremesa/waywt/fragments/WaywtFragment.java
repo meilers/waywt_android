@@ -15,6 +15,7 @@ import com.sobremesa.waywt.util.StringUtils;
 import com.sobremesa.waywt.util.UserUtil;
 import com.sobremesa.waywt.util.Util;
 import com.sobremesa.waywt.R;
+import com.sobremesa.waywt.activities.CameraActivity;
 import com.sobremesa.waywt.activities.MainActivity;
 import com.sobremesa.waywt.application.WaywtApplication;
 import com.sobremesa.waywt.common.Constants;
@@ -34,6 +35,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -44,6 +46,9 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -57,7 +62,6 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 
 	public static class Extras {
 		public static String SUBREDDIT = "subreddit";
-
 		public static String PERMALINK = "permalink";
 	}
 
@@ -70,6 +74,8 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 
 	private String mSubreddit = UserUtil.getSubreddit();
 	private String mThreadId = null;
+	private ThingInfo mOPComment = null;
+	
 	private final HttpClient mRedditClient = WaywtApplication.getRedditClient();
 	private final RedditSettings mRedditSettings = WaywtApplication.getRedditSettings();
 
@@ -219,6 +225,17 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 
 	}
 	
+	@Override
+	public void updateOPComment(ThingInfo comment) {
+		// TODO Auto-generated method stub
+		mOPComment = comment;
+		
+		if( mOPComment != null )
+			setHasOptionsMenu(true);
+		else
+			setHasOptionsMenu(false);
+	}
+	
 	private int getReplyCount( ThingInfo ci )
 	{
 		int total = 0;
@@ -285,4 +302,131 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 		}
 
 	}
+	
+	
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+	    // TODO Add your menu entries here
+		
+		inflater.inflate(R.menu.waywt, menu);
+	}
+	
+
+	@Override
+	public void onPrepareOptionsMenu(final Menu menu) {
+
+		
+//		// Login/Logout
+//		if (mRedditSettings.isLoggedIn()) {
+//			menu.findItem(R.id.login_menu_id).setVisible(false);
+//			menu.findItem(R.id.logout_menu_id).setVisible(true);
+//			menu.findItem(R.id.logout_menu_id).setTitle(String.format(getResources().getString(R.string.logout), mRedditSettings.getUsername()));
+//		} else {
+//			menu.findItem(R.id.login_menu_id).setVisible(true);
+//			menu.findItem(R.id.logout_menu_id).setVisible(false);
+//		}
+//		
+//		String sortByTxt = "RANDOM";
+//
+//		switch (UserUtil.getSortBy()) {
+//		case 0:
+//			sortByTxt = "RANDOM";
+//			break;
+//
+//		case 1:
+//			sortByTxt = "VOTES";
+//			break;
+//
+//		case 2:
+//			sortByTxt = "COMMENTS";
+//			break;
+//		}
+//
+//		menu.findItem(R.id.sort_by_menu_id).setTitle(String.format(getResources().getString(R.string.sort_by), sortByTxt));
+//		
+//		
+//		String subredditTxt = "MFA";
+//
+//		if( UserUtil.getIsMale() )
+//			subredditTxt = "MFA";
+//		else
+//			subredditTxt = "FFA";
+//		
+//		menu.findItem(R.id.subreddit_menu_id).setTitle(String.format(getResources().getString(R.string.subreddit), subredditTxt));
+
+		
+//		List<Integer> optionIds = new ArrayList<Integer>();
+//		optionIds.add(R.id.login_menu_id);
+//		optionIds.add(R.id.logout_menu_id);
+//		optionIds.add(R.id.sort_by_menu_id);
+//		
+//		for (Integer id : optionIds) {
+//			final MenuItem item = menu.findItem(id);
+//
+//			if (item != null) {
+//				View actionView = item.getActionView();
+//
+//				if (actionView == null) {
+//					Log.d("ACTIONBAR", "creating action view");
+//					actionView = this.getLayoutInflater().inflate(R.layout.action_menu_button_layout, null, false);
+//					((TextView) actionView.findViewById(R.id.action_menu_button_text)).setText(item.getTitle());
+//					((TextView) actionView.findViewById(R.id.action_menu_button_text)).setTypeface(FontManager.INSTANCE.getAppFont());
+////					actionView.setBackgroundResource(Common.);
+//					actionView.setOnClickListener(new OnClickListener() {
+//
+//						@Override
+//						public void onClick(View v) {
+//							menu.performIdentifierAction(item.getItemId(), 0);
+//
+//						}
+//					});
+//					item.setActionView(actionView);
+//				} else if (actionView instanceof TextView) {
+//					((TextView) actionView).setTypeface(FontManager.INSTANCE.getAppFont());
+//				}
+//			}
+//		}
+			
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		switch (item.getItemId()) {
+		
+			case R.id.camera_menu_id:
+				if( mOPComment != null )
+				{
+					Intent intent = new Intent(getActivity(), CameraActivity.class);
+					intent.putExtra(CameraActivity.Extras.OP_COMMENT, (Parcelable)mOPComment);
+					startActivity(intent);					
+				}
+
+				break;
+			
+//		case R.id.login_menu_id:
+//			showDialog(Constants.DIALOG_LOGIN);
+//			break;
+//		case R.id.logout_menu_id:
+//			Common.doLogout(mRedditSettings, mRedditClient, getApplicationContext());
+//			Toast.makeText(this, "You have been logged out.", Toast.LENGTH_SHORT).show();
+//
+//			mRedditSettings.saveRedditPreferences(this);
+//			break;
+//
+//		case R.id.sort_by_menu_id:
+//			showSortByDialog();
+//			break;
+//			
+//		case R.id.subreddit_menu_id:
+//			showSubredditDialog();
+//			break;
+
+		}
+
+		return super.onOptionsItemSelected(item);
+	}
+	
+
+
 }

@@ -35,6 +35,7 @@ import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.ImageTable;
 import com.sobremesa.waywt.database.tables.CommentTable;
 import com.sobremesa.waywt.listeners.CommentsListener;
+import com.sobremesa.waywt.listeners.RepliesListener;
 import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.model.ThingInfo;
 import com.sobremesa.waywt.service.clients.ImgurServiceClient;
@@ -110,7 +111,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-public class CommentFragment extends Fragment implements View.OnCreateContextMenuListener, CommentsListener, OnItemClickListener
+public class CommentFragment extends Fragment implements View.OnCreateContextMenuListener, RepliesListener, OnItemClickListener
 {
 	private static final String TAG = CommentFragment.class.getSimpleName();
 	

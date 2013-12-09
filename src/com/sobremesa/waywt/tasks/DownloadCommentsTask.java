@@ -292,7 +292,7 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 			ThingListing threadThingListing = threadListingData.getChildren()[0];
 			Assert.assertEquals(Constants.THREAD_KIND, threadThingListing.getKind(), genericListingError);
 
-			parseOP(threadThingListing.getData());
+			insertOPCommentUI(threadThingListing.getData());
 			insertedCommentIndex = 0;  // we just inserted the OP into position 0
 			
 			// at this point we've started displaying comments, so disable the loading screen
@@ -312,7 +312,7 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 				
 				if( thingInfo != null && thingInfo.getBody_html() != null )
 				{
-					Matcher matcher1 = pattern1.matcher(Html.fromHtml(thingInfo.getBody_html()));
+					Matcher matcher1 = pattern1.matcher(Html.fromHtml(thingInfo.getBody_html()));  
 					Matcher matcher2 = pattern2.matcher(Html.fromHtml(thingInfo.getBody_html()));
 					Matcher matcher3 = pattern3.matcher(Html.fromHtml(thingInfo.getBody_html()));
 					
@@ -325,7 +325,7 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 						ThingInfo ci = commentThingListing.getData();
 						
 						if (ci.getBody_html() != null) {
-				        	CharSequence spanned = createSpanned(ci.getBody_html());
+				        	CharSequence spanned = createSpanned(ci.getBody_html());  
 				        	ci.setSpannedBody(spanned);
 						}
 						
@@ -349,38 +349,38 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 		}
 	}
 	
-	private void parseOP(final ThingInfo data) {
-		data.setIndent(0);
-		
-//		mListenerRef.get().getActivity().runOnUiThread(new Runnable() {
-//			@Override
-//			public void run() {
-//				mListenerRef.get().mCommentsList.add(0, data);
-//			}
-//		});
-
-		if (data.isIs_self() && data.getSelftext_html() != null) {
-			// HTML to Spanned
-			String unescapedHtmlSelftext = Html.fromHtml(data.getSelftext_html()).toString();
-			Spanned selftext = Html.fromHtml(Util.convertHtmlTags(unescapedHtmlSelftext));
-			
-    		// remove last 2 newline characters
-			if (selftext.length() > 2)
-				data.setSpannedSelftext(selftext.subSequence(0, selftext.length()-2));
-			else
-				data.setSpannedSelftext("");
-
-			// Get URLs from markdown
-			markdown.getURLs(data.getSelftext(), data.getUrls());
-		}
-		
-		// We might not have a title if we've intercepted a plain link to a thread.
-		mThreadTitle = data.getTitle();
-		mSubreddit = data.getSubreddit();
-		mThreadId = data.getId();
-		
-		mOpThingInfo = data;
-	}
+//	private void parseOP(final ThingInfo data) {
+//		data.setIndent(0);
+//		
+////		mListenerRef.get().getActivity().runOnUiThread(new Runnable() {
+////			@Override
+////			public void run() {
+////				mListenerRef.get().mCommentsList.add(0, data);
+////			}
+////		});
+//
+//		if (data.isIs_self() && data.getSelftext_html() != null) {
+//			// HTML to Spanned
+//			String unescapedHtmlSelftext = Html.fromHtml(data.getSelftext_html()).toString();
+//			Spanned selftext = Html.fromHtml(Util.convertHtmlTags(unescapedHtmlSelftext));
+//			
+//    		// remove last 2 newline characters
+//			if (selftext.length() > 2)
+//				data.setSpannedSelftext(selftext.subSequence(0, selftext.length()-2));
+//			else
+//				data.setSpannedSelftext("");
+//
+//			// Get URLs from markdown
+//			markdown.getURLs(data.getSelftext(), data.getUrls());
+//		}
+//		
+//		// We might not have a title if we've intercepted a plain link to a thread.
+//		mThreadTitle = data.getTitle();
+//		mSubreddit = data.getSubreddit();
+//		mThreadId = data.getId();
+//		
+//		mOpThingInfo = data;
+//	}
 	
 	
 	private boolean isFoundJumpTargetComment() {
@@ -389,6 +389,14 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 	
 
 	
+	/**
+     * Call from UI Thread
+     */
+    private void insertOPCommentUI(ThingInfo comment) {
+    	mListenerRef.get().updateOPComment(comment);
+    }
+    
+    
     /**
      * Call from UI Thread
      */

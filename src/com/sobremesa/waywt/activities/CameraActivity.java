@@ -32,6 +32,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -50,15 +51,21 @@ import android.widget.Toast;
  * Activity displaying the camera and mustache preview.
  * 
  */
-public class CameraActivity extends FragmentActivity implements CameraFragmentListener {
+public class CameraActivity extends BaseFragmentActivity implements CameraFragmentListener {
 
 	private static final String TAG = CameraActivity.class.getSimpleName();
 
+	public static class Extras
+	{
+		public static String OP_COMMENT = "op_comment";
+	}
+	
+	
 	private LayoutInflater controlInflater = null;
 	private View viewControl;
 
 	private CameraFragment mCameraFragment;
-	private boolean mCameraFacing = true;
+	private boolean mCameraFacing = false;
 
 	private static final int PICTURE_QUALITY = 90;
 
@@ -71,7 +78,7 @@ public class CameraActivity extends FragmentActivity implements CameraFragmentLi
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_camera);
-		setTitle("Take Photo");
+		setTitle("Take a picture");
 
 		// controlInflater = LayoutInflater.from(getBaseContext());
 		// // Add the capture button and the center image
@@ -164,6 +171,7 @@ public class CameraActivity extends FragmentActivity implements CameraFragmentLi
 
 		Intent intent = new Intent(this, PhotoActivity.class);
 		intent.setData(Uri.fromFile(mediaFile));
+		intent.putExtra(PhotoActivity.Extras.OP_COMMENT, (Parcelable)getIntent().getParcelableExtra(CameraActivity.Extras.OP_COMMENT));
 		startActivity(intent);
 
 //		finish();
@@ -206,10 +214,10 @@ public class CameraActivity extends FragmentActivity implements CameraFragmentLi
 	Handler mHideHandler = new Handler();
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.camera, menu);
-		return true;
+	protected int getOptionsMenuId() {
+		return R.menu.camera;
 	}
+
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {

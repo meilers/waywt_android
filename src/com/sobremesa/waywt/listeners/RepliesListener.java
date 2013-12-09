@@ -7,10 +7,9 @@ import com.sobremesa.waywt.model.ThingInfo;
 
 
 
-public interface CommentsListener {
+public interface RepliesListener {
 	public void enableLoadingScreen();
 	public void resetUI();
-	public void updateOPComment(ThingInfo comment);
 	public void updateComments(List<ThingInfo> comments);
 }
 

@@ -36,7 +36,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="2px"
-                android:background="#c9c5c3" />
+                android:background="@color/orange" />
 
             <RelativeLayout
                 android:layout_width="match_parent"
