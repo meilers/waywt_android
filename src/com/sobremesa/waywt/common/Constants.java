@@ -23,6 +23,9 @@ import android.app.Activity;
 
 public class Constants {
 	
+	public static final String MY_IMGUR_CLIENT_ID = "e52e554e5972395";
+	public static final String MY_IMGUR_CLIENT_SECRET = "4337701ec69f6f5823709ff8cbf8f995da28b8c1";
+	
 	public static final boolean LOGGING = true;
 	
 	public static final boolean USE_COMMENTS_CACHE = false;

@@ -431,6 +431,10 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 			public void onClick(View v) {
 				
 				// TODO Auto-generated method stub
+				String kak = mReplyEt.getText().toString();
+				Log.d("zut", kak);
+				
+				
 				new CommentReplyTask(mComment.getName()).execute(mReplyEt.getText().toString());
 			}
 		});
@@ -516,6 +520,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 				@Override
 				public void onImageAvailable(ImageView imageView, Bitmap bitmap, ImageReturnedFrom imageReturnedFrom) {
 					
+					Log.d("succeed", mainImageUrl);
 					View parentView = CommentFragment.this.getView();
 					
 					if( parentView != null )

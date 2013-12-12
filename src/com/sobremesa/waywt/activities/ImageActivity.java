@@ -53,10 +53,6 @@ public class ImageActivity extends BaseFragmentActivity {
 		Bundle extras = getIntent().getExtras();
 		
 		
-		ActionBar actionbar = getActionBar();
-		actionbar.setDisplayHomeAsUpEnabled(true);
-		actionbar.setHomeButtonEnabled(true); 
-		
 		setTitle(extras.getString(Extras.ARG_AUTHOR));
 		
 		

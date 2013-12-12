@@ -30,7 +30,8 @@ public class DrawerListAdapter extends BaseAdapter {
 		mInflater = LayoutInflater.from(c);
 		nameItems = new ArrayList<DrawerListItem>();
 		nameItems.add(new DrawerListItem("WAYWT", R.drawable.ic_logo, R.drawable.ic_logo));
-		nameItems.add(new DrawerListItem("SETTINGS", R.drawable.ic_camera, R.drawable.ic_camera));
+		nameItems.add(new DrawerListItem("MY POSTS", R.drawable.ic_camera, R.drawable.ic_camera));
+		nameItems.add(new DrawerListItem("SETTINGS", R.drawable.ic_action_settings, R.drawable.ic_action_settings));
 	}
 
 	@Override

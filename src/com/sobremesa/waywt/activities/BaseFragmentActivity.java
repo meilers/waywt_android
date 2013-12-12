@@ -11,6 +11,7 @@ import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.managers.TypefaceSpan;
 
 import android.app.ActionBar;
+import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -25,6 +26,16 @@ public class BaseFragmentActivity extends FragmentActivity {
 	
 
 	public static final int NO_OPTIONS_MENU_ID = -1;
+	
+	@Override
+	protected void onCreate(Bundle arg0) {
+		// TODO Auto-generated method stub
+		super.onCreate(arg0);
+		
+		ActionBar actionBar = getActionBar();
+		actionBar.setDisplayHomeAsUpEnabled(true);
+		actionBar.setHomeButtonEnabled(true); 
+	}
 	
 	@Override
 	public void setTitle(CharSequence title) {

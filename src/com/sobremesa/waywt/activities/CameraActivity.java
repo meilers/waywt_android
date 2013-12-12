@@ -223,6 +223,9 @@ public class CameraActivity extends BaseFragmentActivity implements CameraFragme
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// TODO Auto-generated method stub
 		switch (item.getItemId()) {
+		case android.R.id.home:
+			onBackPressed();
+			break;
 		case R.id.switch_camera_menu_id:
 
 			mCameraFacing = !mCameraFacing;
@@ -234,5 +237,5 @@ public class CameraActivity extends BaseFragmentActivity implements CameraFragme
 
 		return super.onOptionsItemSelected(item);
 	}
-
+	
 }
