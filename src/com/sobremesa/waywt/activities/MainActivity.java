@@ -26,12 +26,14 @@ import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.service.PostService;
 import com.sobremesa.waywt.settings.RedditSettings;
 import com.sobremesa.waywt.tasks.LoginTask;
+import com.sobremesa.waywt.util.UiUtil;
 import com.sobremesa.waywt.util.UserUtil;
 
 import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -63,6 +65,7 @@ import android.webkit.CookieSyncManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
@@ -72,6 +75,11 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	public static class PostPermalink {
 		public String mId;
 		public String mPermalink;
+	}
+	
+	public static class NavItem {
+		public String mTitle;
+		public String mDescription;
 	}
 
 	public static class DrawerTabIndex {
@@ -96,7 +104,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	
 	private CursorLoader mLoader;
 
-	private ArrayAdapter<String> mNavAdapter;
+	private CustomAdapter mNavAdapter;
 	private int mCurrentWaywtIndex = 0;
 	
 
@@ -137,7 +145,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		mTitle = mDrawerTitle = getString(R.string.app_name);
 		setTitle(mTitle);
 		
-		mNavAdapter = new ArrayAdapter<String>(actionBar.getThemedContext(), R.layout.list_item_navigation);
+		mNavAdapter = new CustomAdapter(this, R.layout.list_item_navigation,  new ArrayList<NavItem>());
 		actionBar.setDisplayShowTitleEnabled(false);
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 
@@ -330,13 +338,18 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	}
 
 	private void refreshNavigationBar(int position) {
-		Fragment fragment = new WaywtFragment();
-		Bundle args = new Bundle();
-		PostPermalink p = mPermalinks.get(position);
-		args.putString(WaywtFragment.Extras.SUBREDDIT, UserUtil.getSubreddit());
-		args.putString(WaywtFragment.Extras.PERMALINK, p.mPermalink);
-		fragment.setArguments(args);
-		getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragment).commitAllowingStateLoss();
+		
+		if(mPermalinks != null && position < mPermalinks.size()-1)
+		{
+			Fragment fragment = new WaywtFragment();
+			Bundle args = new Bundle();
+			PostPermalink p = mPermalinks.get(position);
+			args.putString(WaywtFragment.Extras.SUBREDDIT, UserUtil.getSubreddit());
+			args.putString(WaywtFragment.Extras.PERMALINK, p.mPermalink);
+			fragment.setArguments(args);
+			getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragment).commitAllowingStateLoss();			
+		}
+
 	}
 
 	@Override
@@ -384,7 +397,10 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 
 		for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
 
-			mNavAdapter.add(cursor.getString(cursor.getColumnIndex(PostTable.TITLE)));
+			NavItem navItem = new NavItem();
+			navItem.mTitle = cursor.getString(cursor.getColumnIndex(PostTable.TITLE));
+			
+			mNavAdapter.add(navItem);
 
 			PostPermalink p = new PostPermalink();
 			p.mId = cursor.getString(cursor.getColumnIndex(PostTable.ID));
@@ -582,6 +598,90 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		}
 
 		return super.onOptionsItemSelected(item);
+	}
+	
+	public synchronized void updateCurrentNavItemDescription(String description)
+	{
+		NavItem item = mNavAdapter.mArrayList.get(mCurrentWaywtIndex);
+		item.mDescription = description;
+		mNavAdapter.mArrayList.set(mCurrentWaywtIndex, item);
+		
+		mNavAdapter.notifyDataSetChanged();
+		
+	}
+	
+	public static class CustomAdapter extends ArrayAdapter<NavItem> implements SpinnerAdapter {
+		Context context;
+		int textViewResourceId;
+		public ArrayList<NavItem> mArrayList;
+		
+		public CustomAdapter(Context context, int textViewResourceId, ArrayList<NavItem> arrayList) {
+			super(context, textViewResourceId, arrayList);
+
+			this.context = context;
+			this.textViewResourceId = textViewResourceId;
+			this.mArrayList = arrayList;
+
+		}
+
+		@Override
+		public View getDropDownView(int position, View convertView, ViewGroup parent) {
+			if (convertView == null) {
+				LayoutInflater vi = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+				convertView = vi.inflate(R.layout.list_item_navigation, null);
+				int padding = UiUtil.convertDpToPixel(8, context);
+				
+				convertView.setPadding(padding, padding, padding, padding);
+			}
+
+			NavItem item = mArrayList.get(position);
+			
+			TextView textView = (TextView) convertView.findViewById(R.id.nav_title_tv);
+			textView.setText(item.mTitle);
+
+			TextView descriptionTv = (TextView) convertView.findViewById(R.id.nav_description_tv);
+			
+			if( item.mDescription != null && !item.mDescription.isEmpty() )
+			{
+				descriptionTv.setVisibility(View.VISIBLE);
+				descriptionTv.setText(item.mDescription);				
+			}
+			else
+			{
+				descriptionTv.setVisibility(View.GONE);
+			}
+			
+
+			
+
+
+			return convertView;
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			if (convertView == null) {
+				convertView = ((MainActivity)context).getLayoutInflater().inflate(R.layout.list_item_navigation, null);
+			}
+			NavItem item = mArrayList.get(position);
+			
+			TextView textview = (TextView) convertView.findViewById(R.id.nav_title_tv);
+			textview.setText(item.mTitle);
+			TextView descriptionTv = (TextView) convertView.findViewById(R.id.nav_description_tv);
+			
+			if( item.mDescription != null && !item.mDescription.isEmpty() )
+			{
+				descriptionTv.setVisibility(View.VISIBLE);
+				descriptionTv.setText(item.mDescription);				
+			}
+			else
+			{
+				descriptionTv.setVisibility(View.GONE);
+			}
+			
+			
+			return convertView;
+		}
 	}
 
 

@@ -79,6 +79,10 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 	private final HttpClient mRedditClient = WaywtApplication.getRedditClient();
 	private final RedditSettings mRedditSettings = WaywtApplication.getRedditSettings();
 
+	private MenuItem mRefreshMenuItem;
+	private MenuItem mLoadingMenuItem;
+	
+	
 	private DownloadCommentsTask getNewDownloadCommentsTask() {
 		return new DownloadCommentsTask(this, mSubreddit, mThreadId, mRedditSettings, mRedditClient);
 	}
@@ -141,15 +145,26 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 		mindicator.setViewPager(mPager);
 		mindicator.setTypeface(FontManager.INSTANCE.getAppFont());
 
+		
 		return view;
 	}
+	
+	@Override
+	public void onViewCreated(View view, Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onViewCreated(view, savedInstanceState);
+
+		fetchComments();
+	}
+	
 
 	@Override
 	public void onStart() {
 		// TODO Auto-generated method stub
 		super.onStart();
+		
 
-		getNewDownloadCommentsTask().execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+
 	}
 
 	@Override
@@ -171,7 +186,8 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 		// findViewById(R.id.loading_light).setVisibility(View.GONE);
 		// findViewById(R.id.loading_dark).setVisibility(View.GONE);
 
-		mPagerAdapter.mIsLoading = false;
+		if( mPagerAdapter != null )
+			mPagerAdapter.mIsLoading = false;
 	}
 
 	@Override
@@ -221,6 +237,21 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 
 			ViewFlipper vf = (ViewFlipper) getView().findViewById(R.id.vf);
 			vf.setDisplayedChild(1);
+			
+			// UPDATE NAV BAR
+			MainActivity act = (MainActivity)getActivity();
+			
+			if( act != null )
+				act.updateCurrentNavItemDescription(comments.size()+" POSTS");
+			
+			
+			Log.d("yoo", "yooo");
+			
+			// UPDATE MENU ITEMS
+			if (mRefreshMenuItem != null && mLoadingMenuItem != null) {
+				mRefreshMenuItem.setVisible(true);
+				mLoadingMenuItem.setVisible(false);
+			}
 		}
 
 	}
@@ -235,6 +266,17 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 		else
 			setHasOptionsMenu(false);
 	}
+	
+	private void fetchComments()
+	{
+		if (mRefreshMenuItem != null && mLoadingMenuItem != null) {
+			mLoadingMenuItem.setVisible(true);
+			mRefreshMenuItem.setVisible(false);
+		}
+		
+		getNewDownloadCommentsTask().execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+	}
+	
 	
 	private int getReplyCount( ThingInfo ci )
 	{
@@ -269,6 +311,7 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 		}
 
 		public void addComments(List<ThingInfo> comments) {
+			mComments.clear();
 			mComments.addAll(comments);
 
 			this.notifyDataSetChanged();
@@ -309,6 +352,10 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 	    // TODO Add your menu entries here
 		
 		inflater.inflate(R.menu.waywt, menu);
+		
+		mRefreshMenuItem = menu.findItem(R.id.refresh_menu_id);
+		mLoadingMenuItem = menu.findItem(R.id.loading_menu_id);
+		mLoadingMenuItem.setActionView(R.layout.actionbar_indeterminate_progress);
 	}
 	
 
@@ -395,6 +442,12 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 		switch (item.getItemId()) {
 		
 			case R.id.camera_menu_id:
+				if (!mRedditSettings.isLoggedIn())
+				{
+					getActivity().showDialog(Constants.DIALOG_LOGIN);  
+					break;
+				}
+				
 				if( mOPComment != null )
 				{
 					Intent intent = new Intent(getActivity(), CameraActivity.class);
@@ -402,6 +455,10 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 					startActivity(intent);					
 				}
 
+				break;
+				
+			case R.id.refresh_menu_id:
+				fetchComments();
 				break;
 			
 //		case R.id.login_menu_id:

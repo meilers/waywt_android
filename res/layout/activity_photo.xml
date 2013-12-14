@@ -22,17 +22,21 @@
             android:id="@+id/photo_title_et"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Type Title"
             android:layout_margin="15dp"
+            android:hint="Type Title"
+            android:imeOptions="actionNext"
+            android:inputType="text"
             android:textSize="18sp" />
 
         <com.sobremesa.waywt.views.WaywtSecondaryEditText
             android:id="@+id/photo_description_et"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Type Description"
             android:layout_marginLeft="15dp"
             android:layout_marginRight="15dp"
+            android:hint="Type Description"
+            android:imeOptions="actionDone"
+            android:inputType="text"
             android:textSize="18sp" />
 
         <Button
@@ -40,8 +44,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:paddingTop="@dimen/padding_medium"
             android:layout_margin="15dp"
+            android:paddingTop="@dimen/padding_medium"
             android:text="POST TO WAYWT" />
     </LinearLayout>
 

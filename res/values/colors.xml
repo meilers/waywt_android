@@ -3,13 +3,13 @@
 
     <color name="black">#000000</color>
     <color name="white">#ffffff</color>
+    <color name="gray">#888888</color>
     
+    <color name="fo_warm_gray4">#d7d4d3</color>
     <color name="black_transparent">#88000000</color>
     <color name="white_transparent">#88ffffff</color>
-    
     <color name="orange">#ff4500</color>
-     <color name="orange_transparent">#88ff4500</color>
-     
+    <color name="orange_transparent">#88ff4500</color>
     <color name="android_dark_background">#FF191919</color>
     <color name="error_toast_background">#ECCC</color>
     <color name="markdown_link_color">#ff2288cc</color>

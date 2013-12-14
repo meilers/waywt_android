@@ -49,6 +49,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -58,6 +59,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ShareActionProvider;
+import android.widget.TextView;
+import android.widget.TextView.OnEditorActionListener;
+import android.widget.Toast;
 
 
 /**
@@ -108,28 +112,36 @@ public class PhotoActivity extends BaseFragmentActivity {
         mTitleEt = (EditText)findViewById(R.id.photo_title_et);
         mDescriptionEt = (EditText)findViewById(R.id.photo_description_et);
         
+        mDescriptionEt.setOnEditorActionListener(new OnEditorActionListener() {
+			
+			@Override
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				postPhoto();
+				return false;
+			}
+		});
+        
         Button postBtn = (Button) findViewById(R.id.photo_post_btn);
         postBtn.setTypeface(FontManager.INSTANCE.getAppFont());
         postBtn.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				if( !mTitleEt.getText().toString().isEmpty() )
-				{
-					new MyImgurUploadTask(mImageUri).execute();
-				}
+				postPhoto();
 			}
 		});
-        
     }
     
-    @Override
-    protected void onStart() {
-    	// TODO Auto-generated method stub
-    	super.onStart();
-    	
-//    	new MyImgurUploadTask(mImageUri).execute();
+    
+    private void postPhoto()
+    {
+		if( !mTitleEt.getText().toString().isEmpty() && !mDescriptionEt.getText().toString().isEmpty() )
+		{
+			showProgressDialog("UPLOADING PHOTO TO IMGUR");
+			new MyImgurUploadTask(mImageUri).execute();
+		}
+		else
+			Toast.makeText(this, "Please give your post a title and a description.", Toast.LENGTH_LONG).show();
     }
     
 
@@ -153,6 +165,8 @@ public class PhotoActivity extends BaseFragmentActivity {
 		protected void onPostExecute(String imageId) {
 			super.onPostExecute(imageId);
 			mImgurUploadTask = null;
+			hideProgressDialog();
+			
 			if (imageId != null) {
 				mImgurUrl = "http://imgur.com/" + imageId;
 				
@@ -161,6 +175,7 @@ public class PhotoActivity extends BaseFragmentActivity {
 				text += System.getProperty ("line.separator") + System.getProperty ("line.separator");
 				text += mDescriptionEt.getText().toString();
 				
+				showProgressDialog("POSTING TO REDDIT");
 				new CommentReplyTask(mComment.getName()).execute(text);
 				
 			} else {
@@ -247,21 +262,19 @@ public class PhotoActivity extends BaseFragmentActivity {
     	
     	@Override
     	public void onPostExecute(String newId) {
+    		hideProgressDialog();
+    		
     		if (newId == null) {
 //    			if( CommentFragment.this.getActivity() != null )
 //    				Common.showErrorToast(_mUserError, Toast.LENGTH_LONG, CommentFragment.this.getActivity());
     			
-    			showDialog(Constants.DIALOG_LOGIN);
     		} else {
     			// Refresh
     			CacheInfo.invalidateCachedThread(WaywtApplication.getContext());
     			
-    			try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(intent);
     		}
     	}
     }
@@ -286,6 +299,7 @@ public class PhotoActivity extends BaseFragmentActivity {
 			onBackPressed();
 			break;
 		case R.id.post_menu_id:
+			postPhoto();
 			break;
 		}
 		return super.onOptionsItemSelected(item);

@@ -7,11 +7,14 @@ import java.util.List;
 import com.sobremesa.waywt.R;
 import com.sobremesa.waywt.activities.ImageActivity.Extras;
 import com.sobremesa.waywt.application.WaywtApplication;
+import com.sobremesa.waywt.dialog.ProgressDialogFragment;
+import com.sobremesa.waywt.dialog.ProgressDialogFragment.ProgressDialogObserver;
 import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.managers.TypefaceSpan;
 
 import android.app.ActionBar;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -27,9 +30,12 @@ public class BaseFragmentActivity extends FragmentActivity {
 
 	public static final int NO_OPTIONS_MENU_ID = -1;
 	
+	protected ProgressDialogFragment mProgressFoDialog;
+	protected boolean mIsShowing = true;
+	protected boolean mDialogDismissOnResume = false;
+	
 	@Override
 	protected void onCreate(Bundle arg0) {
-		// TODO Auto-generated method stub
 		super.onCreate(arg0);
 		
 		ActionBar actionBar = getActionBar();
@@ -38,8 +44,23 @@ public class BaseFragmentActivity extends FragmentActivity {
 	}
 	
 	@Override
+	protected void onResume() {
+		super.onResume();
+		
+		mIsShowing = true;
+		if (mDialogDismissOnResume)
+			hideProgressDialog();
+	}
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
+		
+		mIsShowing = false;
+	}
+	
+	@Override
 	public void setTitle(CharSequence title) {
-		// TODO Auto-generated method stub
 		super.setTitle(title);
 
 		SpannableString s = new SpannableString(String.valueOf(title).toUpperCase());
@@ -110,5 +131,38 @@ public class BaseFragmentActivity extends FragmentActivity {
 	}
 	
 	
+	
+	public void showProgressDialog(int stringResource) {
+		showProgressDialog(getString(stringResource));
+	}
+
+	public void showProgressDialog(String text) {
+		showProgressDialog(text, null);
+	}
+
+	public void showProgressDialog(int stringResource, ProgressDialogObserver observer) {
+		showProgressDialog(getString(stringResource), observer);
+	}
+
+	public void showProgressDialog(String text, ProgressDialogObserver observer) {
+		Bundle args = new Bundle();
+		args.putString(ProgressDialogFragment.Extras.PROGRESS_TEXT, text);
+		mProgressFoDialog = (ProgressDialogFragment) Fragment.instantiate(this, ProgressDialogFragment.class.getName(), args);
+		mProgressFoDialog.show(getSupportFragmentManager(), ProgressDialogFragment.class.getCanonicalName());
+		if (observer != null)
+			mProgressFoDialog.setFoProgressDialogObserver(observer);
+		mProgressFoDialog.setCancelable(false);
+	}
+
+	public void hideProgressDialog() {
+		if (mProgressFoDialog != null) {
+			if (mIsShowing) {
+				mProgressFoDialog.dismiss();
+				mDialogDismissOnResume = false;
+			} else {
+				mDialogDismissOnResume = true;
+			}
+		}
+	}
 	
 }

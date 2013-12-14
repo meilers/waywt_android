@@ -3,9 +3,21 @@
     <item
         android:id="@+id/camera_menu_id"
         android:icon="@drawable/ic_camera"
-        android:showAsAction="always"    
+        android:showAsAction="always"
         android:title="@string/login"/>
-<!--     <item
+    <item
+        android:id="@+id/refresh_menu_id"
+        android:icon="@drawable/ic_action_refresh"
+        android:orderInCategory="1"
+        android:showAsAction="always"
+        android:title="refresh"
+        android:visible="false"/>
+    <item
+        android:id="@+id/loading_menu_id"
+        android:orderInCategory="1"
+        android:showAsAction="always"/>
+    <!--
+         <item
         android:id="@+id/login_menu_id"
         android:title="@string/login"/>
     <item
@@ -16,6 +28,7 @@
         android:title="@string/subreddit"/>
     <item
         android:id="@+id/sort_by_menu_id"
-        android:title="@string/sort_by"/> -->
+        android:title="@string/sort_by"/>
+    -->
 
 </menu>

@@ -922,9 +922,16 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		            	if (Constants.LOGGING) Log.e(TAG, "getView, hidden comment heads", e);
 		            }
 		            if (getOpThingInfo() != null && item.getAuthor().equalsIgnoreCase(getOpThingInfo().getAuthor()))
+		            {
 		            	submitterView.setText(item.getAuthor() + " [S]");
+		            	submitterView.setTextColor(getActivity().getResources().getColor(R.color.orange));
+		            }
 		            else
+		            {
 		            	submitterView.setText(item.getAuthor());
+		            	submitterView.setTextColor(getActivity().getResources().getColor(R.color.gray));
+		            }
+		            
 		            submissionTimeView.setText(Util.getTimeAgo(item.getCreated_utc()));
 		            
 		            setCommentIndent(view, item.getIndent(), mRedditSettings);
@@ -1015,9 +1022,16 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
         
         
         if (getOpThingInfo() != null && item.getAuthor().equalsIgnoreCase(getOpThingInfo().getAuthor()))
+        {
         	submitterView.setText(item.getAuthor() + " [S]");
+        	submitterView.setTextColor(getActivity().getResources().getColor(R.color.orange));
+        }
         else
+        {
         	submitterView.setText(item.getAuthor());
+        	submitterView.setTextColor(getActivity().getResources().getColor(R.color.gray));
+        }
+        
         
         submissionTimeView.setText(Util.getTimeAgo(item.getCreated_utc()));
         
