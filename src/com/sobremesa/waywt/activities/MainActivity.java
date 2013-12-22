@@ -21,6 +21,7 @@ import com.sobremesa.waywt.database.tables.PostTable;
 import com.sobremesa.waywt.dialog.LoginDialog;
 import com.sobremesa.waywt.enums.SortByType;
 import com.sobremesa.waywt.fragments.CommentFragment;
+import com.sobremesa.waywt.fragments.MyPostsFragment;
 import com.sobremesa.waywt.fragments.WaywtFragment;
 import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.service.PostService;
@@ -72,10 +73,6 @@ import android.widget.ViewFlipper;
 
 public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNavigationListener, LoaderCallbacks<Cursor> {
 
-	public static class PostPermalink {
-		public String mId;
-		public String mPermalink;
-	}
 	
 	public static class NavItem {
 		public String mTitle;
@@ -85,9 +82,9 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	public static class DrawerTabIndex {
 		public static final int WAYWT = 0;
 //		public static final int TOP_POSTERS = 1;
-//		public static final int MY_POSTS = 2;
+		public static final int MY_POSTS = 1;
 //		public static final int PROFILE = 3;
-		public static final int SETTINGS = 1;
+		public static final int SETTINGS = 2;
 	}
 
 	// DRAWER
@@ -108,7 +105,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	private int mCurrentWaywtIndex = 0;
 	
 
-	private ArrayList<PostPermalink> mPermalinks;
+	private ArrayList<String> mPermalinks;
 
 	private static final HttpClient mRedditClient = WaywtApplication.getRedditClient();
 	private static final RedditSettings mRedditSettings = WaywtApplication.getRedditSettings();
@@ -121,7 +118,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		setContentView(R.layout.activity_main);
 		getOverflowMenu();
 		
-		mPermalinks = new ArrayList<PostPermalink>();
+		mPermalinks = new ArrayList<String>();
 
 		// ACTION BAR
 		final ActionBar actionBar = getActionBar();
@@ -137,22 +134,17 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 			actionBar.setIcon(getResources().getDrawable(R.drawable.ic_logo_ffa));
 		}
 		
-		actionBar.setDisplayShowTitleEnabled(false);
-		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 		actionBar.setDisplayHomeAsUpEnabled(true);
 		actionBar.setHomeButtonEnabled(true);
 
 		mTitle = mDrawerTitle = getString(R.string.app_name);
 		setTitle(mTitle);
 		
+		// For WAYWT navigation
 		mNavAdapter = new CustomAdapter(this, R.layout.list_item_navigation,  new ArrayList<NavItem>());
-		actionBar.setDisplayShowTitleEnabled(false);
-		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-
-		// Set up the dropdown list navigation in the action bar.
 		actionBar.setListNavigationCallbacks(mNavAdapter, this);
 		
-		CookieSyncManager.createInstance(getApplicationContext());
+		
 		
 		
 		
@@ -165,11 +157,8 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 			@Override
 			public void onItemClick(AdapterView<?> adapterView, View arg1, int position, long arg3) {
 				int selectedItem = position;
-				position = position - 1;
 				if (mDrawerListAdapter != null) {
-					if (selectedItem > 0) {
-						mDrawerListAdapter.setSelectedItem(position);
-					}
+					mDrawerListAdapter.setSelectedItem(position);
 				}
 
 				onDrawerItemSelected(selectedItem);
@@ -210,12 +199,17 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		}
 		else
 			showSubredditDialog();
+		
+		CookieSyncManager.createInstance(getApplicationContext());
+		
+		
+		showWaywt();
 	}
 
 	public void onDrawerItemSelected(int position) {
 		setTitle(getString(R.string.app_name));
 
-		mSelectedTabFromDrawer = position - 1;
+		mSelectedTabFromDrawer = position;
 
 		closeDrawer();
 
@@ -246,6 +240,9 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		case DrawerTabIndex.WAYWT:
 			showWaywt();
 			break;
+		case DrawerTabIndex.MY_POSTS:
+			showMyPosts();
+			break;
 		}
 	}
 	
@@ -255,10 +252,38 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 			setSelectedDrawerAdapterPosition(DrawerTabIndex.WAYWT);
 //			mTabBackStack.add(mCurrentTab);
 			mCurrentTab = DrawerTabIndex.WAYWT;
+			
+			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+			getActionBar().setDisplayShowTitleEnabled(false);
+			
 			refreshNavigationBar(mCurrentWaywtIndex);
 		}
 
 	}
+
+	public void showMyPosts() {
+
+		if (mCurrentTab != DrawerTabIndex.MY_POSTS) {
+			setSelectedDrawerAdapterPosition(DrawerTabIndex.MY_POSTS);
+//			mTabBackStack.add(mCurrentTab);
+			mCurrentTab = DrawerTabIndex.MY_POSTS;
+			
+			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+			getActionBar().setDisplayShowTitleEnabled(true);
+			
+			Fragment fragment = Fragment.instantiate(this, MyPostsFragment.class.getName());
+			Bundle args = new Bundle();
+			args.putStringArrayList(MyPostsFragment.Extras.PERMALINKS, mPermalinks);
+			args.putString(MyPostsFragment.Extras.SUBREDDIT, UserUtil.getSubreddit());
+			fragment.setArguments(args);
+			
+			String tag = MyPostsFragment.class.getCanonicalName();
+			
+			goToFragment(fragment, tag, "MY POSTS", true);
+		}
+
+	}
+	
 	
 	private void setSelectedDrawerAdapterPosition(int position) {
 		mDrawerListAdapter.setSelectedItem(position);
@@ -343,9 +368,9 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		{
 			Fragment fragment = new WaywtFragment();
 			Bundle args = new Bundle();
-			PostPermalink p = mPermalinks.get(position);
+			String p = mPermalinks.get(position);
 			args.putString(WaywtFragment.Extras.SUBREDDIT, UserUtil.getSubreddit());
-			args.putString(WaywtFragment.Extras.PERMALINK, p.mPermalink);
+			args.putString(WaywtFragment.Extras.PERMALINK, p);
 			fragment.setArguments(args);
 			getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragment).commitAllowingStateLoss();			
 		}
@@ -402,15 +427,13 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 			
 			mNavAdapter.add(navItem);
 
-			PostPermalink p = new PostPermalink();
-			p.mId = cursor.getString(cursor.getColumnIndex(PostTable.ID));
-			p.mPermalink = cursor.getString(cursor.getColumnIndex(PostTable.PERMALINK));
+			String p = cursor.getString(cursor.getColumnIndex(PostTable.PERMALINK));
 			mPermalinks.add(p);
 		}
 
 		mNavAdapter.notifyDataSetChanged();
 
-		if (cursor.getCount() > 0) {
+		if (cursor.getCount() > 0 && mCurrentTab == DrawerTabIndex.WAYWT ) {
 
 			refreshNavigationBar(0);
 		}

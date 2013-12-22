@@ -12,19 +12,14 @@ public enum FontManager {
 	INSTANCE;
 
 	private Typeface mAppFont;
-	private Typeface mFFAAppFont;
 	
 	private FontManager() {
 		AssetManager assetManager = WaywtApplication.getContext().getResources().getAssets();
 		mAppFont = Typeface.createFromAsset(assetManager, "fonts/DINCondensedC.otf");
-		mFFAAppFont = Typeface.createFromAsset(assetManager, "fonts/OpenSans-CondBold.ttf");
 	}
 
 	public Typeface getAppFont() {
-		if(UserUtil.getIsMale())
-			return mAppFont;
-		else
-			return mFFAAppFont;
+		return mAppFont; 
 	}
 
 	

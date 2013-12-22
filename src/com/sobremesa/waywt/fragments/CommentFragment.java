@@ -271,6 +271,10 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 								mImageUrls.add(url);
 						}
 					}
+					else if( url.contains(".jpg") || url.contains(".jpeg"))
+					{
+						mImageUrls.add(url);
+					}
 				}
 				catch(Exception e) {}
 			

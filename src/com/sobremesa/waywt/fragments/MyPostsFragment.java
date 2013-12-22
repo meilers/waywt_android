@@ -18,17 +18,19 @@ import com.sobremesa.waywt.R;
 import com.sobremesa.waywt.activities.CameraActivity;
 import com.sobremesa.waywt.activities.MainActivity;
 import com.sobremesa.waywt.application.WaywtApplication;
-import com.sobremesa.waywt.common.Constants;
+import com.sobremesa.waywt.common.Constants;  
 import com.sobremesa.waywt.common.RedditIsFunHttpClientFactory;
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.CommentTable;
 import com.sobremesa.waywt.enums.SortByType;
 import com.sobremesa.waywt.listeners.CommentsListener;
+import com.sobremesa.waywt.listeners.MyPostsListener;
 import com.sobremesa.waywt.managers.FontManager;
+import com.sobremesa.waywt.model.MyPost;
 import com.sobremesa.waywt.model.ThingInfo;
 import com.sobremesa.waywt.service.PostService;
 import com.sobremesa.waywt.settings.RedditSettings;
-import com.sobremesa.waywt.tasks.DownloadCommentsTask;
+import com.sobremesa.waywt.tasks.DownloadMyPostsTask;
 import com.viewpagerindicator.TitlePageIndicator;
 
 import android.content.Intent;
@@ -56,24 +58,26 @@ import android.webkit.CookieSyncManager;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
-public class WaywtFragment extends Fragment implements CommentsListener {
+public class MyPostsFragment extends Fragment implements MyPostsListener {
 
 	public static final String TAG = WaywtFragment.class.getCanonicalName();
 
 	public static class Extras {
 		public static String SUBREDDIT = "subreddit";
-		public static String PERMALINK = "permalink";
+		public static String PERMALINKS = "permalinks";
 	}
+	
+	
 
 	private final Pattern COMMENT_PATH_PATTERN = Pattern.compile(Constants.COMMENT_PATH_PATTERN_STRING);
 	private final Pattern COMMENT_CONTEXT_PATTERN = Pattern.compile("context=(\\d+)");
 
 	private ViewPager mPager;
-	public CommentPagerAdapter mPagerAdapter;
+	public MyPostPagerAdapter mPagerAdapter;
 	private TitlePageIndicator mindicator;
 
 	private String mSubreddit = UserUtil.getSubreddit();
-	private String mThreadId = null;
+	private List<String> mThreadIds;
 	private ThingInfo mOPComment = null;
 	
 	private final HttpClient mRedditClient = WaywtApplication.getRedditClient();
@@ -83,8 +87,8 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 	private MenuItem mLoadingMenuItem;
 	
 	
-	private DownloadCommentsTask getNewDownloadCommentsTask() {
-		return new DownloadCommentsTask(this, mSubreddit, mThreadId, mRedditSettings, mRedditClient);
+	private DownloadMyPostsTask getNewDownloadMyPostsTask() {
+		return new DownloadMyPostsTask(this, mSubreddit, mThreadIds, mRedditSettings, mRedditClient);
 	}
 
 	@Override
@@ -92,43 +96,49 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 
+		ArrayList<String> permalinks = getArguments().getStringArrayList(Extras.PERMALINKS);
+		mThreadIds = new ArrayList<String>();
 		mSubreddit = getArguments().getString(Extras.SUBREDDIT);
 
-		String commentPath = null;
-		String commentQuery;
-		String jumpToCommentId = null;
-		Uri data = Uri.parse(getArguments().getString(Extras.PERMALINK));
-		if (data != null) {
-			// Comment path: a URL pointing to a thread or a comment in a
-			// thread.
-			commentPath = data.getPath();
-			commentQuery = data.getQuery();
-		} else {
-			if (Constants.LOGGING)
-				Log.e(TAG, "Quitting because no subreddit and thread id data was passed into the Intent.");
-			getActivity().finish();
-		}
-
-		if (commentPath != null) {
-			if (Constants.LOGGING)
-				Log.d(TAG, "comment path: " + commentPath);
-
-			if (Util.isRedditShortenedUri(data)) {
-				// http://redd.it/abc12
-				mThreadId = commentPath.substring(1);
+		for( String s : permalinks )
+		{
+			String commentPath = null;
+			String commentQuery;
+			String jumpToCommentId = null;
+			Uri data = Uri.parse(s);
+			if (data != null) {
+				// Comment path: a URL pointing to a thread or a comment in a
+				// thread.
+				commentPath = data.getPath();
+				commentQuery = data.getQuery();
 			} else {
-				// http://www.reddit.com/...
-				Matcher m = COMMENT_PATH_PATTERN.matcher(commentPath);
-				if (m.matches()) {
-					mSubreddit = m.group(1);
-					mThreadId = m.group(2);
-					jumpToCommentId = m.group(3);
-				}
+				if (Constants.LOGGING)
+					Log.e(TAG, "Quitting because no subreddit and thread id data was passed into the Intent.");
+				getActivity().finish();
 			}
-		} else {
-			if (Constants.LOGGING)
-				Log.e(TAG, "Quitting because of bad comment path.");
-			getActivity().finish();
+			
+			if (commentPath != null) {
+				if (Constants.LOGGING)
+					Log.d(TAG, "comment path: " + commentPath);
+				
+				if (Util.isRedditShortenedUri(data)) {
+					// http://redd.it/abc12
+					mThreadIds.add(commentPath.substring(1));
+				} else {
+					// http://www.reddit.com/...
+					Matcher m = COMMENT_PATH_PATTERN.matcher(commentPath);
+					if (m.matches()) {
+						mSubreddit = m.group(1);
+						mThreadIds.add(m.group(2));
+						jumpToCommentId = m.group(3);
+					}
+				}
+			} else {
+				if (Constants.LOGGING)
+					Log.e(TAG, "Quitting because of bad comment path.");
+				getActivity().finish();
+			}
+			
 		}
 	}
 
@@ -138,7 +148,7 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 		View view = inflater.inflate(R.layout.fragment_waywt, null, false);
 
 		mPager = (ViewPager) view.findViewById(R.id.pager);
-		mPagerAdapter = new CommentPagerAdapter(getChildFragmentManager(), mSubreddit, mThreadId);
+		mPagerAdapter = new MyPostPagerAdapter(getChildFragmentManager(), mSubreddit);
 		mPager.setAdapter(mPagerAdapter);
 
 		mindicator = (TitlePageIndicator) view.findViewById(R.id.page_indicator);
@@ -200,74 +210,8 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 		getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_START);
 	}
 
-	@Override
-	public void updateComments(List<ThingInfo> comments) {
 
-		if (getView() != null) {
-			SortByType type = SortByType.values()[UserUtil.getSortBy()];
 	
-			switch (type) {
-			case RANDOM:
-				long seed = System.nanoTime();
-				Collections.shuffle(comments, new Random(seed));
-				break;
-
-			case VOTES:
-				Collections.sort(comments);
-				break;
-
-//			case COMMENTS:
-//				Comparator<ThingInfo> comparator = new Comparator<ThingInfo>() {
-//				    public int compare(ThingInfo c1, ThingInfo c2) {
-//				    	
-//				    	int t1 = 0;
-//				    	int t2 = 0;
-//				    	
-//				    	t1 = getReplyCount( c1 );
-//				    	t2 = getReplyCount( c2 );
-//				    	
-//				        return t2-t1; // use your logic
-//				    }
-//				};
-//				Collections.sort(comments, comparator); 
-//				break;
-			}
-
-			mPagerAdapter.addComments(comments);
-			mPager.setAdapter(mPagerAdapter);
-			
-			
-			ViewFlipper vf = (ViewFlipper) getView().findViewById(R.id.vf);
-			vf.setDisplayedChild(1);
-			
-			// UPDATE NAV BAR
-			MainActivity act = (MainActivity)getActivity();
-			
-			if( act != null )
-				act.updateCurrentNavItemDescription(comments.size()+" POSTS");
-			
-			
-			Log.d("yoo", "yooo");
-			
-			// UPDATE MENU ITEMS
-			if (mRefreshMenuItem != null && mLoadingMenuItem != null) {
-				mRefreshMenuItem.setVisible(true);
-				mLoadingMenuItem.setVisible(false);
-			}
-		}
-
-	}
-	
-	@Override
-	public void updateOPComment(ThingInfo comment) {
-		// TODO Auto-generated method stub
-		mOPComment = comment;
-		
-		if( mOPComment != null )
-			setHasOptionsMenu(true);
-		else
-			setHasOptionsMenu(false);
-	}
 	
 	private void fetchComments()
 	{
@@ -276,7 +220,7 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 			mRefreshMenuItem.setVisible(false);
 		}
 		
-		getNewDownloadCommentsTask().execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+		getNewDownloadMyPostsTask().execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
 	}
 	
 	
@@ -297,26 +241,23 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 	}
 	
 
-	public static class CommentPagerAdapter extends FragmentStatePagerAdapter {
+	public static class MyPostPagerAdapter extends FragmentStatePagerAdapter {
 		public boolean mIsLoading = false;
 
-		private ArrayList<ThingInfo> mComments = new ArrayList<ThingInfo>();
+		private ArrayList<MyPost> mMyPosts = new ArrayList<MyPost>();
 
 		private String mSubreddit = "";
-		private String mThreadId = "";
 
-		public CommentPagerAdapter(FragmentManager fragmentManager, String subreddit, String threadId) {
+		public MyPostPagerAdapter(FragmentManager fragmentManager, String subreddit) {
 			super(fragmentManager);
 
 			mSubreddit = subreddit;
-			mThreadId = threadId;
 		}
 
-		public void addComments(List<ThingInfo> comments) {
-			Log.d("refresh", "ref");
+		public void addMyPosts(List<MyPost> myPosts) {
 			
-			mComments.clear();
-			mComments.addAll(comments);
+			mMyPosts.clear();
+			mMyPosts.addAll(myPosts);
 
 			this.notifyDataSetChanged();
 		}
@@ -327,8 +268,8 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 			CommentFragment fragment = new CommentFragment();
 			Bundle args = new Bundle();
 			args.putString(CommentFragment.Extras.SUBREDDIT, mSubreddit);
-			args.putString(CommentFragment.Extras.THREAD_ID, mThreadId);
-			args.putParcelable(CommentFragment.Extras.COMMENT, mComments.get(position));
+			args.putString(CommentFragment.Extras.THREAD_ID, mMyPosts.get(position).getThreadId());
+			args.putParcelable(CommentFragment.Extras.COMMENT, mMyPosts.get(position).getComment());
 			fragment.setArguments(args);
 
 			return fragment;
@@ -337,13 +278,13 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 
 		@Override
 		public int getCount() {
-			return mComments.size();
+			return mMyPosts.size();
 		}
 
 		@Override
 		public CharSequence getPageTitle(int position) {
-			if (mComments.get(position).getAuthor() != null)
-				return mComments.get(position).getAuthor().toUpperCase();
+			if (mMyPosts.get(position).getComment().getAuthor() != null)
+				return mMyPosts.get(position).getComment().getAuthor().toUpperCase();
 
 			return null;
 		}
@@ -486,6 +427,33 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 		}
 
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public void updateMyPosts(List<MyPost> myPosts) {
+		if (getView() != null) {
+
+
+			mPagerAdapter.addMyPosts(myPosts);
+
+			ViewFlipper vf = (ViewFlipper) getView().findViewById(R.id.vf);
+			vf.setDisplayedChild(1);
+			
+			// UPDATE NAV BAR
+//			MainActivity act = (MainActivity)getActivity();
+//			
+//			if( act != null )
+//				act.updateCurrentNavItemDescription(comments.size()+" POSTS");
+			
+			
+			Log.d("yoo", "yooo");
+			
+			// UPDATE MENU ITEMS
+			if (mRefreshMenuItem != null && mLoadingMenuItem != null) {
+				mRefreshMenuItem.setVisible(true);
+				mLoadingMenuItem.setVisible(false);
+			}
+		}
 	}
 	
 
