@@ -5,9 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.sobremesa.waywt.database.tables.PostTable;
-import com.sobremesa.waywt.database.tables.ImageTable;
 import com.sobremesa.waywt.database.tables.CommentTable;
-import com.sobremesa.waywt.database.tables.ReplyTable;
 
 /**
  * This database class extends the SQLiteOpenHelper
@@ -23,11 +21,11 @@ import com.sobremesa.waywt.database.tables.ReplyTable;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.12.01
+ * @date 2013.12.25
  */
 public class Database extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "mdsdacpdatabase.db";
-	private static final int DATABASE_VERSION = 18;
+	private static final int DATABASE_VERSION = 7;
 
 	public Database(final Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -36,9 +34,7 @@ public class Database extends SQLiteOpenHelper {
 	@Override
 	public final void onCreate(final SQLiteDatabase db) {
 		db.execSQL(PostTable.SQL_CREATE);
-		db.execSQL(ImageTable.SQL_CREATE);
 		db.execSQL(CommentTable.SQL_CREATE);
-		db.execSQL(ReplyTable.SQL_CREATE);
 	}
 
 	@Override
@@ -57,9 +53,7 @@ public class Database extends SQLiteOpenHelper {
 	 */
 	private final void onUpgradeDropTablesAndCreate(final SQLiteDatabase db) {
 		db.execSQL(PostTable.SQL_DROP);
-		db.execSQL(ImageTable.SQL_DROP);
 		db.execSQL(CommentTable.SQL_DROP);
-		db.execSQL(ReplyTable.SQL_DROP);
 		onCreate(db);
 	}
 }

@@ -5,6 +5,7 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -20,7 +21,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import android.Manifest.permission;
 import android.app.Activity;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.text.Html;
@@ -35,17 +38,28 @@ import com.sobremesa.waywt.common.CacheInfo;
 import com.sobremesa.waywt.common.Common;
 import com.sobremesa.waywt.common.Constants;
 import com.sobremesa.waywt.common.ProgressInputStream;
+import com.sobremesa.waywt.contentprovider.Provider;
+import com.sobremesa.waywt.database.tables.CommentTable;
+import com.sobremesa.waywt.database.tables.PostTable;
 import com.sobremesa.waywt.fragments.CommentFragment;
 import com.sobremesa.waywt.fragments.WaywtFragment;
 import com.sobremesa.waywt.util.Assert;
 import com.sobremesa.waywt.util.StringUtils;
+import com.sobremesa.waywt.util.UserUtil;
 import com.sobremesa.waywt.util.Util;
 import com.sobremesa.waywt.util.Markdown;
+import com.sobremesa.waywt.service.PostService.RemoteRedditPost;
+import com.sobremesa.waywt.service.synchronizer.CommentPreprocessor;
+import com.sobremesa.waywt.service.synchronizer.CommentSynchronizer;
+import com.sobremesa.waywt.service.synchronizer.PostPreprocessor;
+import com.sobremesa.waywt.service.synchronizer.PostSynchronizer;
+import com.sobremesa.waywt.service.synchronizer.RemotePreProcessor;
+import com.sobremesa.waywt.service.synchronizer.Synchronizer;
 import com.sobremesa.waywt.settings.RedditSettings;
 import com.sobremesa.waywt.listeners.MyPostsListener;
 import com.sobremesa.waywt.model.Listing;
 import com.sobremesa.waywt.model.ListingData;
-import com.sobremesa.waywt.model.MyPost;
+import com.sobremesa.waywt.model.Post;
 import com.sobremesa.waywt.model.ThingInfo;
 import com.sobremesa.waywt.model.ThingListing;
 
@@ -64,6 +78,8 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
     private WeakReference<MyPostsListener> mListenerRef;
     private String mSubreddit;
     private List<String> mThreadIds;
+    private List<String> mPermalinks;
+    private List<String> mTitles;
     private RedditSettings mSettings;
     private HttpClient mClient;
 	
@@ -79,7 +95,7 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
      * List holding the comments to be appended at the end.
      * Used when loading an entire thread.
      */
-    private final LinkedList<MyPost> mDeferredAppendList = new LinkedList<MyPost>();
+    private final LinkedList<ThingInfo> mDeferredAppendList = new LinkedList<ThingInfo>();
 	
 	/**
 	 * Default constructor to do normal comments page
@@ -88,12 +104,16 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 			MyPostsListener activity,
 			String subreddit,
 			List<String> threadIds,
+			List<String> permalinks,
+			List<String> titles,
 			RedditSettings settings,
 			HttpClient client
 	) {
 		this.mListenerRef = new WeakReference<MyPostsListener>(activity);
 		this.mSubreddit = subreddit;
 		this.mThreadIds = threadIds;
+		this.mPermalinks = permalinks;
+		this.mTitles = titles;
 		this.mSettings = settings;
 		this.mClient = client;  
 	}
@@ -103,10 +123,18 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 	// XXX: maxComments is unused for now
 	public Boolean doInBackground(Integer... maxComments) {
 		
-		for( String threadId: mThreadIds)
+		List<ThingInfo> myPosts = new ArrayList<ThingInfo>();
+    	InputStream in = null;
+		HttpEntity entity = null;
+		ProgressInputStream pin = null;
+		
+		for( int i=0; i <mThreadIds.size(); ++i )
 		{
 		
-			HttpEntity entity = null;
+			String threadId = mThreadIds.get(i);
+			String title = mTitles.get(i);
+			String permalink = mPermalinks.get(i);
+			
 	        try {
 	        	StringBuilder sb = new StringBuilder(Constants.REDDIT_BASE_URL);
 	    		if (mSubreddit != null) {
@@ -122,7 +150,7 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 	        	sb.append("limit=500&depth=1");
 	        	String url = sb.toString();
 	        	
-	        	InputStream in = null;
+
 	    		boolean currentlyUsingCache = false;
 	    		
 	        	if (Constants.USE_COMMENTS_CACHE) {
@@ -169,14 +197,21 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 	        	}
 	            
 	        	// setup a special InputStream to report progress
-	        	ProgressInputStream pin = new ProgressInputStream(in, mContentLength);
+	        	pin = new ProgressInputStream(in, mContentLength);
 	        	pin.addPropertyChangeListener(this);
 	        	
-	        	parseCommentsJSON(pin, threadId);
+	        	List<ThingInfo> results = parseCommentsJSON(pin, threadId);
+	        	
+	        	for( ThingInfo ci : results )
+	        	{
+	        		ci.setPostPermalink(permalink);
+	        		ci.setPostTitle(title);
+	        		ci.setThreadId(threadId);
+	        		myPosts.add(ci);
+	        	}
+	        	
 	        	if (Constants.LOGGING) Log.d(TAG, "parseCommentsJSON completed");
 	        	
-	        	pin.close();
-	            in.close();
 	            
 	            
 	        } catch (Exception e) {
@@ -192,44 +227,63 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 	    		}
 	        }
 		}
+		
+        try {
+        	pin.close();
+			in.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+    		if (entity != null) {
+    			try {
+    				entity.consumeContent();
+    			} catch (Exception e2) {
+    				if (Constants.LOGGING) Log.e(TAG, "entity.consumeContent()", e2);  
+    			}
+    		}
+        }
+		
+		if (myPosts != null && myPosts.size() > 0) { 
+			// synchronize!
+			Cursor localRecCursor = WaywtApplication.getContext().getContentResolver().query(Provider.COMMENT_CONTENT_URI, CommentTable.ALL_COLUMNS, CommentTable.AUTHOR + "=?", new String[] { mRedditSettings.getUsername() }, null);
+			localRecCursor.moveToFirst();
+			
+			CommentSynchronizer sync = new CommentSynchronizer( WaywtApplication.getContext());
+			synchronizeRemoteRecords(myPosts, localRecCursor, localRecCursor.getColumnIndex(CommentTable.NAME), sync, new CommentPreprocessor());
+			
+			//
+		} else {
+//			EventBus.getDefault().post(new RecordingServiceEvent(false, "There where no representatives for this zip code"));
+		}
+		
+		if( mListenerRef.get() != null )
+			mListenerRef.get().onSuccess();
+		
         return true;
     }
 	
 	
-	/**
-	 * defer insertion of comment for adding at end of entire comments list
-	 */
-	private void deferCommentAppend(MyPost myPost) {
-		mDeferredAppendList.add(myPost);
-	}
-	
-	
-	private void disableLoadingScreenKeepProgress() {
-		
-		if( mListenerRef.get() != null )
-		{
-			Activity act = ((Fragment) mListenerRef.get()).getActivity();
-			
-			if( act != null )
-			{
-				((Fragment) mListenerRef.get()).getActivity().runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-			    		mListenerRef.get().resetUI();
-					}
-				});			
-			}
-		}
 
+
+	public void synchronizeRemoteRecords(List<ThingInfo> remoteReps, Cursor localReps, int remoteIdentifierColumn, Synchronizer<ThingInfo> synchronizer, RemotePreProcessor<ThingInfo> preProcessor) {
+		preProcessor.preProcessRemoteRecords(remoteReps);
+		synchronizer.synchronize(WaywtApplication.getContext(), remoteReps, localReps, remoteIdentifierColumn);
 	}
 	
-	private void parseCommentsJSON(
+
+	
+	private List<ThingInfo> parseCommentsJSON(
 			InputStream in, String threadId
 	) throws IOException, JsonParseException {
+		
+		List<ThingInfo> results = new ArrayList<ThingInfo>();
 		int insertedCommentIndex;
 		String genericListingError = "Not a comments listing";
 		try {
-			Listing[] listings = mObjectMapper.readValue(in, Listing[].class);
+
+			
+			Listing[] listings = mObjectMapper.readValue(in, Listing[].class);  
 
 			// listings[0] is a thread Listing for the OP.
 			// process same as a thread listing more or less
@@ -239,7 +293,7 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 			// Save modhash, ignore "after" and "before" which are meaningless in this context (and probably null)
 			ListingData threadListingData = listings[0].getData();
 			if (StringUtils.isEmpty(threadListingData.getModhash()))  
-				mSettings.setModhash(null);
+				mSettings.setModhash(null); 
 			else
 				mSettings.setModhash(threadListingData.getModhash());
 			
@@ -249,9 +303,8 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 			Assert.assertEquals(Constants.THREAD_KIND, threadThingListing.getKind(), genericListingError);
 
 			insertedCommentIndex = 0;  // we just inserted the OP into position 0
+
 			
-			// at this point we've started displaying comments, so disable the loading screen
-			disableLoadingScreenKeepProgress();
 			
 			// listings[1] is a comment Listing for the comments 
 			// Go through the children and get the ThingInfos
@@ -270,7 +323,7 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 					Matcher matcher1 = pattern1.matcher(Html.fromHtml(thingInfo.getBody_html()));  
 					Matcher matcher2 = pattern2.matcher(Html.fromHtml(thingInfo.getBody_html()));
 					Matcher matcher3 = pattern3.matcher(Html.fromHtml(thingInfo.getBody_html()));
-					
+					 
 					boolean one = matcher1.find();
 					boolean two = matcher2.find();
 					boolean three = matcher3.find();
@@ -286,9 +339,7 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 					        	ci.setSpannedBody(spanned);
 							}
 							
-							MyPost myPost = new MyPost(ci, threadId);
-							
-							deferCommentAppend(myPost);
+							results.add(ci);
 						}
 					}
 				}
@@ -298,6 +349,8 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 		} catch (Exception ex) {
 			if (Constants.LOGGING) Log.e(TAG, "parseCommentsJSON", ex);
 		}
+		
+		return results;
 	}
     
     
@@ -305,7 +358,7 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
      * Call from UI Thread
      */
     private void insertCommentsUI() {
-    	mListenerRef.get().updateMyPosts(mDeferredAppendList);
+//    	mListenerRef.get().updateMyPosts(mDeferredAppendList);
     }
 	
     
@@ -314,25 +367,24 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
     	mDeferredAppendList.clear();
     }
     
-    @Override
-	public void onPreExecute() {
-		if (mThreadIds == null) {
-			if (Constants.LOGGING) Log.e(TAG, "mSettings.threadId == null");
-    		this.cancel(true);
-    		return;
-		}
-		synchronized (mCurrentDownloadCommentsTaskLock) {
-    		if (mCurrentDownloadCommentsTask != null) {
-    			mCurrentDownloadCommentsTask.cancel(true);
-    		}
-    		mCurrentDownloadCommentsTask = this;
-		}
-		
-		mListenerRef.get().enableLoadingScreen();
-		
-		if (mContentLength == -1)
-			((Fragment) mListenerRef.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
-	}
+//    @Override
+//	public void onPreExecute() {
+//		if (mThreadIds == null) {
+//			if (Constants.LOGGING) Log.e(TAG, "mSettings.threadId == null");
+//    		this.cancel(true);
+//    		return;
+//		}
+//		synchronized (mCurrentDownloadCommentsTaskLock) {
+//    		if (mCurrentDownloadCommentsTask != null) {
+//    			mCurrentDownloadCommentsTask.cancel(true);
+//    		}
+//    		mCurrentDownloadCommentsTask = this;
+//		}
+//		
+//		
+//		if (mContentLength == -1)
+//			((Fragment) mListenerRef.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
+//	}
     
 	@Override
 	public void onPostExecute(Boolean success) {
@@ -351,7 +403,6 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 			} else {
 				if (!isCancelled()) {
 					Common.showErrorToast("No Internet Connection", Toast.LENGTH_LONG, ((Fragment) mListenerRef.get()).getActivity());
-					mListenerRef.get().resetUI();
 				}
 			}
 		}
@@ -363,17 +414,6 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 		mListenerRef = null;
 	}
 	
-	@Override
-	public void onProgressUpdate(Long... progress) {
-		
-		if( mListenerRef.get() != null && ((Fragment) mListenerRef.get()).getActivity() != null )
-		{
-			if (mContentLength == -1)
-				((Fragment) mListenerRef.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
-			else
-				((Fragment) mListenerRef.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, progress[0].intValue() * (Window.PROGRESS_END-1) / (int) mContentLength);
-		}
-	}
 	
 	@Override
 	public void propertyChange(PropertyChangeEvent event) {

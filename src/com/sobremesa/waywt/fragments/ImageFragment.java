@@ -1,7 +1,6 @@
 package com.sobremesa.waywt.fragments;
 
 import com.sobremesa.waywt.R;
-import com.sobremesa.waywt.database.tables.ImageTable;
 import com.sobremesa.waywt.model.ThingInfo;
 import com.xtremelabs.imageutils.ImageLoader;
 import com.xtremelabs.imageutils.ImageLoaderListener;

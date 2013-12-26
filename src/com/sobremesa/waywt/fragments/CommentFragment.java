@@ -32,7 +32,6 @@ import com.sobremesa.waywt.common.Common;
 import com.sobremesa.waywt.common.Constants;
 import com.sobremesa.waywt.common.RedditIsFunHttpClientFactory;
 import com.sobremesa.waywt.contentprovider.Provider;
-import com.sobremesa.waywt.database.tables.ImageTable;
 import com.sobremesa.waywt.database.tables.CommentTable;
 import com.sobremesa.waywt.listeners.CommentsListener;
 import com.sobremesa.waywt.listeners.RepliesListener;
@@ -105,7 +104,6 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
-import android.widget.ViewFlipper;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -313,7 +311,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     	// TODO Auto-generated method stub
     	super.onDestroyView();
     	
-    	unbindDrawables(getView().findViewById(R.id.vf));
+    	unbindDrawables(getView().findViewById(R.id.root_layout));
     }
 	
 	private void unbindDrawables(View view)
@@ -510,8 +508,6 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 					
 					if( parentView != null )
 					{
-						ViewFlipper vf = (ViewFlipper)parentView.findViewById(R.id.vf);
-						vf.setDisplayedChild(1);
 						
 						ListView lv = (ListView)parentView.findViewById(R.id.replies_lv);
 						lv.setVisibility(View.VISIBLE);
@@ -531,8 +527,6 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 					{
 						imageView.setImageBitmap(bitmap);
 					
-						ViewFlipper vf = (ViewFlipper)parentView.findViewById(R.id.vf);
-						vf.setDisplayedChild(1);
 						
 						ListView lv = (ListView)parentView.findViewById(R.id.replies_lv);
 						lv.setVisibility(View.VISIBLE);
@@ -628,8 +622,6 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 			
 			if( parentView != null )
 			{
-				ViewFlipper vf = (ViewFlipper)parentView.findViewById(R.id.vf);
-				vf.setDisplayedChild(1);
 				
 				ListView lv = (ListView)parentView.findViewById(R.id.replies_lv);
 				lv.setVisibility(View.VISIBLE);
@@ -1252,8 +1244,6 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 				}
 			}
 			
-//			ViewFlipper vf = (ViewFlipper)getView().findViewById(R.id.vf);
-//			vf.setDisplayedChild(1);
 		}
 	}
 	

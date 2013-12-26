@@ -30,6 +30,7 @@ import android.os.Parcelable;
 import android.text.Html;
 import android.text.SpannableString;
 
+import com.sobremesa.waywt.service.RemoteObject;
 import com.sobremesa.waywt.util.MarkdownURL;
 
 /**
@@ -38,7 +39,7 @@ import com.sobremesa.waywt.util.MarkdownURL;
  * @author TalkLittle
  *
  */
-public class ThingInfo implements Serializable, Parcelable, Comparable<ThingInfo> {
+public class ThingInfo extends RemoteObject implements Serializable, Parcelable, Comparable<ThingInfo> {
 	static final long serialVersionUID = 40;
 	
 	// thread: t
@@ -511,6 +512,11 @@ public class ThingInfo implements Serializable, Parcelable, Comparable<ThingInfo
 		booleans[8] = mIsHiddenCommentHead;
 		booleans[9] = mIsHiddenCommentDescendant;
 		out.writeBooleanArray(booleans);
+		
+		// WAYWT
+		out.writeValue(postTitle);
+		out.writeValue(postPermalink);
+		out.writeValue(threadId);
 	}
 
 	private ThingInfo(Parcel in) {
@@ -554,6 +560,12 @@ public class ThingInfo implements Serializable, Parcelable, Comparable<ThingInfo
 		mIsLoadMoreCommentsPlaceholder = booleans[7];
 		mIsHiddenCommentHead           = booleans[8];
 		mIsHiddenCommentDescendant     = booleans[9];
+		
+		
+		// WAYWT
+		postTitle     = (String) in.readValue(null);
+		postPermalink     = (String) in.readValue(null);
+		threadId     = (String) in.readValue(null);
 	}
 
 	public static final Parcelable.Creator<ThingInfo> CREATOR
@@ -571,6 +583,47 @@ public class ThingInfo implements Serializable, Parcelable, Comparable<ThingInfo
 	public int compareTo(ThingInfo another) {
 		
 		return (another.ups-another.downs)-(this.ups-this.downs);
+	}
+
+	
+	
+	// WAYWT
+	private String postTitle = "";				
+	private String postPermalink = "";		
+	private String threadId = "";	
+	
+	@Override
+	public String getIdentifier() {
+		return name;
+	}
+	
+	
+	
+	public void setPostTitle( String title )
+	{
+		postTitle = title;
+	}
+	
+	public void setPostPermalink( String permalink )
+	{
+		postPermalink = permalink;
+	}
+	
+	public void setThreadId( String id )
+	{
+		threadId = id;
+	}
+	
+	public String getPostTitle() {
+		return postTitle;
+	}
+	
+	public String getPostPermalink() {
+		return postPermalink;
+	}
+	
+	public String getThreadId() {
+		return threadId;
 	}
 
 }

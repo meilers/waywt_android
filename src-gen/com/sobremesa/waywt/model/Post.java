@@ -10,7 +10,7 @@ import com.sobremesa.waywt.database.tables.PostTable;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.12.01	 
+ * @date 2013.12.25	 
  */
 public class Post {
 

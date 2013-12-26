@@ -29,7 +29,7 @@ import android.util.Log;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.12.01
+ * @date 2013.12.25
  */
 public class Provider extends ContentProvider {
 	private static final String TAG = "com.sobremesa.waywt.contentprovider.Provider";
@@ -40,14 +40,8 @@ public class Provider extends ContentProvider {
 	public static final Uri POST_CONTENT_URI = Uri.withAppendedPath(
 			Provider.AUTHORITY_URI, PostContent.CONTENT_PATH);
 
-	public static final Uri IMAGE_CONTENT_URI = Uri.withAppendedPath(
-			Provider.AUTHORITY_URI, ImageContent.CONTENT_PATH);
-
 	public static final Uri COMMENT_CONTENT_URI = Uri.withAppendedPath(
 			Provider.AUTHORITY_URI, CommentContent.CONTENT_PATH);
-
-	public static final Uri REPLY_CONTENT_URI = Uri.withAppendedPath(
-			Provider.AUTHORITY_URI, ReplyContent.CONTENT_PATH);
 
 	private static final UriMatcher URI_MATCHER;
 
@@ -55,26 +49,16 @@ public class Provider extends ContentProvider {
 
 	private static final int POST_DIR = 0;
 	private static final int POST_ID = 1;
-	private static final int IMAGE_DIR = 2;
-	private static final int IMAGE_ID = 3;
-	private static final int COMMENT_DIR = 4;
-	private static final int COMMENT_ID = 5;
-	private static final int REPLY_DIR = 6;
-	private static final int REPLY_ID = 7;
+	private static final int COMMENT_DIR = 2;
+	private static final int COMMENT_ID = 3;
 
 	static {
 		URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
 		URI_MATCHER.addURI(AUTHORITY, PostContent.CONTENT_PATH, POST_DIR);
 		URI_MATCHER.addURI(AUTHORITY, PostContent.CONTENT_PATH + "/#", POST_ID);
-		URI_MATCHER.addURI(AUTHORITY, ImageContent.CONTENT_PATH, IMAGE_DIR);
-		URI_MATCHER.addURI(AUTHORITY, ImageContent.CONTENT_PATH + "/#",
-				IMAGE_ID);
 		URI_MATCHER.addURI(AUTHORITY, CommentContent.CONTENT_PATH, COMMENT_DIR);
 		URI_MATCHER.addURI(AUTHORITY, CommentContent.CONTENT_PATH + "/#",
 				COMMENT_ID);
-		URI_MATCHER.addURI(AUTHORITY, ReplyContent.CONTENT_PATH, REPLY_DIR);
-		URI_MATCHER.addURI(AUTHORITY, ReplyContent.CONTENT_PATH + "/#",
-				REPLY_ID);
 	}
 
 	/**
@@ -105,33 +89,6 @@ public class Provider extends ContentProvider {
 	}
 
 	/**
-	 * Provides the content information of the ImageTable.
-	 * 
-	 * CONTENT_PATH: image (String)
-	 * CONTENT_TYPE: vnd.android.cursor.dir/vnd.mdsdacp.image (String)
-	 * CONTENT_ITEM_TYPE: vnd.android.cursor.item/vnd.mdsdacp.image (String)
-	 * ALL_COLUMNS: Provides the same information as ImageTable.ALL_COLUMNS (String[])
-	 */
-	public static final class ImageContent implements BaseColumns {
-		/**
-		 * Specifies the content path of the ImageTable for the required uri
-		 * Exact URI: content://com.sobremesa.waywt.provider.Model/image
-		 */
-		public static final String CONTENT_PATH = "image";
-
-		/**
-		 * Specifies the type for the folder and the single item of the ImageTable  
-		 */
-		public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.mdsdacp.image";
-		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.mdsdacp.image";
-
-		/**
-		 * Contains all columns of the ImageTable
-		 */
-		public static final String[] ALL_COLUMNS = ImageTable.ALL_COLUMNS;
-	}
-
-	/**
 	 * Provides the content information of the CommentTable.
 	 * 
 	 * CONTENT_PATH: comment (String)
@@ -159,33 +116,6 @@ public class Provider extends ContentProvider {
 	}
 
 	/**
-	 * Provides the content information of the ReplyTable.
-	 * 
-	 * CONTENT_PATH: reply (String)
-	 * CONTENT_TYPE: vnd.android.cursor.dir/vnd.mdsdacp.reply (String)
-	 * CONTENT_ITEM_TYPE: vnd.android.cursor.item/vnd.mdsdacp.reply (String)
-	 * ALL_COLUMNS: Provides the same information as ReplyTable.ALL_COLUMNS (String[])
-	 */
-	public static final class ReplyContent implements BaseColumns {
-		/**
-		 * Specifies the content path of the ReplyTable for the required uri
-		 * Exact URI: content://com.sobremesa.waywt.provider.Model/reply
-		 */
-		public static final String CONTENT_PATH = "reply";
-
-		/**
-		 * Specifies the type for the folder and the single item of the ReplyTable  
-		 */
-		public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.mdsdacp.reply";
-		public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.mdsdacp.reply";
-
-		/**
-		 * Contains all columns of the ReplyTable
-		 */
-		public static final String[] ALL_COLUMNS = ReplyTable.ALL_COLUMNS;
-	}
-
-	/**
 	 * Instantiate the database, when the content provider is created
 	 */
 	@Override
@@ -209,18 +139,10 @@ public class Provider extends ContentProvider {
 				return PostContent.CONTENT_TYPE;
 			case POST_ID :
 				return PostContent.CONTENT_ITEM_TYPE;
-			case IMAGE_DIR :
-				return ImageContent.CONTENT_TYPE;
-			case IMAGE_ID :
-				return ImageContent.CONTENT_ITEM_TYPE;
 			case COMMENT_DIR :
 				return CommentContent.CONTENT_TYPE;
 			case COMMENT_ID :
 				return CommentContent.CONTENT_ITEM_TYPE;
-			case REPLY_DIR :
-				return ReplyContent.CONTENT_TYPE;
-			case REPLY_ID :
-				return ReplyContent.CONTENT_ITEM_TYPE;
 			default :
 				throw new IllegalArgumentException("Unsupported URI: " + uri);
 		}
@@ -253,16 +175,6 @@ public class Provider extends ContentProvider {
 							null);
 					dbConnection.setTransactionSuccessful();
 					return newPost;
-				case IMAGE_DIR :
-				case IMAGE_ID :
-					final long imageid = dbConnection.insertOrThrow(
-							ImageTable.TABLE_NAME, null, values);
-					final Uri newImage = ContentUris.withAppendedId(
-							IMAGE_CONTENT_URI, imageid);
-					getContext().getContentResolver().notifyChange(newImage,
-							null);
-					dbConnection.setTransactionSuccessful();
-					return newImage;
 				case COMMENT_DIR :
 				case COMMENT_ID :
 					final long commentid = dbConnection.insertOrThrow(
@@ -273,16 +185,6 @@ public class Provider extends ContentProvider {
 							null);
 					dbConnection.setTransactionSuccessful();
 					return newComment;
-				case REPLY_DIR :
-				case REPLY_ID :
-					final long replyid = dbConnection.insertOrThrow(
-							ReplyTable.TABLE_NAME, null, values);
-					final Uri newReply = ContentUris.withAppendedId(
-							REPLY_CONTENT_URI, replyid);
-					getContext().getContentResolver().notifyChange(newReply,
-							null);
-					dbConnection.setTransactionSuccessful();
-					return newReply;
 				default :
 					throw new IllegalArgumentException("Unsupported URI:" + uri);
 			}
@@ -337,26 +239,6 @@ public class Provider extends ContentProvider {
 					dbConnection.setTransactionSuccessful();
 					break;
 
-				case IMAGE_DIR :
-					updateCount = dbConnection.update(ImageTable.TABLE_NAME,
-							values, selection, selectionArgs);
-					dbConnection.setTransactionSuccessful();
-					break;
-				case IMAGE_ID :
-					final Long imageId = ContentUris.parseId(uri);
-					updateCount = dbConnection.update(
-							ImageTable.TABLE_NAME,
-							values,
-							ImageTable.ID
-									+ "="
-									+ imageId
-									+ (TextUtils.isEmpty(selection)
-											? ""
-											: " AND (" + selection + ")"),
-							selectionArgs);
-					dbConnection.setTransactionSuccessful();
-					break;
-
 				case COMMENT_DIR :
 					updateCount = dbConnection.update(CommentTable.TABLE_NAME,
 							values, selection, selectionArgs);
@@ -368,26 +250,6 @@ public class Provider extends ContentProvider {
 							values, CommentTable.ID
 									+ "="
 									+ commentId
-									+ (TextUtils.isEmpty(selection)
-											? ""
-											: " AND (" + selection + ")"),
-							selectionArgs);
-					dbConnection.setTransactionSuccessful();
-					break;
-
-				case REPLY_DIR :
-					updateCount = dbConnection.update(ReplyTable.TABLE_NAME,
-							values, selection, selectionArgs);
-					dbConnection.setTransactionSuccessful();
-					break;
-				case REPLY_ID :
-					final Long replyId = ContentUris.parseId(uri);
-					updateCount = dbConnection.update(
-							ReplyTable.TABLE_NAME,
-							values,
-							ReplyTable.ID
-									+ "="
-									+ replyId
 									+ (TextUtils.isEmpty(selection)
 											? ""
 											: " AND (" + selection + ")"),
@@ -440,17 +302,6 @@ public class Provider extends ContentProvider {
 									.getPathSegments().get(1)});
 					dbConnection.setTransactionSuccessful();
 					break;
-				case IMAGE_DIR :
-					deleteCount = dbConnection.delete(ImageTable.TABLE_NAME,
-							selection, selectionArgs);
-					dbConnection.setTransactionSuccessful();
-					break;
-				case IMAGE_ID :
-					deleteCount = dbConnection.delete(ImageTable.TABLE_NAME,
-							ImageTable.WHERE_ID_EQUALS, new String[]{uri
-									.getPathSegments().get(1)});
-					dbConnection.setTransactionSuccessful();
-					break;
 				case COMMENT_DIR :
 					deleteCount = dbConnection.delete(CommentTable.TABLE_NAME,
 							selection, selectionArgs);
@@ -459,17 +310,6 @@ public class Provider extends ContentProvider {
 				case COMMENT_ID :
 					deleteCount = dbConnection.delete(CommentTable.TABLE_NAME,
 							CommentTable.WHERE_ID_EQUALS, new String[]{uri
-									.getPathSegments().get(1)});
-					dbConnection.setTransactionSuccessful();
-					break;
-				case REPLY_DIR :
-					deleteCount = dbConnection.delete(ReplyTable.TABLE_NAME,
-							selection, selectionArgs);
-					dbConnection.setTransactionSuccessful();
-					break;
-				case REPLY_ID :
-					deleteCount = dbConnection.delete(ReplyTable.TABLE_NAME,
-							ReplyTable.WHERE_ID_EQUALS, new String[]{uri
 									.getPathSegments().get(1)});
 					dbConnection.setTransactionSuccessful();
 					break;
@@ -515,23 +355,11 @@ public class Provider extends ContentProvider {
 			case POST_DIR :
 				queryBuilder.setTables(PostTable.TABLE_NAME);
 				break;
-			case IMAGE_ID :
-				queryBuilder.appendWhere(ImageTable.ID + "="
-						+ uri.getPathSegments().get(1));
-			case IMAGE_DIR :
-				queryBuilder.setTables(ImageTable.TABLE_NAME);
-				break;
 			case COMMENT_ID :
 				queryBuilder.appendWhere(CommentTable.ID + "="
 						+ uri.getPathSegments().get(1));
 			case COMMENT_DIR :
 				queryBuilder.setTables(CommentTable.TABLE_NAME);
-				break;
-			case REPLY_ID :
-				queryBuilder.appendWhere(ReplyTable.ID + "="
-						+ uri.getPathSegments().get(1));
-			case REPLY_DIR :
-				queryBuilder.setTables(ReplyTable.TABLE_NAME);
 				break;
 			default :
 				throw new IllegalArgumentException("Unsupported URI:" + uri);

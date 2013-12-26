@@ -99,6 +99,13 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 		this.mClient = client;  
 	}
 	
+	public static void clearTasks()
+	{
+		if( mCurrentDownloadCommentsTask != null )
+			mCurrentDownloadCommentsTask.cancel(true);
+		
+		mCurrentDownloadCommentsTask = null;
+	}
 
 	
 	// XXX: maxComments is unused for now
@@ -312,7 +319,8 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
      * Call from UI Thread
      */
     private void insertOPCommentUI(ThingInfo comment) {
-    	mListenerRef.get().updateOPComment(comment);
+    	if( mListenerRef.get() != null )
+    		mListenerRef.get().updateOPComment(comment);
     }
     
     
@@ -320,7 +328,8 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
      * Call from UI Thread
      */
     private void insertCommentsUI() {
-    	mListenerRef.get().updateComments(mDeferredAppendList);
+    	if( mListenerRef.get() != null )
+    		mListenerRef.get().updateComments(mDeferredAppendList);
     }
 	
     

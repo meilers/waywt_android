@@ -31,9 +31,11 @@ import com.sobremesa.waywt.application.WaywtApplication;
 import com.sobremesa.waywt.common.CacheInfo;
 import com.sobremesa.waywt.common.Common;
 import com.sobremesa.waywt.common.Constants;
+import com.sobremesa.waywt.listeners.MyPostsListener;
 import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.model.ThingInfo;
 import com.sobremesa.waywt.settings.RedditSettings;
+import com.sobremesa.waywt.tasks.DownloadMyPostsTask;
 import com.sobremesa.waywt.tasks.ImgurUploadTask;
 import com.sobremesa.waywt.util.UserUtil;
 
@@ -45,6 +47,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Base64;
@@ -69,7 +72,7 @@ import android.widget.Toast;
  *
  * @author Sebastian Kaspari <sebastian@androidzeitgeist.com>
  */
-public class PhotoActivity extends BaseFragmentActivity {
+public class PhotoActivity extends BaseFragmentActivity implements MyPostsListener {
 	private static final String TAG = PhotoActivity.class.getSimpleName();
 	
     private static final String MIME_TYPE = "image/jpeg";
@@ -95,6 +98,8 @@ public class PhotoActivity extends BaseFragmentActivity {
 	private EditText mDescriptionEt;
 	
 
+	
+	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -137,7 +142,6 @@ public class PhotoActivity extends BaseFragmentActivity {
     {
 		if( !mTitleEt.getText().toString().isEmpty() && !mDescriptionEt.getText().toString().isEmpty() )
 		{
-			showProgressDialog("UPLOADING PHOTO TO IMGUR");
 			new MyImgurUploadTask(mImageUri).execute();
 		}
 		else
@@ -153,6 +157,9 @@ public class PhotoActivity extends BaseFragmentActivity {
 		@Override
 		protected void onPreExecute() {
 			super.onPreExecute();
+			
+			showProgressDialog("UPLOADING PHOTO TO IMGUR");
+			
 			if (mImgurUploadTask != null) {
 				boolean cancelled = mImgurUploadTask.cancel(false);
 				if (!cancelled)
@@ -175,7 +182,6 @@ public class PhotoActivity extends BaseFragmentActivity {
 				text += System.getProperty ("line.separator") + System.getProperty ("line.separator");
 				text += mDescriptionEt.getText().toString();
 				
-				showProgressDialog("POSTING TO REDDIT");
 				new CommentReplyTask(mComment.getName()).execute(text);
 				
 			} else {
@@ -192,6 +198,8 @@ public class PhotoActivity extends BaseFragmentActivity {
     	CommentReplyTask(String parentThingId) {
     		_mParentThingId = parentThingId;
     	}
+    	
+    	
     	
     	@Override
         public String doInBackground(String... text) {
@@ -258,6 +266,7 @@ public class PhotoActivity extends BaseFragmentActivity {
     	
     	@Override
     	public void onPreExecute() {
+			showProgressDialog("POSTING TO REDDIT");
     	}
     	
     	@Override
@@ -272,9 +281,23 @@ public class PhotoActivity extends BaseFragmentActivity {
     			// Refresh
     			CacheInfo.invalidateCachedThread(WaywtApplication.getContext());
     			
-				Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-				intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-				startActivity(intent);
+    			List<String> threadIds = new ArrayList<String>();
+    			List<String> permalinks = new ArrayList<String>();
+    			List<String> titles = new ArrayList<String>();
+    			threadIds.add(mComment.getThreadId());
+    			permalinks.add(mComment.getPostPermalink());
+    			titles.add(mComment.getPostTitle());
+    			
+    			Log.d("threadId", mComment.getThreadId());
+    			Log.d("permalink", mComment.getPostPermalink());
+    			
+				showProgressDialog("FINALIZING...");
+				
+    			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+    				new DownloadMyPostsTask(PhotoActivity.this, UserUtil.getSubreddit(), threadIds, permalinks, titles, mRedditSettings, mRedditClient).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+    			else
+    				new DownloadMyPostsTask(PhotoActivity.this, UserUtil.getSubreddit(), threadIds, permalinks, titles, mRedditSettings, mRedditClient).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+
     		}
     	}
     }
@@ -304,17 +327,16 @@ public class PhotoActivity extends BaseFragmentActivity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+
+
+	@Override
+	public void onSuccess() {
+		hideProgressDialog();
+		
+		Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		startActivity(intent);
+	}
 	
 
-	
-
-    private void initializeShareAction(MenuItem shareItem) {
-        ShareActionProvider shareProvider = (ShareActionProvider) shareItem.getActionProvider();
-
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.putExtra(Intent.EXTRA_STREAM, mImageUri);
-        shareIntent.setType(MIME_TYPE);
-
-        shareProvider.setShareIntent(shareIntent);
-    }
 }

@@ -39,8 +39,6 @@ public class WaywtApplication extends Application {
 		ImageLoader.setMaximumMemCacheSize(this, MAX_IMAGES_MEM_CACHE_SIZE);
 
 		sContext = getApplicationContext();
-		
-		mRedditSettings.loadRedditPreferences(sContext, mRedditClient);
 	}
 	
 	

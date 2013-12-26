@@ -1,11 +1,14 @@
 package com.sobremesa.waywt.fragments;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,16 +20,19 @@ import com.sobremesa.waywt.util.Util;
 import com.sobremesa.waywt.R;
 import com.sobremesa.waywt.activities.CameraActivity;
 import com.sobremesa.waywt.activities.MainActivity;
+import com.sobremesa.waywt.activities.MainActivity.DrawerTabIndex;
+import com.sobremesa.waywt.activities.MainActivity.NavItem;
 import com.sobremesa.waywt.application.WaywtApplication;
 import com.sobremesa.waywt.common.Constants;  
 import com.sobremesa.waywt.common.RedditIsFunHttpClientFactory;
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.CommentTable;
+import com.sobremesa.waywt.database.tables.PostTable;
 import com.sobremesa.waywt.enums.SortByType;
 import com.sobremesa.waywt.listeners.CommentsListener;
 import com.sobremesa.waywt.listeners.MyPostsListener;
 import com.sobremesa.waywt.managers.FontManager;
-import com.sobremesa.waywt.model.MyPost;
+import com.sobremesa.waywt.model.Post;
 import com.sobremesa.waywt.model.ThingInfo;
 import com.sobremesa.waywt.service.PostService;
 import com.sobremesa.waywt.settings.RedditSettings;
@@ -36,6 +42,8 @@ import com.viewpagerindicator.TitlePageIndicator;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
@@ -46,6 +54,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -56,15 +65,17 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.CookieSyncManager;
 import android.widget.Toast;
-import android.widget.ViewFlipper;
 
-public class MyPostsFragment extends Fragment implements MyPostsListener {
+public class MyPostsFragment extends Fragment implements MyPostsListener, LoaderCallbacks<Cursor> {
 
 	public static final String TAG = WaywtFragment.class.getCanonicalName();
 
+	public static final int POST_LOADER_ID = 0;
+	public static final int COMMENT_LOADER_ID = 1;
+	
+	
 	public static class Extras {
 		public static String SUBREDDIT = "subreddit";
-		public static String PERMALINKS = "permalinks";
 	}
 	
 	
@@ -74,10 +85,12 @@ public class MyPostsFragment extends Fragment implements MyPostsListener {
 
 	private ViewPager mPager;
 	public MyPostPagerAdapter mPagerAdapter;
-	private TitlePageIndicator mindicator;
+	private TitlePageIndicator mIndicator;
 
 	private String mSubreddit = UserUtil.getSubreddit();
 	private List<String> mThreadIds;
+	private List<String> mPermalinks;
+	private List<String> mTitles;
 	private ThingInfo mOPComment = null;
 	
 	private final HttpClient mRedditClient = WaywtApplication.getRedditClient();
@@ -88,7 +101,7 @@ public class MyPostsFragment extends Fragment implements MyPostsListener {
 	
 	
 	private DownloadMyPostsTask getNewDownloadMyPostsTask() {
-		return new DownloadMyPostsTask(this, mSubreddit, mThreadIds, mRedditSettings, mRedditClient);
+		return new DownloadMyPostsTask(this, mSubreddit, mThreadIds,mPermalinks, mTitles, mRedditSettings, mRedditClient);
 	}
 
 	@Override
@@ -96,64 +109,26 @@ public class MyPostsFragment extends Fragment implements MyPostsListener {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 
-		ArrayList<String> permalinks = getArguments().getStringArrayList(Extras.PERMALINKS);
 		mThreadIds = new ArrayList<String>();
+		mPermalinks = new ArrayList<String>();
+		mTitles = new ArrayList<String>();
+		
 		mSubreddit = getArguments().getString(Extras.SUBREDDIT);
 
-		for( String s : permalinks )
-		{
-			String commentPath = null;
-			String commentQuery;
-			String jumpToCommentId = null;
-			Uri data = Uri.parse(s);
-			if (data != null) {
-				// Comment path: a URL pointing to a thread or a comment in a
-				// thread.
-				commentPath = data.getPath();
-				commentQuery = data.getQuery();
-			} else {
-				if (Constants.LOGGING)
-					Log.e(TAG, "Quitting because no subreddit and thread id data was passed into the Intent.");
-				getActivity().finish();
-			}
-			
-			if (commentPath != null) {
-				if (Constants.LOGGING)
-					Log.d(TAG, "comment path: " + commentPath);
-				
-				if (Util.isRedditShortenedUri(data)) {
-					// http://redd.it/abc12
-					mThreadIds.add(commentPath.substring(1));
-				} else {
-					// http://www.reddit.com/...
-					Matcher m = COMMENT_PATH_PATTERN.matcher(commentPath);
-					if (m.matches()) {
-						mSubreddit = m.group(1);
-						mThreadIds.add(m.group(2));
-						jumpToCommentId = m.group(3);
-					}
-				}
-			} else {
-				if (Constants.LOGGING)
-					Log.e(TAG, "Quitting because of bad comment path.");
-				getActivity().finish();
-			}
-			
-		}
 	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
-		View view = inflater.inflate(R.layout.fragment_waywt, null, false);
+		View view = inflater.inflate(R.layout.fragment_my_posts, null, false);
 
 		mPager = (ViewPager) view.findViewById(R.id.pager);
 		mPagerAdapter = new MyPostPagerAdapter(getChildFragmentManager(), mSubreddit);
 		mPager.setAdapter(mPagerAdapter);
 
-		mindicator = (TitlePageIndicator) view.findViewById(R.id.page_indicator);
-		mindicator.setViewPager(mPager);
-		mindicator.setTypeface(FontManager.INSTANCE.getAppFont());
+		mIndicator = (TitlePageIndicator) view.findViewById(R.id.page_indicator);
+		mIndicator.setViewPager(mPager);
+		mIndicator.setTypeface(FontManager.INSTANCE.getAppFont());
 
 		
 		return view;
@@ -164,7 +139,12 @@ public class MyPostsFragment extends Fragment implements MyPostsListener {
 		// TODO Auto-generated method stub
 		super.onViewCreated(view, savedInstanceState);
 
-		fetchComments();
+		if( mRedditSettings.isLoggedIn() )
+		{
+			getLoaderManager().initLoader(POST_LOADER_ID, null, this);
+			getLoaderManager().initLoader(COMMENT_LOADER_ID, null, this);			
+		}
+
 	}
 	
 
@@ -191,26 +171,6 @@ public class MyPostsFragment extends Fragment implements MyPostsListener {
 		super.onDestroy();
 	}
 
-	@Override
-	public void resetUI() {
-		// findViewById(R.id.loading_light).setVisibility(View.GONE);
-		// findViewById(R.id.loading_dark).setVisibility(View.GONE);
-
-		if( mPagerAdapter != null )
-			mPagerAdapter.mIsLoading = false;
-	}
-
-	@Override
-	public void enableLoadingScreen() {
-		// findViewById(R.id.loading_light).setVisibility(View.VISIBLE);
-		// findViewById(R.id.loading_dark).setVisibility(View.GONE);
-
-		if (mPagerAdapter != null)
-			mPagerAdapter.mIsLoading = true;
-		getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_START);
-	}
-
-
 	
 	
 	private void fetchComments()
@@ -220,7 +180,10 @@ public class MyPostsFragment extends Fragment implements MyPostsListener {
 			mRefreshMenuItem.setVisible(false);
 		}
 		
-		getNewDownloadMyPostsTask().execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+			getNewDownloadMyPostsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+		else
+			getNewDownloadMyPostsTask().execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
 	}
 	
 	
@@ -244,7 +207,7 @@ public class MyPostsFragment extends Fragment implements MyPostsListener {
 	public static class MyPostPagerAdapter extends FragmentStatePagerAdapter {
 		public boolean mIsLoading = false;
 
-		private ArrayList<MyPost> mMyPosts = new ArrayList<MyPost>();
+		private ArrayList<ThingInfo> mMyPosts = new ArrayList<ThingInfo>();
 
 		private String mSubreddit = "";
 
@@ -254,10 +217,9 @@ public class MyPostsFragment extends Fragment implements MyPostsListener {
 			mSubreddit = subreddit;
 		}
 
-		public void addMyPosts(List<MyPost> myPosts) {
-			
+		public void addMyPosts(List<ThingInfo> comments) {
 			mMyPosts.clear();
-			mMyPosts.addAll(myPosts);
+			mMyPosts.addAll(comments);
 
 			this.notifyDataSetChanged();
 		}
@@ -268,8 +230,8 @@ public class MyPostsFragment extends Fragment implements MyPostsListener {
 			CommentFragment fragment = new CommentFragment();
 			Bundle args = new Bundle();
 			args.putString(CommentFragment.Extras.SUBREDDIT, mSubreddit);
-			args.putString(CommentFragment.Extras.THREAD_ID, mMyPosts.get(position).getThreadId());
-			args.putParcelable(CommentFragment.Extras.COMMENT, mMyPosts.get(position).getComment());
+			args.putString(CommentFragment.Extras.THREAD_ID,  mMyPosts.get(position).getThreadId());
+			args.putParcelable(CommentFragment.Extras.COMMENT, mMyPosts.get(position));  
 			fragment.setArguments(args);
 
 			return fragment;
@@ -283,10 +245,7 @@ public class MyPostsFragment extends Fragment implements MyPostsListener {
 
 		@Override
 		public CharSequence getPageTitle(int position) {
-			if (mMyPosts.get(position).getComment().getAuthor() != null)
-				return mMyPosts.get(position).getComment().getAuthor().toUpperCase();
-
-			return null;
+			return mMyPosts.get(position).getPostTitle().toUpperCase();
 		}
 
 	}
@@ -429,33 +388,142 @@ public class MyPostsFragment extends Fragment implements MyPostsListener {
 		return super.onOptionsItemSelected(item);
 	}
 
+
 	@Override
-	public void updateMyPosts(List<MyPost> myPosts) {
-		if (getView() != null) {
-
-
-			mPagerAdapter.addMyPosts(myPosts);
-
-			ViewFlipper vf = (ViewFlipper) getView().findViewById(R.id.vf);
-			vf.setDisplayedChild(1);
-			
-			// UPDATE NAV BAR
-//			MainActivity act = (MainActivity)getActivity();
-//			
-//			if( act != null )
-//				act.updateCurrentNavItemDescription(comments.size()+" POSTS");
-			
-			
-			Log.d("yoo", "yooo");
-			
-			// UPDATE MENU ITEMS
-			if (mRefreshMenuItem != null && mLoadingMenuItem != null) {
-				mRefreshMenuItem.setVisible(true);
-				mLoadingMenuItem.setVisible(false);
-			}
+	public Loader<Cursor> onCreateLoader(int loaderId, Bundle arg1) {
+		switch(loaderId)
+		{
+		case POST_LOADER_ID:
+			return new CursorLoader(getActivity(), Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, PostTable.IS_MALE + "=?", new String[] { UserUtil.getIsMale() ? "1" : "0" }, PostTable.CREATED + " DESC");
+		case COMMENT_LOADER_ID:
+			return new CursorLoader(getActivity(), Provider.COMMENT_CONTENT_URI, CommentTable.ALL_COLUMNS, CommentTable.AUTHOR + "=?", new String[] { mRedditSettings.getUsername() }, CommentTable.CREATED + " DESC");
 		}
+		
+		return null;
+		
+	}
+
+	@Override
+	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+
+		switch( loader.getId() )
+		{
+		case POST_LOADER_ID:
+			
+			mThreadIds.clear();
+			mPermalinks.clear();
+			mTitles.clear();
+			
+			for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+				
+				mTitles.add(cursor.getString(cursor.getColumnIndex(PostTable.TITLE)));
+				mPermalinks.add(cursor.getString(cursor.getColumnIndex(PostTable.PERMALINK)));
+				
+				String commentPath = null;
+				String commentQuery;
+				String jumpToCommentId = null;
+				Uri data = Uri.parse(cursor.getString(cursor.getColumnIndex(PostTable.PERMALINK)));
+				if (data != null) {
+					// Comment path: a URL pointing to a thread or a comment in a
+					// thread.
+					commentPath = data.getPath();
+					commentQuery = data.getQuery();
+				} else {
+					if (Constants.LOGGING)
+						Log.e(TAG, "Quitting because no subreddit and thread id data was passed into the Intent.");
+					getActivity().finish();
+				}
+				
+				Post post;
+				
+				if (commentPath != null) {
+					if (Constants.LOGGING)
+						Log.d(TAG, "comment path: " + commentPath);
+					
+					post = new Post();
+					
+					if (Util.isRedditShortenedUri(data)) {
+						// http://redd.it/abc12
+						post.setPermalink(commentPath.substring(1));
+						post.setTitle(cursor.getString(cursor.getColumnIndex(PostTable.TITLE)));
+						mThreadIds.add(commentPath.substring(1));
+					} else {
+						// http://www.reddit.com/...
+						Matcher m = COMMENT_PATH_PATTERN.matcher(commentPath);
+						if (m.matches()) {
+							mSubreddit = m.group(1);
+							mThreadIds.add(m.group(2));
+							jumpToCommentId = m.group(3);
+						}
+					}
+				} else {
+					if (Constants.LOGGING)
+						Log.e(TAG, "Quitting because of bad comment path.");
+					getActivity().finish();
+				}
+			}
+			
+			fetchComments();
+			
+			
+			break;
+			
+		case COMMENT_LOADER_ID: 
+			
+			List<ThingInfo> myPosts = new ArrayList<ThingInfo>();
+			
+			for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+				
+				ThingInfo comment = new ThingInfo();
+				comment.setPostTitle(cursor.getString(cursor.getColumnIndex(CommentTable.POST_TITLE)));
+				comment.setPostPermalink(cursor.getString(cursor.getColumnIndex(CommentTable.POST_PERMALINK)));
+				
+				comment.setAuthor(cursor.getString(cursor.getColumnIndex(CommentTable.AUTHOR)));
+				comment.setBody_html(cursor.getString(cursor.getColumnIndex(CommentTable.BODY_HTML)));
+				comment.setId(cursor.getString(cursor.getColumnIndex(CommentTable.COMMENT_ID)));
+				comment.setDowns(cursor.getInt(cursor.getColumnIndex(CommentTable.DOWNS)));
+				comment.setUps(cursor.getInt(cursor.getColumnIndex(CommentTable.UPS)));
+				comment.setLikes(cursor.getInt(cursor.getColumnIndex(CommentTable.LIKES)) == 1);
+				comment.setName(cursor.getString(cursor.getColumnIndex(CommentTable.NAME)));
+				comment.setCreated_utc(cursor.getLong(cursor.getColumnIndex(CommentTable.CREATED)));
+				
+				myPosts.add(comment);
+			}
+			
+			if (getView() != null) {
+
+
+				mPagerAdapter.addMyPosts(myPosts);
+				mPager.setAdapter(mPagerAdapter);
+				
+//				ViewFlipper vf = (ViewFlipper) getView().findViewById(R.id.vf);
+//				vf.setDisplayedChild(1);
+				
+				// UPDATE MENU ITEMS
+				if (mRefreshMenuItem != null && mLoadingMenuItem != null) {
+					mRefreshMenuItem.setVisible(true);
+					mLoadingMenuItem.setVisible(false);
+				}
+			}
+			break;
+		}
+		
+
 	}
 	
+	
+
+	@Override
+	public void onLoaderReset(Loader<Cursor> arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onSuccess() {
+		// TODO Auto-generated method stub
+		
+	}
 
 
 }

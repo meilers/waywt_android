@@ -29,6 +29,7 @@ import com.sobremesa.waywt.model.ThingInfo;
 import com.sobremesa.waywt.service.PostService;
 import com.sobremesa.waywt.settings.RedditSettings;
 import com.sobremesa.waywt.tasks.DownloadCommentsTask;
+import com.sobremesa.waywt.tasks.DownloadRepliesTask;
 import com.viewpagerindicator.TitlePageIndicator;
 
 import android.content.Intent;
@@ -54,7 +55,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.CookieSyncManager;
 import android.widget.Toast;
-import android.widget.ViewFlipper;
 
 public class WaywtFragment extends Fragment implements CommentsListener {
 
@@ -63,6 +63,7 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 	public static class Extras {
 		public static String SUBREDDIT = "subreddit";
 		public static String PERMALINK = "permalink";
+		public static String POST_TITLE = "title";
 	}
 
 	private final Pattern COMMENT_PATH_PATTERN = Pattern.compile(Constants.COMMENT_PATH_PATTERN_STRING);
@@ -93,7 +94,8 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 		super.onCreate(savedInstanceState);
 
 		mSubreddit = getArguments().getString(Extras.SUBREDDIT);
-
+		mThreadId = getArguments().getString(Extras.POST_TITLE);
+		
 		String commentPath = null;
 		String commentQuery;
 		String jumpToCommentId = null;
@@ -176,9 +178,13 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 
 	@Override
 	public void onDestroy() {
-		mPagerAdapter = null;
 
 		super.onDestroy();
+		
+		mPagerAdapter = null;
+		
+		DownloadCommentsTask.clearTasks();
+		DownloadRepliesTask.clearTasks();
 	}
 
 	@Override
@@ -213,7 +219,7 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 				break;
 
 			case VOTES:
-				Collections.sort(comments);
+				Collections.sort(comments); 
 				break;
 
 //			case COMMENTS:
@@ -237,8 +243,7 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 			mPager.setAdapter(mPagerAdapter);
 			
 			
-			ViewFlipper vf = (ViewFlipper) getView().findViewById(R.id.vf);
-			vf.setDisplayedChild(1);
+	
 			
 			// UPDATE NAV BAR
 			MainActivity act = (MainActivity)getActivity();
@@ -246,8 +251,6 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 			if( act != null )
 				act.updateCurrentNavItemDescription(comments.size()+" POSTS");
 			
-			
-			Log.d("yoo", "yooo");
 			
 			// UPDATE MENU ITEMS
 			if (mRefreshMenuItem != null && mLoadingMenuItem != null) {
@@ -455,6 +458,9 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 				if( mOPComment != null )
 				{
 					Intent intent = new Intent(getActivity(), CameraActivity.class);
+					mOPComment.setPostPermalink(getArguments().getString(Extras.PERMALINK));
+					mOPComment.setPostTitle(getArguments().getString(Extras.POST_TITLE));
+					mOPComment.setThreadId(mThreadId);
 					intent.putExtra(CameraActivity.Extras.OP_COMMENT, (Parcelable)mOPComment);
 					startActivity(intent);					
 				}
@@ -487,6 +493,7 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 
 		return super.onOptionsItemSelected(item);
 	}
+	
 	
 
 

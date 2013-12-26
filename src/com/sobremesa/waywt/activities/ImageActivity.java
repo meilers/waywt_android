@@ -8,7 +8,6 @@ import com.sobremesa.waywt.adapters.ImagePagerAdapter;
 import com.sobremesa.waywt.application.WaywtApplication;
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.CommentTable;
-import com.sobremesa.waywt.database.tables.ImageTable;
 import com.sobremesa.waywt.fragments.WaywtFragment.Extras;
 import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.managers.TypefaceSpan;

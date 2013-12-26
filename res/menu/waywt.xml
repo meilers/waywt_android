@@ -10,12 +10,12 @@
         android:icon="@drawable/ic_action_refresh"
         android:orderInCategory="1"
         android:showAsAction="always"
-        android:title="refresh"
-        android:visible="false"/>
+        android:title="refresh"/>
     <item
         android:id="@+id/loading_menu_id"
         android:orderInCategory="1"
-        android:showAsAction="always"/>
+        android:showAsAction="always"
+        android:visible="false"/>
     <!--
          <item
         android:id="@+id/login_menu_id"

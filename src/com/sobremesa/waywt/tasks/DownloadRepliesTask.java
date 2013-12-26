@@ -154,6 +154,27 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 			mInc = 0;
 	}
 	
+	public static void clearTasks()
+	{
+		if( mTasks != null )
+		{
+			for( int i = 0 ; i<3; ++i )
+			{
+				ListenerTask task = mTasks[i];
+				
+				if( task != null )
+				{
+					task.mCurrentDownloadCommentsTask.cancel(true);
+				
+					task.mCurrentDownloadCommentsTask = null;
+					task.mListenerReference = null;
+					task = null;
+				}
+			}
+		}
+	}
+	
+	
 	/**
 	 * "load more comments" starting at this position
 	 * @param moreChildrenId The reddit thing-id of the "more" children comment
@@ -284,21 +305,6 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 		return mPositionOffset == 0;
 	}
 	
-	private void disableLoadingScreenKeepProgress() {
-		
-		Activity act = ((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity();
-		
-		if( act != null )
-		{
-			((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity().runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					mTasks[mIndex].mListenerReference.get().resetUI();
-				}
-			});			
-		}
-
-	}
 	
 	private void parseCommentsJSON(
 			InputStream in
@@ -329,8 +335,6 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 				parseOP(threadThingListing.getData());
 				insertedCommentIndex = 0;  // we just inserted the OP into position 0
 				
-				// at this point we've started displaying comments, so disable the loading screen
-				disableLoadingScreenKeepProgress();
 			}
 			else {
 				insertedCommentIndex = mPositionOffset - 1;  // -1 because we +1 for the first comment
@@ -522,16 +526,6 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 
 	}
 	
-	@Override
-	public void onProgressUpdate(Long... progress) {
-		if( (Fragment) mTasks[mIndex].mListenerReference.get() != null && ((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity() != null)
-		{
-			if (mContentLength == -1)
-				((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
-			else
-				((Fragment) mTasks[mIndex].mListenerReference.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, progress[0].intValue() * (Window.PROGRESS_END-1) / (int) mContentLength);
-		}  
-	}
 	
 	@Override
 	public void propertyChange(PropertyChangeEvent event) {  

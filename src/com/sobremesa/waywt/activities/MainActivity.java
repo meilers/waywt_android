@@ -77,6 +77,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	public static class NavItem {
 		public String mTitle;
 		public String mDescription;
+		public String mPermalink;
 	}
 
 	public static class DrawerTabIndex {
@@ -105,7 +106,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	private int mCurrentWaywtIndex = 0;
 	
 
-	private ArrayList<String> mPermalinks;
+	private ArrayList<NavItem> mNavItems;
 
 	private static final HttpClient mRedditClient = WaywtApplication.getRedditClient();
 	private static final RedditSettings mRedditSettings = WaywtApplication.getRedditSettings();
@@ -118,7 +119,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		setContentView(R.layout.activity_main);
 		getOverflowMenu();
 		
-		mPermalinks = new ArrayList<String>();
+		mNavItems = new ArrayList<NavItem>();
 
 		// ACTION BAR
 		final ActionBar actionBar = getActionBar();
@@ -201,7 +202,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 			showSubredditDialog();
 		
 		CookieSyncManager.createInstance(getApplicationContext());
-		
+		mRedditSettings.loadRedditPreferences(this, mRedditClient);
 		
 		showWaywt();
 	}
@@ -273,7 +274,6 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 			
 			Fragment fragment = Fragment.instantiate(this, MyPostsFragment.class.getName());
 			Bundle args = new Bundle();
-			args.putStringArrayList(MyPostsFragment.Extras.PERMALINKS, mPermalinks);
 			args.putString(MyPostsFragment.Extras.SUBREDDIT, UserUtil.getSubreddit());
 			fragment.setArguments(args);
 			
@@ -364,13 +364,14 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 
 	private void refreshNavigationBar(int position) {
 		
-		if(mPermalinks != null && position < mPermalinks.size()-1)
+		if(mNavItems != null && position < mNavItems.size()-1)
 		{
 			Fragment fragment = new WaywtFragment();
 			Bundle args = new Bundle();
-			String p = mPermalinks.get(position);
+			String p = mNavItems.get(position).mPermalink;
 			args.putString(WaywtFragment.Extras.SUBREDDIT, UserUtil.getSubreddit());
 			args.putString(WaywtFragment.Extras.PERMALINK, p);
+			args.putString(WaywtFragment.Extras.SUBREDDIT, UserUtil.getSubreddit());
 			fragment.setArguments(args);
 			getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragment).commitAllowingStateLoss();			
 		}
@@ -399,13 +400,21 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		mDrawerToggle.onConfigurationChanged(newConfig);
 	}
 	
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
+		if (drawerOpen)
+			menu.clear();
+		return super.onPrepareOptionsMenu(menu);
+	}
+
+	
 	private void fetchPostData() {
 
 		Intent i = new Intent(this, PostService.class);
 		i.setAction(Intent.ACTION_SYNC);
 		i.putExtra(PostService.Extras.IS_MALE, UserUtil.getIsMale());
 		startService(i);  
-		
 	}
 
 	@Override
@@ -418,17 +427,16 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	@Override
 	public void onLoadFinished(Loader<Cursor> arg0, Cursor cursor) {
 		mNavAdapter.clear();
-		mPermalinks.clear();
-
+		mNavItems.clear();
+		
 		for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
 
 			NavItem navItem = new NavItem();
 			navItem.mTitle = cursor.getString(cursor.getColumnIndex(PostTable.TITLE));
+			navItem.mPermalink = cursor.getString(cursor.getColumnIndex(PostTable.PERMALINK));
 			
 			mNavAdapter.add(navItem);
-
-			String p = cursor.getString(cursor.getColumnIndex(PostTable.PERMALINK));
-			mPermalinks.add(p);
+			mNavItems.add(navItem);
 		}
 
 		mNavAdapter.notifyDataSetChanged();
@@ -437,7 +445,6 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 
 			refreshNavigationBar(0);
 		}
-
 	}
 
 	@Override
@@ -550,7 +557,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 //					break;
 				}
 				
-				if( mPermalinks.size() > 0)
+				if( mNavItems.size() > 0)
 					refreshNavigationBar(mCurrentWaywtIndex);
 				
 				dialog.dismiss();
