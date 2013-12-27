@@ -229,6 +229,7 @@ public class MyPostsFragment extends Fragment implements MyPostsListener, Loader
 
 			CommentFragment fragment = new CommentFragment();
 			Bundle args = new Bundle();
+			
 			args.putString(CommentFragment.Extras.SUBREDDIT, mSubreddit);
 			args.putString(CommentFragment.Extras.THREAD_ID,  mMyPosts.get(position).getThreadId());
 			args.putParcelable(CommentFragment.Extras.COMMENT, mMyPosts.get(position));  
@@ -245,7 +246,11 @@ public class MyPostsFragment extends Fragment implements MyPostsListener, Loader
 
 		@Override
 		public CharSequence getPageTitle(int position) {
-			return mMyPosts.get(position).getPostTitle().toUpperCase();
+			
+			if( mMyPosts.get(position).getPostTitle() != null )
+				return mMyPosts.get(position).getPostTitle().toUpperCase();
+			
+			return "";
 		}
 
 	}
@@ -477,7 +482,7 @@ public class MyPostsFragment extends Fragment implements MyPostsListener, Loader
 				ThingInfo comment = new ThingInfo();
 				comment.setPostTitle(cursor.getString(cursor.getColumnIndex(CommentTable.POST_TITLE)));
 				comment.setPostPermalink(cursor.getString(cursor.getColumnIndex(CommentTable.POST_PERMALINK)));
-				
+				comment.setThreadId(cursor.getString(cursor.getColumnIndex(CommentTable.THREAD_ID)));
 				comment.setAuthor(cursor.getString(cursor.getColumnIndex(CommentTable.AUTHOR)));
 				comment.setBody_html(cursor.getString(cursor.getColumnIndex(CommentTable.BODY_HTML)));
 				comment.setId(cursor.getString(cursor.getColumnIndex(CommentTable.COMMENT_ID)));

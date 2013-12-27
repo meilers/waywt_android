@@ -7,7 +7,7 @@ package com.sobremesa.waywt.database.tables;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.12.25
+ * @date 2013.12.26
  */
 public interface CommentTable {
 	String TABLE_NAME = "comment";
@@ -23,21 +23,25 @@ public interface CommentTable {
 	String UPS = "ups";
 	String DOWNS = "downs";
 	String CREATED = "created";
+	String THREAD_ID = "thread_id";
 
 	String[] ALL_COLUMNS = new String[]{ID, POST_TITLE, POST_PERMALINK,
-			COMMENT_ID, AUTHOR, BODY_HTML, NAME, LIKES, UPS, DOWNS, CREATED};
+			COMMENT_ID, AUTHOR, BODY_HTML, NAME, LIKES, UPS, DOWNS, CREATED,
+			THREAD_ID};
 
 	String SQL_CREATE = "CREATE TABLE " + TABLE_NAME + " ( " + ID
 			+ " INTEGER PRIMARY KEY AUTOINCREMENT" + "," + POST_TITLE + " TEXT"
 			+ "," + POST_PERMALINK + " TEXT" + "," + COMMENT_ID + " TEXT" + ","
 			+ AUTHOR + " TEXT" + "," + BODY_HTML + " TEXT" + "," + NAME
 			+ " TEXT" + "," + LIKES + " INTEGER" + "," + UPS + " INTEGER" + ","
-			+ DOWNS + " INTEGER" + "," + CREATED + " INTEGER" + " )";
+			+ DOWNS + " INTEGER" + "," + CREATED + " INTEGER" + "," + THREAD_ID
+			+ " TEXT" + " )";
 
 	String SQL_INSERT = "INSERT INTO " + TABLE_NAME + " (" + POST_TITLE + ","
 			+ POST_PERMALINK + "," + COMMENT_ID + "," + AUTHOR + ","
 			+ BODY_HTML + "," + NAME + "," + LIKES + "," + UPS + "," + DOWNS
-			+ "," + CREATED + ") VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
+			+ "," + CREATED + "," + THREAD_ID
+			+ ") VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
 
 	String SQL_DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
 

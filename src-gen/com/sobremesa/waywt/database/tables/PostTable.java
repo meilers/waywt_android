@@ -7,7 +7,7 @@ package com.sobremesa.waywt.database.tables;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.12.25
+ * @date 2013.12.26
  */
 public interface PostTable {
 	String TABLE_NAME = "post";

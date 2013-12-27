@@ -288,9 +288,6 @@ public class PhotoActivity extends BaseFragmentActivity implements MyPostsListen
     			permalinks.add(mComment.getPostPermalink());
     			titles.add(mComment.getPostTitle());
     			
-    			Log.d("threadId", mComment.getThreadId());
-    			Log.d("permalink", mComment.getPostPermalink());
-    			
 				showProgressDialog("FINALIZING...");
 				
     			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
@@ -334,6 +331,7 @@ public class PhotoActivity extends BaseFragmentActivity implements MyPostsListen
 		hideProgressDialog();
 		
 		Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+		intent.putExtra(MainActivity.Extras.SELECTED_TAB_FROM_DRAWER, MainActivity.DrawerTabIndex.MY_POSTS);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intent);
 	}

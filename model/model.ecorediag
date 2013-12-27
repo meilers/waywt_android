@@ -87,6 +87,10 @@
         <element xmi:type="ecore:EAttribute" href="model.ecore#//Comment/created"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_6G_tMW2-EeOKsMm8Ky715g"/>
       </children>
+      <children xmi:type="notation:Node" xmi:id="_dN2jUG6dEeOKsMm8Ky715g" type="2001">
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Comment/thread_id"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_dN2jUW6dEeOKsMm8Ky715g"/>
+      </children>
       <styles xmi:type="notation:DrawerStyle" xmi:id="_rzLugW2sEeOKsMm8Ky715g"/>
       <styles xmi:type="notation:SortingStyle" xmi:id="_rzLugm2sEeOKsMm8Ky715g"/>
       <styles xmi:type="notation:FilteringStyle" xmi:id="_rzLug22sEeOKsMm8Ky715g"/>

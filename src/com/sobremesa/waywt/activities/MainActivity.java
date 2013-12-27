@@ -73,6 +73,10 @@ import android.widget.ViewFlipper;
 
 public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNavigationListener, LoaderCallbacks<Cursor> {
 
+	public static final class Extras {
+		public static final String SELECTED_TAB_FROM_DRAWER = "selected_tab_from_drawer";
+
+	}
 	
 	public static class NavItem {
 		public String mTitle;
@@ -204,7 +208,11 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		CookieSyncManager.createInstance(getApplicationContext());
 		mRedditSettings.loadRedditPreferences(this, mRedditClient);
 		
-		showWaywt();
+		
+		// RESTORE STATE
+		mSelectedTabFromDrawer = getIntent().getIntExtra(Extras.SELECTED_TAB_FROM_DRAWER, DrawerTabIndex.WAYWT);
+		
+		updateMainView();
 	}
 
 	public void onDrawerItemSelected(int position) {
@@ -368,10 +376,9 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		{
 			Fragment fragment = new WaywtFragment();
 			Bundle args = new Bundle();
-			String p = mNavItems.get(position).mPermalink;
 			args.putString(WaywtFragment.Extras.SUBREDDIT, UserUtil.getSubreddit());
-			args.putString(WaywtFragment.Extras.PERMALINK, p);
-			args.putString(WaywtFragment.Extras.SUBREDDIT, UserUtil.getSubreddit());
+			args.putString(WaywtFragment.Extras.PERMALINK, mNavItems.get(position).mPermalink);
+			args.putString(WaywtFragment.Extras.POST_TITLE, mNavItems.get(position).mTitle);
 			fragment.setArguments(args);
 			getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragment).commitAllowingStateLoss();			
 		}

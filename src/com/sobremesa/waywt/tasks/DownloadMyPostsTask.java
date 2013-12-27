@@ -389,20 +389,18 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 	@Override
 	public void onPostExecute(Boolean success) {
 		
-		if( (Fragment) mListenerRef.get() != null && ((Fragment) mListenerRef.get()).getActivity() != null )
+		if( mListenerRef.get() != null )
 		{
 			insertCommentsUI();
 			
 			
-			if (mContentLength == -1)
-				((Fragment) mListenerRef.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_OFF);
-			else
-				((Fragment) mListenerRef.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_END);
-			
 			if (success) {
 			} else {
 				if (!isCancelled()) {
-					Common.showErrorToast("No Internet Connection", Toast.LENGTH_LONG, ((Fragment) mListenerRef.get()).getActivity());
+					if( mListenerRef.get() instanceof Fragment ) 
+						Common.showErrorToast("No Internet Connection", Toast.LENGTH_LONG, ((Fragment) mListenerRef.get()).getActivity());
+					else
+						Common.showErrorToast("No Internet Connection", Toast.LENGTH_LONG, ((Activity) mListenerRef.get()));
 				}
 			}
 		}

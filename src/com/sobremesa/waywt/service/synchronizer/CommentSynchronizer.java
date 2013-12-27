@@ -87,8 +87,9 @@ public class CommentSynchronizer extends Synchronizer<ThingInfo> {
 	protected ContentValues getContentValuesForRemoteEntity(ThingInfo t) {
 		ContentValues values = new ContentValues();
 		values.put(CommentTable.POST_TITLE, t.getPostTitle());
+		values.put(CommentTable.THREAD_ID, t.getThreadId());
 		values.put(CommentTable.POST_PERMALINK, t.getPostPermalink());
-		
+		values.put(CommentTable.CREATED, t.getCreated_utc());
 		values.put(CommentTable.COMMENT_ID, t.getId());
 		values.put(CommentTable.AUTHOR, t.getAuthor());
 		values.put(CommentTable.BODY_HTML, t.getBody_html());

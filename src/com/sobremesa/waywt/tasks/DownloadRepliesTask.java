@@ -164,7 +164,8 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 				
 				if( task != null )
 				{
-					task.mCurrentDownloadCommentsTask.cancel(true);
+					if( task.mCurrentDownloadCommentsTask != null )
+						task.mCurrentDownloadCommentsTask.cancel(true);
 				
 					task.mCurrentDownloadCommentsTask = null;
 					task.mListenerReference = null;
