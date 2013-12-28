@@ -22,6 +22,7 @@ import com.sobremesa.waywt.dialog.LoginDialog;
 import com.sobremesa.waywt.enums.SortByType;
 import com.sobremesa.waywt.fragments.CommentFragment;
 import com.sobremesa.waywt.fragments.MyPostsFragment;
+import com.sobremesa.waywt.fragments.SettingsFragment;
 import com.sobremesa.waywt.fragments.WaywtFragment;
 import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.service.PostService;
@@ -130,12 +131,10 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		
 		if( UserUtil.getIsMale() )
 		{
-			actionBar.setBackgroundDrawable(getResources().getDrawable(R.drawable.actionbar));
 			actionBar.setIcon(getResources().getDrawable(R.drawable.ic_logo));
 		}
 		else
 		{
-			actionBar.setBackgroundDrawable(getResources().getDrawable(R.drawable.actionbar_ffa));
 			actionBar.setIcon(getResources().getDrawable(R.drawable.ic_logo_ffa));
 		}
 		
@@ -177,7 +176,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 				invalidateOptionsMenu(); // creates call to
 											// onPrepareOptionsMenu()
 
-				updateMainView();
+				updateMainView(false);
 
 			}
 
@@ -197,13 +196,6 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		
 		
 
-		if( UserUtil.getHasChosenSubreddit() )
-		{
-			getSupportLoaderManager().initLoader(0, null, this);
-			fetchPostData();
-		}
-		else
-			showSubredditDialog();
 		
 		CookieSyncManager.createInstance(getApplicationContext());
 		mRedditSettings.loadRedditPreferences(this, mRedditClient);
@@ -212,7 +204,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		// RESTORE STATE
 		mSelectedTabFromDrawer = getIntent().getIntExtra(Extras.SELECTED_TAB_FROM_DRAWER, DrawerTabIndex.WAYWT);
 		
-		updateMainView();
+		updateMainView(false);
 	}
 
 	public void onDrawerItemSelected(int position) {
@@ -244,20 +236,23 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	    }
 	}
 	
-	public void updateMainView() {
+	public void updateMainView(boolean refresh) {
 		switch (mSelectedTabFromDrawer) {
 		case DrawerTabIndex.WAYWT:
-			showWaywt();
+			showWaywt(refresh);
 			break;
 		case DrawerTabIndex.MY_POSTS:
-			showMyPosts();
+			showMyPosts(refresh);
+			break;
+		case DrawerTabIndex.SETTINGS:
+			showSettings(refresh);
 			break;
 		}
 	}
 	
-	public void showWaywt() {
+	public void showWaywt(boolean refresh) {
 
-		if (mCurrentTab != DrawerTabIndex.WAYWT) {
+		if (mCurrentTab != DrawerTabIndex.WAYWT || refresh ) {
 			setSelectedDrawerAdapterPosition(DrawerTabIndex.WAYWT);
 //			mTabBackStack.add(mCurrentTab);
 			mCurrentTab = DrawerTabIndex.WAYWT;
@@ -270,9 +265,9 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 
 	}
 
-	public void showMyPosts() {
+	public void showMyPosts(boolean refresh) {
 
-		if (mCurrentTab != DrawerTabIndex.MY_POSTS) {
+		if (mCurrentTab != DrawerTabIndex.MY_POSTS || refresh ) {
 			setSelectedDrawerAdapterPosition(DrawerTabIndex.MY_POSTS);
 //			mTabBackStack.add(mCurrentTab);
 			mCurrentTab = DrawerTabIndex.MY_POSTS;
@@ -290,6 +285,23 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 			goToFragment(fragment, tag, "MY POSTS", true);
 		}
 
+	}
+	
+	public void showSettings(boolean refresh)
+	{
+		if (mCurrentTab != DrawerTabIndex.SETTINGS || refresh ) {
+			setSelectedDrawerAdapterPosition(DrawerTabIndex.SETTINGS);
+//			mTabBackStack.add(mCurrentTab);
+			mCurrentTab = DrawerTabIndex.SETTINGS;
+			
+			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+			getActionBar().setDisplayShowTitleEnabled(true);
+			
+			Fragment fragment = Fragment.instantiate(this, SettingsFragment.class.getName());
+			String tag = SettingsFragment.class.getCanonicalName();
+			
+			goToFragment(fragment, tag, "SETTINGS", true);
+		}
 	}
 	
 	
@@ -338,7 +350,13 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		mRedditSettings.loadRedditPreferences(this, mRedditClient);
 		CookieSyncManager.getInstance().startSync();
 
-
+		if( UserUtil.getHasChosenSubreddit() )
+		{
+			getSupportLoaderManager().initLoader(0, null, this);
+			fetchPostData();
+		}
+		else
+			showSubredditDialog();
 	}
 
 	@Override
@@ -416,7 +434,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	}
 
 	
-	private void fetchPostData() {
+	public void fetchPostData() {
 
 		Intent i = new Intent(this, PostService.class);
 		i.setAction(Intent.ACTION_SYNC);
@@ -519,6 +537,9 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 			} else {
 				Common.showErrorToast(mUserError, Toast.LENGTH_LONG, MainActivity.this);
 			}
+			
+			invalidateOptionsMenu();
+			updateMainView(true);
 		}
 	}
 
@@ -534,45 +555,6 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 
 	}
 
-
-	private void showSortByDialog() {
-		AlertDialog.Builder builderSingle = new AlertDialog.Builder(this);
-		// builderSingle.setIcon(R.drawable.ic_launcher);
-		builderSingle.setTitle("Sort By");
-		final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_singlechoice);
-		arrayAdapter.add("Random");
-		arrayAdapter.add("Votes");
-//		arrayAdapter.add("Comments");
-
-		
-		builderSingle.setSingleChoiceItems(arrayAdapter, UserUtil.getSortBy(), new DialogInterface.OnClickListener() {
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-
-				switch (which) {
-				case 0:
-					UserUtil.setSortBy(SortByType.RANDOM);
-					break;
-					
-				case 1:
-					UserUtil.setSortBy(SortByType.VOTES);
-					break;
-					
-//				case 2:
-//					UserUtil.setSortBy(SortByType.COMMENTS);
-//					break;
-				}
-				
-				if( mNavItems.size() > 0)
-					refreshNavigationBar(mCurrentWaywtIndex);
-				
-				dialog.dismiss();
-			}
-		});
-		
-		builderSingle.show(); 
-	}
 	
 	private void showSubredditDialog() {
 		AlertDialog.Builder builderSingle = new AlertDialog.Builder(this);
@@ -595,13 +577,11 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 				switch (which) {
 				case 0:
 					UserUtil.setIsMale(true);
-					MainActivity.this.getActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.actionbar));
 					MainActivity.this.getActionBar().setIcon(getResources().getDrawable(R.drawable.ic_logo));
 					break;
 					
 				case 1:
 					UserUtil.setIsMale(false);
-					MainActivity.this.getActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.actionbar_ffa));
 					MainActivity.this.getActionBar().setIcon(getResources().getDrawable(R.drawable.ic_logo_ffa));
 					break;
 				}
@@ -639,11 +619,14 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	
 	public synchronized void updateCurrentNavItemDescription(String description)
 	{
-		NavItem item = mNavAdapter.mArrayList.get(mCurrentWaywtIndex);
-		item.mDescription = description;
-		mNavAdapter.mArrayList.set(mCurrentWaywtIndex, item);
-		
-		mNavAdapter.notifyDataSetChanged();
+		if( mCurrentWaywtIndex < mNavAdapter.mArrayList.size() )
+		{
+			NavItem item = mNavAdapter.mArrayList.get(mCurrentWaywtIndex);
+			item.mDescription = description;
+			mNavAdapter.mArrayList.set(mCurrentWaywtIndex, item);
+			
+			mNavAdapter.notifyDataSetChanged();
+		}
 		
 	}
 	

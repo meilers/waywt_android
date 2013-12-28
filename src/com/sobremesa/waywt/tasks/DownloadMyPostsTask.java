@@ -97,6 +97,8 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
      */
     private final LinkedList<ThingInfo> mDeferredAppendList = new LinkedList<ThingInfo>();
 	
+    private boolean mIsMale = true;
+    
 	/**
 	 * Default constructor to do normal comments page
 	 */
@@ -250,6 +252,8 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 			localRecCursor.moveToFirst();
 			
 			CommentSynchronizer sync = new CommentSynchronizer( WaywtApplication.getContext());
+			sync.setIsMale(mIsMale);
+			
 			synchronizeRemoteRecords(myPosts, localRecCursor, localRecCursor.getColumnIndex(CommentTable.NAME), sync, new CommentPreprocessor());
 			
 			//
@@ -367,24 +371,10 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
     	mDeferredAppendList.clear();
     }
     
-//    @Override
-//	public void onPreExecute() {
-//		if (mThreadIds == null) {
-//			if (Constants.LOGGING) Log.e(TAG, "mSettings.threadId == null");
-//    		this.cancel(true);
-//    		return;
-//		}
-//		synchronized (mCurrentDownloadCommentsTaskLock) {
-//    		if (mCurrentDownloadCommentsTask != null) {
-//    			mCurrentDownloadCommentsTask.cancel(true);
-//    		}
-//    		mCurrentDownloadCommentsTask = this;
-//		}
-//		
-//		
-//		if (mContentLength == -1)
-//			((Fragment) mListenerRef.get()).getActivity().getWindow().setFeatureInt(Window.FEATURE_PROGRESS, Window.PROGRESS_INDETERMINATE_ON);
-//	}
+    @Override
+	public void onPreExecute() {
+    	mIsMale = UserUtil.getIsMale();
+	}
     
 	@Override
 	public void onPostExecute(Boolean success) {

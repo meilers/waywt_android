@@ -1,86 +1,45 @@
-package com.sobremesa.waywt.activities;
+package com.sobremesa.waywt.fragments;
 
-
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.sobremesa.waywt.R;
-import com.sobremesa.waywt.activities.ImageActivity.Extras;
-import com.sobremesa.waywt.application.WaywtApplication;
 import com.sobremesa.waywt.dialog.ProgressDialogFragment;
 import com.sobremesa.waywt.dialog.ProgressDialogFragment.ProgressDialogObserver;
 import com.sobremesa.waywt.managers.FontManager;
-import com.sobremesa.waywt.managers.TypefaceSpan;
 
-import android.app.ActionBar;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.text.Spannable;
-import android.text.SpannableString;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.TextView;
 
-public class BaseFragmentActivity extends FragmentActivity {
-	
 
-	public static final int NO_OPTIONS_MENU_ID = -1;
+public class BaseFragment extends Fragment {
+	private static final int NO_OPTIONS_MENU_ID = -1;
 	
-	protected ProgressDialogFragment mProgressFoDialog;
 	protected boolean mIsShowing = true;
 	protected boolean mDialogDismissOnResume = false;
-	
-	@Override
-	protected void onCreate(Bundle arg0) {
-		super.onCreate(arg0);
-		
-		ActionBar actionBar = getActionBar();
-		actionBar.setDisplayHomeAsUpEnabled(true);
-		actionBar.setHomeButtonEnabled(true); 
-	}
-	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		
-		mIsShowing = true;
-		if (mDialogDismissOnResume)
-			hideProgressDialog();
-	}
-	
-	@Override
-	protected void onPause() {
-		super.onPause();
-		
-		mIsShowing = false;
-	}
-	
-	@Override
-	public void setTitle(CharSequence title) {
-		super.setTitle(title);
 
-		SpannableString s = new SpannableString(String.valueOf(title).toUpperCase());
-		s.setSpan(new TypefaceSpan(WaywtApplication.getContext()), 0, s.length(),Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-		
+	protected ProgressDialogFragment mProgressFoDialog;
 
-		// Update the action bar title with the TypefaceSpan instance
-		ActionBar actionBar = getActionBar();
-		actionBar.setTitle(s);
+	public BaseFragment() {
 	}
 
-	
-
 	@Override
-	public final boolean onCreateOptionsMenu(final Menu menu) {
-		onStartingCreateOptionsMenu(menu);
+	public final void onCreateOptionsMenu(final Menu menu, MenuInflater inflater) {
+		onStartingCreateOptionsMenu(menu, inflater);
 
 		int optionsMenuId = getOptionsMenuId();
 		if (optionsMenuId != NO_OPTIONS_MENU_ID) {
-			getMenuInflater().inflate(optionsMenuId, menu);
+			inflater.inflate(optionsMenuId, menu);
 
 			List<Integer> optionIds = getMenuOptionIdsToStyle();
 			for (Integer id : optionIds) {
@@ -91,7 +50,7 @@ public class BaseFragmentActivity extends FragmentActivity {
 
 					if (actionView == null) {
 						Log.d("ACTIONBAR", "creating action view");
-						actionView = this.getLayoutInflater().inflate(R.layout.action_menu_button_layout, null, false);
+						actionView = getActivity().getLayoutInflater().inflate(R.layout.action_menu_button_layout, null, false);
 						((TextView) actionView.findViewById(R.id.action_menu_button_text)).setText(item.getTitle());
 						actionView.setBackgroundResource(R.drawable.item_selector);
 						actionView.setOnClickListener(new OnClickListener() {
@@ -103,6 +62,8 @@ public class BaseFragmentActivity extends FragmentActivity {
 							}
 						});
 						item.setActionView(actionView);
+					} else if (actionView instanceof Button) {
+						((Button) actionView).setTypeface(FontManager.INSTANCE.getAppFont());
 					} else if (actionView instanceof TextView) {
 						((TextView) actionView).setTypeface(FontManager.INSTANCE.getAppFont());
 					}
@@ -110,15 +71,14 @@ public class BaseFragmentActivity extends FragmentActivity {
 			}
 		}
 
-		onFinishingCreateOptionsMenu(menu);
-		return super.onCreateOptionsMenu(menu);
+		onFinisingCreateOptionsMenu(menu, inflater);
 	}
 
-	protected void onStartingCreateOptionsMenu(Menu menu) {
+	protected void onStartingCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		/* DO NOTHING */
 	}
 
-	protected void onFinishingCreateOptionsMenu(Menu menu) {
+	protected void onFinisingCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		/* DO NOTHING */
 	}
 
@@ -129,8 +89,6 @@ public class BaseFragmentActivity extends FragmentActivity {
 	protected int getOptionsMenuId() {
 		return NO_OPTIONS_MENU_ID;
 	}
-	
-	
 	
 	public void showProgressDialog(int stringResource) {
 		showProgressDialog(getString(stringResource));
@@ -143,20 +101,21 @@ public class BaseFragmentActivity extends FragmentActivity {
 	public void showProgressDialog(int stringResource, ProgressDialogObserver observer) {
 		showProgressDialog(getString(stringResource), observer);
 	}
-
 	public void showProgressDialog(String text, ProgressDialogObserver observer) {
 		Bundle args = new Bundle();
 		args.putString(ProgressDialogFragment.Extras.PROGRESS_TEXT, text);
-		mProgressFoDialog = (ProgressDialogFragment) Fragment.instantiate(this, ProgressDialogFragment.class.getName(), args);
-		mProgressFoDialog.show(getSupportFragmentManager(), ProgressDialogFragment.class.getCanonicalName());
-		if (observer != null)
-			mProgressFoDialog.setProgressDialogObserver(observer);
+		mProgressFoDialog = (ProgressDialogFragment) Fragment.instantiate(getActivity(), ProgressDialogFragment.class.getName(), args);
+		mProgressFoDialog.setProgressDialogObserver(observer);
+		mProgressFoDialog.show(getActivity().getSupportFragmentManager(), ProgressDialogFragment.class.getCanonicalName());
 		mProgressFoDialog.setCancelable(false);
 	}
 
-	public void hideProgressDialog() {
+
+	
+
+	protected void hideProgressDialog() {
 		if (mProgressFoDialog != null) {
-			if (mIsShowing) {
+			if (mIsShowing || isResumed()) {
 				mProgressFoDialog.dismiss();
 				mDialogDismissOnResume = false;
 			} else {
@@ -164,5 +123,35 @@ public class BaseFragmentActivity extends FragmentActivity {
 			}
 		}
 	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		mIsShowing = true;
+		if (mDialogDismissOnResume)
+			hideProgressDialog();
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+		mIsShowing = false;
+	}
 	
+	
+	@Override
+	public void onDetach() {
+	    super.onDetach();
+
+	    try {
+	        Field childFragmentManager = Fragment.class.getDeclaredField("mChildFragmentManager");
+	        childFragmentManager.setAccessible(true);
+	        childFragmentManager.set(this, null);
+
+	    } catch (NoSuchFieldException e) {
+	        throw new RuntimeException(e);
+	    } catch (IllegalAccessException e) {
+	        throw new RuntimeException(e);
+	    }
+	}
 }

@@ -64,6 +64,22 @@ public class DrawerListAdapter extends BaseAdapter {
 		textView.setText(item.mTitle.toUpperCase());
 
 		final ImageView imageView = (ImageView) convertView.findViewById(R.id.item_image);
+		
+		if( item.mTitle.equals("WAYWT"))
+		{
+			if( UserUtil.getIsMale() )
+			{
+				item.mImageResourceId = R.drawable.ic_logo;
+				item.mImageWhiteResourceId = R.drawable.ic_logo;
+			}
+			else
+			{
+				item.mImageResourceId = R.drawable.ic_logo_ffa;
+				item.mImageWhiteResourceId = R.drawable.ic_logo_ffa;
+				
+			}
+		}
+		
 		TextView cartNumberTv = (TextView)convertView.findViewById(R.id.item_drawer_cart_tv);
 		
 //		int nbItemsInCart = UserUtil.getCurrentShoppingCartSize();

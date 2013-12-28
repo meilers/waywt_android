@@ -218,10 +218,21 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 				Collections.shuffle(comments, new Random(seed));
 				break;
 
-			case VOTES:
+			case UPVOTES:
 				Collections.sort(comments); 
 				break;
 
+			case MOST_RECENT:
+				Comparator<ThingInfo> comparator = new Comparator<ThingInfo>() {
+				    public int compare(ThingInfo c1, ThingInfo c2) {
+				    	
+				    	
+				        return Double.valueOf(c2.getCreated_utc()).intValue()-Double.valueOf(c1.getCreated_utc()).intValue(); // use your logic
+				    }
+				};
+				Collections.sort(comments, comparator); 
+				break;
+				
 //			case COMMENTS:
 //				Comparator<ThingInfo> comparator = new Comparator<ThingInfo>() {
 //				    public int compare(ThingInfo c1, ThingInfo c2) {

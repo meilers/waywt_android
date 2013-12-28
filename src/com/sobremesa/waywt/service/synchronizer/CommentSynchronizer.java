@@ -35,8 +35,16 @@ import android.widget.Toast;
 
 public class CommentSynchronizer extends Synchronizer<ThingInfo> {
 
+	private boolean mIsMale = true;
+	
 	public CommentSynchronizer(Context context) {
 		super(context);
+	}
+	
+
+	public void setIsMale(boolean isMale)
+	{
+		mIsMale = isMale;
 	}
 
 	@Override
@@ -57,10 +65,10 @@ public class CommentSynchronizer extends Synchronizer<ThingInfo> {
 			operations.add(op);
 		}
 
-		for (Long id : deletions) {
-			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.COMMENT_CONTENT_URI).withSelection(CommentTable.ID + " = ?", new String[] { String.valueOf(id) }).build();
-			operations.add(op);
-		}
+//		for (Long id : deletions) {
+//			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.COMMENT_CONTENT_URI).withSelection(CommentTable.ID + " = ?", new String[] { String.valueOf(id) }).build();
+//			operations.add(op);
+//		}
 
 		try {
 			if( operations.size() > 0 )
@@ -97,6 +105,7 @@ public class CommentSynchronizer extends Synchronizer<ThingInfo> {
 		values.put(CommentTable.LIKES, t.getLikes() ? 1:0);
 		values.put(CommentTable.UPS, t.getUps());
 		values.put(CommentTable.DOWNS, t.getDowns());
+		values.put(CommentTable.IS_MALE, mIsMale ? 1 : 0);
 		
 		return values;
 	}

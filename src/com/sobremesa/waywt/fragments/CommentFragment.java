@@ -1271,27 +1271,31 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
 		// TODO Auto-generated method stub
-        ThingInfo item = mRepliesAdapter.getItem(position);
-        
-//        if (isHiddenCommentHeadPosition(position)) {
-//        	showComment(position);
-//        	return;
-//        }
-        
-//        // Mark the OP post/regular comment as selected
-//        mVoteTargetThing = item;
-//        mReplyTargetName = mVoteTargetThing.getName();
 		
-        mMorePosition = position;
-        
-        if (isLoadMoreCommentsPosition(position)) {
-        	// Use this constructor to tell it to load more comments inline
-        	getNewDownloadRepliesTask().prepareLoadMoreComments(item.getId(), position, item.getIndent())
-        			.execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
-        } else {
-//        	if (!"[deleted]".equals(item.getAuthor()))
-//        		showDialog(Constants.DIALOG_COMMENT_CLICK);
-        }
+		if( position < mRepliesAdapter.getCount() )
+		{
+	        ThingInfo item = mRepliesAdapter.getItem(position);
+	        
+	//        if (isHiddenCommentHeadPosition(position)) {
+	//        	showComment(position);
+	//        	return;
+	//        }
+	        
+	//        // Mark the OP post/regular comment as selected
+	//        mVoteTargetThing = item;
+	//        mReplyTargetName = mVoteTargetThing.getName();
+			
+	        mMorePosition = position;
+	        
+	        if (isLoadMoreCommentsPosition(position)) {
+	        	// Use this constructor to tell it to load more comments inline
+	        	getNewDownloadRepliesTask().prepareLoadMoreComments(item.getId(), position, item.getIndent())
+	        			.execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+	        } else {
+	//        	if (!"[deleted]".equals(item.getAuthor()))
+	//        		showDialog(Constants.DIALOG_COMMENT_CLICK);
+	        }
+		}
 	    
 	}
 	

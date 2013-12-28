@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/login_menu_id"
+        android:showAsAction="always"
+        android:visible="false"
+        android:title="LOG IN"/>
+    
+    <item
+        android:id="@+id/logout_menu_id"
+        android:showAsAction="always"
+        android:visible="false"
+        android:title="LOG OUT"/>
+
+</menu>

@@ -401,7 +401,7 @@ public class MyPostsFragment extends Fragment implements MyPostsListener, Loader
 		case POST_LOADER_ID:
 			return new CursorLoader(getActivity(), Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, PostTable.IS_MALE + "=?", new String[] { UserUtil.getIsMale() ? "1" : "0" }, PostTable.CREATED + " DESC");
 		case COMMENT_LOADER_ID:
-			return new CursorLoader(getActivity(), Provider.COMMENT_CONTENT_URI, CommentTable.ALL_COLUMNS, CommentTable.AUTHOR + "=?", new String[] { mRedditSettings.getUsername() }, CommentTable.CREATED + " DESC");
+			return new CursorLoader(getActivity(), Provider.COMMENT_CONTENT_URI, CommentTable.ALL_COLUMNS, CommentTable.AUTHOR + "=? AND " + CommentTable.IS_MALE + "=?", new String[] { mRedditSettings.getUsername(), UserUtil.getIsMale() ? "1" : "0" }, CommentTable.CREATED + " DESC");
 		}
 		
 		return null;

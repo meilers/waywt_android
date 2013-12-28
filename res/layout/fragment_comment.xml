@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="#e6d7d4d3"
-        android:orientation="vertical" >
+        android:orientation="vertical" > 
 
         <View
             android:layout_width="match_parent"

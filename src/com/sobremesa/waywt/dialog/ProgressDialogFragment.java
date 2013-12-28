@@ -78,7 +78,7 @@ public class ProgressDialogFragment extends DialogFragment {
 		public void onFragmentSetupComplete();
 	}
 	
-	public synchronized void setFoProgressDialogObserver(ProgressDialogObserver observer) {
+	public synchronized void setProgressDialogObserver(ProgressDialogObserver observer) {
 		this.observer = observer;
 	}
 	
