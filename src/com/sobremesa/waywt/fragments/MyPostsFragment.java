@@ -64,6 +64,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.CookieSyncManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MyPostsFragment extends Fragment implements MyPostsListener, LoaderCallbacks<Cursor> {
@@ -143,6 +144,13 @@ public class MyPostsFragment extends Fragment implements MyPostsListener, Loader
 		{
 			getLoaderManager().initLoader(POST_LOADER_ID, null, this);
 			getLoaderManager().initLoader(COMMENT_LOADER_ID, null, this);			
+		}
+		else
+		{
+			getView().findViewById(R.id.loading).setVisibility(View.GONE);
+			getView().findViewById(R.id.not_logged_in_tv).setVisibility(View.VISIBLE);
+			
+			getActivity().showDialog(Constants.DIALOG_LOGIN);
 		}
 
 	}
@@ -497,17 +505,26 @@ public class MyPostsFragment extends Fragment implements MyPostsListener, Loader
 			
 			if (getView() != null) {
 
-
-				mPagerAdapter.addMyPosts(myPosts);
-				mPager.setAdapter(mPagerAdapter);
-				
-//				ViewFlipper vf = (ViewFlipper) getView().findViewById(R.id.vf);
-//				vf.setDisplayedChild(1);
-				
-				// UPDATE MENU ITEMS
-				if (mRefreshMenuItem != null && mLoadingMenuItem != null) {
-					mRefreshMenuItem.setVisible(true);
-					mLoadingMenuItem.setVisible(false);
+				if( cursor.getCount() <= 0 )
+				{
+					getView().findViewById(R.id.loading).setVisibility(View.GONE);
+					TextView tv = (TextView)getView().findViewById(R.id.not_logged_in_tv);
+					tv.setVisibility(View.VISIBLE);
+					tv.setText("No Posts.");
+				}
+				else
+				{
+					mPagerAdapter.addMyPosts(myPosts);
+					mPager.setAdapter(mPagerAdapter);
+					
+	//				ViewFlipper vf = (ViewFlipper) getView().findViewById(R.id.vf);
+	//				vf.setDisplayedChild(1);
+					
+					// UPDATE MENU ITEMS
+					if (mRefreshMenuItem != null && mLoadingMenuItem != null) {
+						mRefreshMenuItem.setVisible(true);
+						mLoadingMenuItem.setVisible(false);
+					}
 				}
 			}
 			break;
@@ -528,6 +545,15 @@ public class MyPostsFragment extends Fragment implements MyPostsListener, Loader
 	public void onSuccess() {
 		// TODO Auto-generated method stub
 		
+		if( getActivity() != null && getView() != null )
+		{
+			getActivity().runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					getView().findViewById(R.id.loading).setVisibility(View.GONE);
+				}
+			});					
+		}
 	}
 
 

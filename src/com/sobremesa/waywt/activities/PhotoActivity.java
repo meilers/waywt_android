@@ -127,6 +127,7 @@ public class PhotoActivity extends BaseFragmentActivity implements MyPostsListen
 		});
         
         Button postBtn = (Button) findViewById(R.id.photo_post_btn);
+        postBtn.setText("POST TO " + mComment.getPostTitle().toUpperCase());
         postBtn.setTypeface(FontManager.INSTANCE.getAppFont());
         postBtn.setOnClickListener(new OnClickListener() {
 			

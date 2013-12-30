@@ -38,21 +38,21 @@
                 android:layout_height="wrap_content"
                 android:text="1. TAKE A PICTURE"
                 android:textColor="@color/black"
-                android:textSize="12sp" />
+                android:textSize="16sp" />
 
             <com.sobremesa.waywt.views.WaywtTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" 
                 android:text="2. ADD A CAPTION"
                 android:textColor="@color/gray_50"
-                android:textSize="12sp" />
+                android:textSize="16sp" />
 
             <com.sobremesa.waywt.views.WaywtTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="3. POST TO WAYWT"
                 android:textColor="@color/gray_50"
-                android:textSize="12sp" />
+                android:textSize="16sp" />
         </LinearLayout>
     </RelativeLayout>
 

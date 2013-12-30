@@ -22,5 +22,7 @@
         android:background="@color/black"
         android:dividerHeight="0dp"
         android:listSelector="@android:color/transparent" />
+    
+    
 
 </android.support.v4.widget.DrawerLayout>

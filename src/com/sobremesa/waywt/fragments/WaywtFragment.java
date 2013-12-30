@@ -34,6 +34,7 @@ import com.viewpagerindicator.TitlePageIndicator;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.drawable.AnimationDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -54,9 +55,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.CookieSyncManager;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-public class WaywtFragment extends Fragment implements CommentsListener {
+public class WaywtFragment extends BaseFragment implements CommentsListener {
 
 	public static final String TAG = WaywtFragment.class.getCanonicalName();
 
@@ -82,6 +86,7 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 
 	private MenuItem mRefreshMenuItem;
 	private MenuItem mLoadingMenuItem;
+	
 	
 	
 	private DownloadCommentsTask getNewDownloadCommentsTask() {
@@ -210,6 +215,9 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 	public void updateComments(List<ThingInfo> comments) {
 
 		if (getView() != null) {
+			
+			getView().findViewById(R.id.loading).setVisibility(View.GONE);
+			
 			SortByType type = SortByType.values()[UserUtil.getSortBy()];
 	
 			switch (type) {
@@ -283,7 +291,7 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 			setHasOptionsMenu(false);
 	}
 	
-	private void fetchComments()
+	private void fetchComments() 
 	{
 		if (mRefreshMenuItem != null && mLoadingMenuItem != null) {
 			mLoadingMenuItem.setVisible(true);
@@ -364,19 +372,19 @@ public class WaywtFragment extends Fragment implements CommentsListener {
 
 	}
 	
+	@Override
+	protected int getOptionsMenuId() {
+		return R.menu.waywt;
+	}
 	
 	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-	    // TODO Add your menu entries here
-		
-		inflater.inflate(R.menu.waywt, menu);
+	protected void onFinisingCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onFinisingCreateOptionsMenu(menu, inflater);
 		
 		mRefreshMenuItem = menu.findItem(R.id.refresh_menu_id);
 		mLoadingMenuItem = menu.findItem(R.id.loading_menu_id);
 		mLoadingMenuItem.setActionView(R.layout.actionbar_indeterminate_progress);
 	}
-	
-
 	@Override
 	public void onPrepareOptionsMenu(final Menu menu) {
 

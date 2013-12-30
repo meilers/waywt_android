@@ -83,6 +83,7 @@ import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.Display;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -105,6 +106,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 import android.widget.ImageView.ScaleType;
+import android.widget.TextView.OnEditorActionListener;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -426,24 +428,34 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		
 		// Reply
 		mReplyEt = (EditText)view.findViewById(R.id.comment_reply_et);
+		mReplyEt.setOnEditorActionListener(new OnEditorActionListener() {
+			
+			@Override
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				sendReply();
+				return false;
+			}
+		});
+        
+        
 		mSendBtn = (ImageView)view.findViewById(R.id.comment_reply_send_btn);
 		mSendBtn.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
 				
-				// TODO Auto-generated method stub
-				String kak = mReplyEt.getText().toString();
-				Log.d("zut", kak);
-				
-				
-				new CommentReplyTask(mComment.getName()).execute(mReplyEt.getText().toString());
+				sendReply();
 			}
 		});
 		
 		
 		
 		return view;
+	}
+	
+	private void sendReply()
+	{
+		new CommentReplyTask(mComment.getName()).execute(mReplyEt.getText().toString());
 	}
 	
 	@Override
@@ -1199,9 +1211,6 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 	@Override
 	public void updateComments(List<ThingInfo> comments) {  
 		
-		Log.d("author", mComment.getAuthor());
-		
-
 		
 		if( getView() != null && mHeaderListView != null && comments != null && comments.size() > 0 && comments.get(0) != null )
 		{

@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import com.sobremesa.waywt.R;
 import com.sobremesa.waywt.fragments.CameraFragment;
 import com.sobremesa.waywt.listeners.CameraFragmentListener;
+import com.sobremesa.waywt.model.ThingInfo;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -78,7 +79,10 @@ public class CameraActivity extends BaseFragmentActivity implements CameraFragme
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_camera);
-		setTitle("Take a picture");
+		
+		ThingInfo comment = (ThingInfo)getIntent().getParcelableExtra(CameraActivity.Extras.OP_COMMENT);
+		
+		setTitle("POST ON " + comment.getPostTitle());
 
 		// controlInflater = LayoutInflater.from(getBaseContext());
 		// // Add the capture button and the center image

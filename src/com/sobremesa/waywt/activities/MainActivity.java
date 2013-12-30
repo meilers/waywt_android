@@ -42,6 +42,8 @@ import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
@@ -93,6 +95,24 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		public static final int SETTINGS = 2;
 	}
 
+	
+	public final int MSG_SHOW_DIALOG = 1;
+	public final int MSG_HIDE_DIALOG = 2;
+	
+
+	private Handler handler = new Handler() {
+	    @Override
+	    public void handleMessage(Message msg) {
+	        if(msg.what == MSG_SHOW_DIALOG) {
+	            showProgressDialog("LOADING WAYWT POSTS");
+	        }
+	        else if(msg.what == MSG_HIDE_DIALOG) {
+	            hideProgressDialog();
+	        }
+	    }
+	};
+	
+	
 	// DRAWER
 	private ListView mDrawerList;
 	private DrawerListAdapter mDrawerListAdapter;
@@ -199,6 +219,13 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		
 		CookieSyncManager.createInstance(getApplicationContext());
 		mRedditSettings.loadRedditPreferences(this, mRedditClient);
+		
+		if( UserUtil.getHasChosenSubreddit() )
+		{
+			getSupportLoaderManager().initLoader(0, null, this);
+		}
+		else
+			showSubredditDialog();
 		
 		
 		// RESTORE STATE
@@ -332,6 +359,8 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 			mTitle = title;
 			setTitle(title);
 		}
+		
+
 	}
 	
 	
@@ -352,11 +381,8 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 
 		if( UserUtil.getHasChosenSubreddit() )
 		{
-			getSupportLoaderManager().initLoader(0, null, this);
 			fetchPostData();
 		}
-		else
-			showSubredditDialog();
 	}
 
 	@Override
@@ -390,7 +416,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 
 	private void refreshNavigationBar(int position) {
 		
-		if(mNavItems != null && position < mNavItems.size()-1)
+		if(mNavItems != null && position < mNavItems.size())
 		{
 			Fragment fragment = new WaywtFragment();
 			Bundle args = new Bundle();
@@ -449,6 +475,8 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		return mLoader;
 	}
 
+
+	
 	@Override
 	public void onLoadFinished(Loader<Cursor> arg0, Cursor cursor) {
 		mNavAdapter.clear();
@@ -466,10 +494,14 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 
 		mNavAdapter.notifyDataSetChanged();
 
-		if (cursor.getCount() > 0 && mCurrentTab == DrawerTabIndex.WAYWT ) {
-
-			refreshNavigationBar(0);
+		if (cursor.getCount() > 0 )
+		{
+			handler.sendEmptyMessage(MSG_HIDE_DIALOG);
+			
+			if( mCurrentTab == DrawerTabIndex.WAYWT ) 
+				refreshNavigationBar(0);
 		}
+		
 	}
 
 	@Override
@@ -590,6 +622,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 				
 				UserUtil.setHasChosenSubreddit(true);
 				
+				handler.sendEmptyMessage(MSG_SHOW_DIALOG);
 				getSupportLoaderManager().restartLoader(0, null, MainActivity.this);
 				fetchPostData();		
 

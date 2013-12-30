@@ -51,7 +51,7 @@ public class ProgressDialogFragment extends DialogFragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.dialog_fo_progress, container);
+		View view = inflater.inflate(R.layout.dialog_progress, container);
 
 		if(getDialog() != null && getDialog().getWindow() != null){
 			getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
@@ -59,14 +59,14 @@ public class ProgressDialogFragment extends DialogFragment {
 			getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(0));
 		}
 
-		ImageView img = (ImageView) view.findViewById(R.id.fo_progress_iv);
+		ImageView img = (ImageView) view.findViewById(R.id.progress_iv);
 		mFrameAnimation = (AnimationDrawable) img.getDrawable();
 		mFrameAnimation.setCallback(img);
 		mFrameAnimation.setVisible(true, true);
 		img.post(new Starter());
 
 		String txt = getArguments().getString(Extras.PROGRESS_TEXT);
-		TextView tv = (TextView) view.findViewById(R.id.fo_progress_tv);
+		TextView tv = (TextView) view.findViewById(R.id.progress_tv);
 		tv.setTypeface(FontManager.INSTANCE.getAppFont());
 		tv.setText(txt);
 

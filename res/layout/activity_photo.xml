@@ -45,8 +45,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_margin="15dp"
-            android:paddingTop="@dimen/padding_medium"
-            android:text="POST TO WAYWT" />
+            android:paddingTop="@dimen/padding_medium" />
     </LinearLayout>
 
 </ScrollView>

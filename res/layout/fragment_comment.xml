@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="#e6d7d4d3"
-        android:orientation="vertical" > 
+        android:orientation="vertical" >
 
         <View
             android:layout_width="match_parent"
@@ -51,6 +51,8 @@
                 android:layout_marginTop="10dp"
                 android:layout_toLeftOf="@id/comment_reply_send_btn"
                 android:hint="Type comment"
+                android:imeOptions="actionDone"
+                android:inputType="text"
                 android:textColor="@color/black" />
         </RelativeLayout>
     </LinearLayout>
