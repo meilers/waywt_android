@@ -67,7 +67,7 @@ import android.webkit.CookieSyncManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MyPostsFragment extends Fragment implements MyPostsListener, LoaderCallbacks<Cursor> {
+public class MyPostsFragment extends BaseFragment implements MyPostsListener, LoaderCallbacks<Cursor> {
 
 	public static final String TAG = WaywtFragment.class.getCanonicalName();
 
@@ -131,6 +131,7 @@ public class MyPostsFragment extends Fragment implements MyPostsListener, Loader
 		mIndicator.setViewPager(mPager);
 		mIndicator.setTypeface(FontManager.INSTANCE.getAppFont());
 
+		setHasOptionsMenu(true);
 		
 		return view;
 	}
@@ -142,8 +143,8 @@ public class MyPostsFragment extends Fragment implements MyPostsListener, Loader
 
 		if( mRedditSettings.isLoggedIn() )
 		{
-			getLoaderManager().initLoader(POST_LOADER_ID, null, this);
 			getLoaderManager().initLoader(COMMENT_LOADER_ID, null, this);			
+			getLoaderManager().initLoader(POST_LOADER_ID, null, this);
 		}
 		else
 		{
@@ -177,7 +178,7 @@ public class MyPostsFragment extends Fragment implements MyPostsListener, Loader
 		mPagerAdapter = null;
 
 		super.onDestroy();
-	}
+	} 
 
 	
 	
@@ -265,16 +266,18 @@ public class MyPostsFragment extends Fragment implements MyPostsListener, Loader
 	
 	
 	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-	    // TODO Add your menu entries here
-		
-		inflater.inflate(R.menu.waywt, menu);
+	protected int getOptionsMenuId() {
+		return R.menu.my_posts;
+	}
+	
+	@Override
+	protected void onFinisingCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onFinisingCreateOptionsMenu(menu, inflater);
 		
 		mRefreshMenuItem = menu.findItem(R.id.refresh_menu_id);
 		mLoadingMenuItem = menu.findItem(R.id.loading_menu_id);
 		mLoadingMenuItem.setActionView(R.layout.actionbar_indeterminate_progress);
 	}
-	
 
 	@Override
 	public void onPrepareOptionsMenu(final Menu menu) {
@@ -476,7 +479,7 @@ public class MyPostsFragment extends Fragment implements MyPostsListener, Loader
 				}
 			}
 			
-			fetchComments();
+			fetchComments(); 
 			
 			
 			break;
@@ -502,23 +505,21 @@ public class MyPostsFragment extends Fragment implements MyPostsListener, Loader
 				
 				myPosts.add(comment);
 			}
-			
-			if (getView() != null) {
 
-				if( cursor.getCount() <= 0 )
-				{
+			if( cursor.getCount() > 0 )
+			{
+				if (getView() != null) {
+
 					getView().findViewById(R.id.loading).setVisibility(View.GONE);
-					TextView tv = (TextView)getView().findViewById(R.id.not_logged_in_tv);
-					tv.setVisibility(View.VISIBLE);
-					tv.setText("No Posts.");
-				}
-				else
-				{
-					mPagerAdapter.addMyPosts(myPosts);
-					mPager.setAdapter(mPagerAdapter);
 					
-	//				ViewFlipper vf = (ViewFlipper) getView().findViewById(R.id.vf);
-	//				vf.setDisplayedChild(1);
+					mPagerAdapter = new MyPostPagerAdapter(getChildFragmentManager(), mSubreddit);
+					mPager.setAdapter(mPagerAdapter);
+
+					mIndicator = (TitlePageIndicator) getView().findViewById(R.id.page_indicator);
+					mIndicator.setViewPager(mPager);
+					mIndicator.setTypeface(FontManager.INSTANCE.getAppFont());
+					
+					mPagerAdapter.addMyPosts(myPosts);
 					
 					// UPDATE MENU ITEMS
 					if (mRefreshMenuItem != null && mLoadingMenuItem != null) {
@@ -542,15 +543,20 @@ public class MyPostsFragment extends Fragment implements MyPostsListener, Loader
 	}
 
 	@Override
-	public void onSuccess() {
-		// TODO Auto-generated method stub
-		
+	public void onSuccess(final List<ThingInfo> posts) {
 		if( getActivity() != null && getView() != null )
 		{
 			getActivity().runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
 					getView().findViewById(R.id.loading).setVisibility(View.GONE);
+					
+					if( posts.size() == 0 )
+					{
+						TextView tv = (TextView)getView().findViewById(R.id.not_logged_in_tv);
+						tv.setVisibility(View.VISIBLE);
+						tv.setText("No Posts.");
+					}
 				}
 			});					
 		}

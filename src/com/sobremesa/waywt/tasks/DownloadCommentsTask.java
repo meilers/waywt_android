@@ -262,8 +262,7 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 			Pattern pattern1 = Pattern.compile("href=\"[^\"]+?imgur.com[^\"]+?\"");
 			Pattern pattern2 = Pattern.compile("href=\"[^\"]+?dressed.so[^\"]+?\"");
 			Pattern pattern3 = Pattern.compile("href=\"[^\"]+?drsd.so[^\"]+?\""); 
-			Pattern pattern4 = Pattern.compile("href=\"[^\"]+?.jpg\""); 
-			Pattern pattern5 = Pattern.compile("href=\"[^\"]+?.jpeg\""); 
+			Pattern pattern4 = Pattern.compile("href=\"[^\"]+?.jpg|.jpeg|.png|.JPG|.JPEG|.PNG\""); 
 			
 			ListingData commentListingData = listings[1].getData();
 			for (ThingListing commentThingListing : commentListingData.getChildren()) {
@@ -277,15 +276,13 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 					Matcher matcher2 = pattern2.matcher(Html.fromHtml(thingInfo.getBody_html()));
 					Matcher matcher3 = pattern3.matcher(Html.fromHtml(thingInfo.getBody_html()));
 					Matcher matcher4 = pattern4.matcher(Html.fromHtml(thingInfo.getBody_html()));
-					Matcher matcher5 = pattern5.matcher(Html.fromHtml(thingInfo.getBody_html()));
 					
 					boolean one = matcher1.find();
 					boolean two = matcher2.find();
 					boolean three = matcher3.find();
 					boolean four = matcher4.find();
-					boolean five = matcher5.find();
 					
-					if (one || two || three || four || five)  
+					if (one || two || three || four )  
 					{
 						
 						ThingInfo ci = commentThingListing.getData();

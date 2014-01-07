@@ -70,6 +70,7 @@ import android.graphics.Point;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -153,6 +154,9 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
     
     
     private DownloadRepliesTask getNewDownloadRepliesTask() {
+    	
+    	Log.d("subreddit", mSubreddit);
+    	Log.d("mThreadId", mThreadId);
     	return new DownloadRepliesTask(
 				this,
 				mSubreddit,
@@ -216,8 +220,13 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 								
 								for( String u : urls )
 								{
-									if( mComment.getAuthor().toLowerCase().equals("mydogisnoodles"))
-										Log.d("noodles", u);
+									
+									if( u.contains("#"))
+									{
+										split = u.split("#");
+										
+										u = split[0] + ".jpg";
+									}
 									
 									if( !mImageUrls.contains( u ))
 										mImageUrls.add(u);	
@@ -271,7 +280,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 								mImageUrls.add(url);
 						}
 					}
-					else if( url.contains(".jpg") || url.contains(".jpeg"))
+					else if( url.contains(".jpg") || url.contains(".jpeg") || url.contains(".png") || url.contains(".JPG") || url.contains(".JPEG") || url.contains(".PNG") )
 					{
 						mImageUrls.add(url);
 					}
@@ -286,6 +295,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		
 		Options options = new Options();
 		options.scalingPreference = Options.ScalingPreference.ROUND_TO_CLOSEST_MATCH;
+		options.useScreenSizeAsBounds = true;
 		mImageLoader = ImageLoader.buildImageLoaderForSupportFragment(this);
 		mImageLoader.setDefaultOptions(options);
 
@@ -298,7 +308,10 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		mRedditSettings.loadRedditPreferences(getActivity(), mRedditClient);
 		
 		
-		getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+			getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+		else
+			getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
 	}
 	
     @Override
@@ -507,6 +520,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 	
 	private void updateImages( final View view )
 	{
+		Log.d("icii", mImageUrls.size()+"");
 		if( mImageUrls.size() > 0 )
 		{
 			final String mainImageUrl = mImageUrls.get(0);
@@ -516,36 +530,27 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 				public void onImageLoadError(String arg0) { 
 					
 					Log.d("fail", mainImageUrl);
-					View parentView = CommentFragment.this.getView();
-					
-					if( parentView != null )
+					if( mListView != null && getActivity() != null ) 
 					{
-						
-						ListView lv = (ListView)parentView.findViewById(R.id.replies_lv);
-						lv.setVisibility(View.VISIBLE);
-						
+						mListView.setVisibility(View.VISIBLE);
 						Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
-						lv.startAnimation(myFadeInAnimation);
+						mListView.startAnimation(myFadeInAnimation);						
 					}
+
 				}
 				
 				@Override
 				public void onImageAvailable(ImageView imageView, Bitmap bitmap, ImageReturnedFrom imageReturnedFrom) {
 					
 					Log.d("succeed", mainImageUrl);
-					View parentView = CommentFragment.this.getView();
-					
-					if( parentView != null )
+					imageView.setImageBitmap(bitmap); 
+					if( mListView != null && getActivity() != null )
 					{
-						imageView.setImageBitmap(bitmap);
-					
-						
-						ListView lv = (ListView)parentView.findViewById(R.id.replies_lv);
-						lv.setVisibility(View.VISIBLE);
-						
+						mListView.setVisibility(View.VISIBLE);
 						Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);
-						lv.startAnimation(myFadeInAnimation);
+						mListView.startAnimation(myFadeInAnimation);						
 					}
+					
 				}
 			});
 			
@@ -1184,7 +1189,10 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 					e.printStackTrace();
 				}
     			
-    			getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+    			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+    				getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+    			else
+    				getNewDownloadRepliesTask().prepareLoadMoreComments(mComment.getId(), 0, mComment.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
     			
     			mReplyEt.getText().clear();
     			InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -1236,7 +1244,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 					newCommentsList.add(mRepliesList.get(i));
 				}
 				
-				newCommentsList.addAll(comments);
+				newCommentsList.addAll(comments); 
 				 
 				for( int i = mMorePosition + 1; i < mRepliesList.size(); ++i)
 				{
@@ -1298,8 +1306,10 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 	        
 	        if (isLoadMoreCommentsPosition(position)) {
 	        	// Use this constructor to tell it to load more comments inline
-	        	getNewDownloadRepliesTask().prepareLoadMoreComments(item.getId(), position, item.getIndent())
-	        			.execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+	    		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+	    			getNewDownloadRepliesTask().prepareLoadMoreComments(item.getId(), 0, item.getIndent()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+	    		else
+	    			getNewDownloadRepliesTask().prepareLoadMoreComments(item.getId(), 0, item.getIndent()).execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
 	        } else {
 	//        	if (!"[deleted]".equals(item.getAuthor()))
 	//        		showDialog(Constants.DIALOG_COMMENT_CLICK);

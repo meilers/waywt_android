@@ -25,7 +25,7 @@ import com.sobremesa.waywt.database.tables.CommentTable;
  */
 public class Database extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "mdsdacpdatabase.db";
-	private static final int DATABASE_VERSION = 9;
+	private static final int DATABASE_VERSION = 20;
 
 	public Database(final Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -56,4 +56,6 @@ public class Database extends SQLiteOpenHelper {
 		db.execSQL(CommentTable.SQL_DROP);
 		onCreate(db);
 	}
+	
+	
 }

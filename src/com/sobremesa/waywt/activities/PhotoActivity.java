@@ -328,7 +328,7 @@ public class PhotoActivity extends BaseFragmentActivity implements MyPostsListen
 
 
 	@Override
-	public void onSuccess() {
+	public void onSuccess(List<ThingInfo> posts) {
 		hideProgressDialog();
 		
 		Intent intent = new Intent(getApplicationContext(), MainActivity.class);

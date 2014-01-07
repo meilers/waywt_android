@@ -262,7 +262,7 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 		}
 		
 		if( mListenerRef.get() != null )
-			mListenerRef.get().onSuccess();
+			mListenerRef.get().onSuccess(myPosts);
 		
         return true;
     }

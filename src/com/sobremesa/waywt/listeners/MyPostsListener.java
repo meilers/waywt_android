@@ -8,6 +8,6 @@ import com.sobremesa.waywt.model.ThingInfo;
 
 
 public interface MyPostsListener {
-	public void onSuccess();
+	public void onSuccess(List<ThingInfo> posts);
 }
 

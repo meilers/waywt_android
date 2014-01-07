@@ -19,7 +19,7 @@ import android.webkit.CookieSyncManager;
 
 public class WaywtApplication extends Application {
 
-	private static final int MAX_IMAGES_MEM_CACHE_SIZE = 2 * 1024 * 1024;
+	private static final int MAX_IMAGES_MEM_CACHE_SIZE = 8 * 1024 * 1024;
 	
 	private static Context sContext;
 	private static WaywtApplication sApplication;
@@ -37,7 +37,7 @@ public class WaywtApplication extends Application {
 		super.onCreate();
 
 		ImageLoader.setMaximumMemCacheSize(this, MAX_IMAGES_MEM_CACHE_SIZE);
-
+		
 		sContext = getApplicationContext();
 	}
 	

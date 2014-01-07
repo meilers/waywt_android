@@ -65,10 +65,10 @@ public class CommentSynchronizer extends Synchronizer<ThingInfo> {
 			operations.add(op);
 		}
 
-//		for (Long id : deletions) {
-//			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.COMMENT_CONTENT_URI).withSelection(CommentTable.ID + " = ?", new String[] { String.valueOf(id) }).build();
-//			operations.add(op);
-//		}
+		for (Long id : deletions) {
+			ContentProviderOperation op = ContentProviderOperation.newDelete(Provider.COMMENT_CONTENT_URI).withSelection(CommentTable.ID + " = ?", new String[] { String.valueOf(id) }).build();
+			operations.add(op);
+		}
 
 		try {
 			if( operations.size() > 0 )

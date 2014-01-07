@@ -21,6 +21,7 @@ import com.sobremesa.waywt.database.tables.PostTable;
 import com.sobremesa.waywt.dialog.LoginDialog;
 import com.sobremesa.waywt.enums.SortByType;
 import com.sobremesa.waywt.fragments.CommentFragment;
+import com.sobremesa.waywt.fragments.LoadingFragment;
 import com.sobremesa.waywt.fragments.MyPostsFragment;
 import com.sobremesa.waywt.fragments.SettingsFragment;
 import com.sobremesa.waywt.fragments.WaywtFragment;
@@ -104,7 +105,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	    @Override
 	    public void handleMessage(Message msg) {
 	        if(msg.what == MSG_SHOW_DIALOG) {
-	            showProgressDialog("LOADING WAYWT POSTS");
+	            showProgressDialog("LOADING POSTS");
 	        }
 	        else if(msg.what == MSG_HIDE_DIALOG) {
 	            hideProgressDialog();
@@ -125,7 +126,6 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	private CharSequence mTitle = "";
 	private int mCurrentTab = -1;
 	
-	private CursorLoader mLoader;
 
 	private CustomAdapter mNavAdapter;
 	private int mCurrentWaywtIndex = 0;
@@ -281,7 +281,6 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 
 		if (mCurrentTab != DrawerTabIndex.WAYWT || refresh ) {
 			setSelectedDrawerAdapterPosition(DrawerTabIndex.WAYWT);
-//			mTabBackStack.add(mCurrentTab);
 			mCurrentTab = DrawerTabIndex.WAYWT;
 			
 			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
@@ -296,7 +295,6 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 
 		if (mCurrentTab != DrawerTabIndex.MY_POSTS || refresh ) {
 			setSelectedDrawerAdapterPosition(DrawerTabIndex.MY_POSTS);
-//			mTabBackStack.add(mCurrentTab);
 			mCurrentTab = DrawerTabIndex.MY_POSTS;
 			
 			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
@@ -318,7 +316,6 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	{
 		if (mCurrentTab != DrawerTabIndex.SETTINGS || refresh ) {
 			setSelectedDrawerAdapterPosition(DrawerTabIndex.SETTINGS);
-//			mTabBackStack.add(mCurrentTab);
 			mCurrentTab = DrawerTabIndex.SETTINGS;
 			
 			getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
@@ -345,13 +342,11 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 			fragmentTransaction.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out);
 
 		fragmentTransaction.replace(R.id.content_frame, new Fragment());
-		fragmentTransaction.addToBackStack(null);
 		fragmentTransaction.commit();
 
 		FragmentTransaction ft = manager.beginTransaction();
 		ft.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out);
 		ft.replace(R.id.content_frame, fragment, tag);
-		ft.addToBackStack(null);
 		ft.commit();
 		closeDrawer();
 
@@ -426,6 +421,11 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 			fragment.setArguments(args);
 			getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragment).commitAllowingStateLoss();			
 		}
+		else
+		{
+			Fragment fragment = new LoadingFragment();
+			getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragment).commitAllowingStateLoss();			
+		}
 
 	}
 
@@ -470,36 +470,48 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		mLoader = new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, PostTable.IS_MALE + "=?", new String[] { UserUtil.getIsMale() ? "1" : "0" }, PostTable.CREATED + " DESC");
-
-		return mLoader;
+		mCurrentWaywtIndex = 0;
+		return new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, PostTable.IS_MALE + "=?", new String[] { UserUtil.getIsMale() ? "1" : "0" }, PostTable.CREATED + " DESC");
 	}
 
 
 	
 	@Override
 	public void onLoadFinished(Loader<Cursor> arg0, Cursor cursor) {
-		mNavAdapter.clear();
-		mNavItems.clear();
 		
-		for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-
-			NavItem navItem = new NavItem();
-			navItem.mTitle = cursor.getString(cursor.getColumnIndex(PostTable.TITLE));
-			navItem.mPermalink = cursor.getString(cursor.getColumnIndex(PostTable.PERMALINK));
-			
-			mNavAdapter.add(navItem);
-			mNavItems.add(navItem);
-		}
-
-		mNavAdapter.notifyDataSetChanged();
-
-		if (cursor.getCount() > 0 )
+		boolean refresh = true;
+		
+		if( mNavItems.size() > 0 && cursor.getCount() > 0 )
 		{
-			handler.sendEmptyMessage(MSG_HIDE_DIALOG);
+			cursor.moveToFirst();
+			NavItem item = mNavItems.get(0);
+			refresh = !item.mPermalink.equals(cursor.getString(cursor.getColumnIndex(PostTable.PERMALINK)));
+		}
+		
+		if( refresh )
+		{
+			mNavAdapter.clear();
+			mNavItems.clear();
 			
-			if( mCurrentTab == DrawerTabIndex.WAYWT ) 
-				refreshNavigationBar(0);
+			for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+	
+				NavItem navItem = new NavItem();
+				navItem.mTitle = cursor.getString(cursor.getColumnIndex(PostTable.TITLE));
+				navItem.mPermalink = cursor.getString(cursor.getColumnIndex(PostTable.PERMALINK));
+				
+				mNavAdapter.add(navItem);
+				mNavItems.add(navItem);
+			}
+	
+			mNavAdapter.notifyDataSetChanged();
+	
+			if (cursor.getCount() > 0 )
+			{
+				handler.sendEmptyMessage(MSG_HIDE_DIALOG);
+				
+				if( mCurrentTab == DrawerTabIndex.WAYWT ) 
+					refreshNavigationBar(0);
+			}
 		}
 		
 	}

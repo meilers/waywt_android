@@ -231,7 +231,7 @@ public class PostService extends BaseService {
 			after = "";
 			i = 0;
 			
-			while( after != null && i < 2)
+			while( after != null && i < 3)
 			{
 				try
 				{
@@ -321,13 +321,12 @@ public class PostService extends BaseService {
 	
 	private boolean isNotValidPost( boolean isMale, RemoteRedditPost post )
 	{
+		
 		if( isMale )
-			return (!post.data.domain.equals("self.malefashionadvice") || post.data.author_flair_text == null || !post.data.author_flair_text.equals("Automated Robo-Mod") || !post.data.title.toLowerCase().contains("waywt") )
-					&& !post.data.title.toLowerCase().contains("shoe edition") && !post.data.title.toLowerCase().contains("footwear edition") && !post.data.title.toLowerCase().contains("feet edition");
+			return (!post.data.domain.equals("self.malefashionadvice") || post.data.author_flair_text == null || (!post.data.title.toLowerCase().contains("waywt")) && !post.data.title.toLowerCase().contains("outfit feedback") && !post.data.title.toLowerCase().contains("recent purchases"));
 		else
 		{
-			return (!post.data.domain.equals("self.femalefashionadvice") || post.data.author_flair_text == null || !post.data.author_flair_text.equals("I'm a Robot Mod (|\u25cf_\u25cf|)") || !post.data.title.toLowerCase().contains("waywt") )
-					&& !post.data.title.toLowerCase().contains("shoe edition") && !post.data.title.toLowerCase().contains("footwear edition") && !post.data.title.toLowerCase().contains("feet edition");
+			return (!post.data.domain.equals("self.femalefashionadvice") || post.data.author_flair_text == null || (!post.data.title.toLowerCase().contains("waywt")) && !post.data.title.toLowerCase().contains("outfit feedback") && !post.data.title.toLowerCase().contains("theme") && !post.data.title.toLowerCase().contains("recent purchases"));
 		}
 	}
 

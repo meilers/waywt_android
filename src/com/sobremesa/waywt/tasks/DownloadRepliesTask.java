@@ -132,13 +132,13 @@ public class DownloadRepliesTask extends AsyncTask<Integer, Long, Boolean>
 		ListenerTask task = mTasks[mInc];
 		
 		if( task != null )
-		{
+		{ 
 			if( task.mCurrentDownloadCommentsTask != null )
 			{
 				task.mCurrentDownloadCommentsTask.cancel(true);
 				task.mCurrentDownloadCommentsTask = null;
 				
-				task.mListenerReference.clear();
+				task.mListenerReference.clear(); 
 				task.mListenerReference = null;
 			}
 		}

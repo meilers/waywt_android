@@ -36,6 +36,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.drawable.AnimationDrawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
@@ -186,6 +187,12 @@ public class WaywtFragment extends BaseFragment implements CommentsListener {
 
 		super.onDestroy();
 		
+	}
+	
+	@Override
+	public void onDestroyView() {
+		super.onDestroyView();
+		
 		mPagerAdapter = null;
 		
 		DownloadCommentsTask.clearTasks();
@@ -212,83 +219,104 @@ public class WaywtFragment extends BaseFragment implements CommentsListener {
 	}
 
 	@Override
-	public void updateComments(List<ThingInfo> comments) {
+	public void updateComments(final List<ThingInfo> comments) {
 
-		if (getView() != null) {
-			
-			getView().findViewById(R.id.loading).setVisibility(View.GONE);
-			
-			SortByType type = SortByType.values()[UserUtil.getSortBy()];
-	
-			switch (type) {
-			case RANDOM:
-				long seed = System.nanoTime();
-				Collections.shuffle(comments, new Random(seed));
-				break;
-
-			case UPVOTES:
-				Collections.sort(comments); 
-				break;
-
-			case MOST_RECENT:
-				Comparator<ThingInfo> comparator = new Comparator<ThingInfo>() {
-				    public int compare(ThingInfo c1, ThingInfo c2) {
-				    	
-				    	
-				        return Double.valueOf(c2.getCreated_utc()).intValue()-Double.valueOf(c1.getCreated_utc()).intValue(); // use your logic
-				    }
-				};
-				Collections.sort(comments, comparator); 
-				break;
+		MainActivity act = (MainActivity)getActivity();
+		
+		if( act != null )
+		{
+			act.runOnUiThread(new Runnable() {
 				
-//			case COMMENTS:
-//				Comparator<ThingInfo> comparator = new Comparator<ThingInfo>() {
-//				    public int compare(ThingInfo c1, ThingInfo c2) {
-//				    	
-//				    	int t1 = 0;
-//				    	int t2 = 0;
-//				    	
-//				    	t1 = getReplyCount( c1 );
-//				    	t2 = getReplyCount( c2 );
-//				    	
-//				        return t2-t1; // use your logic
-//				    }
-//				};
-//				Collections.sort(comments, comparator); 
-//				break;
-			}
-
-			mPagerAdapter.addComments(comments);
-			mPager.setAdapter(mPagerAdapter);
+				@Override
+				public void run() {
+					if (getView() != null) {
+						
+						getView().findViewById(R.id.loading).setVisibility(View.GONE);
+						
+						SortByType type = SortByType.values()[UserUtil.getSortBy()];
+				
+						switch (type) {
+						case RANDOM:
+							long seed = System.nanoTime();
+							Collections.shuffle(comments, new Random(seed));
+							break;
 			
+						case UPVOTES:
+							Collections.sort(comments); 
+							break;
 			
-	
+						case MOST_RECENT:
+							Comparator<ThingInfo> comparator = new Comparator<ThingInfo>() {
+							    public int compare(ThingInfo c1, ThingInfo c2) {
+							    	
+							    	
+							        return Double.valueOf(c2.getCreated_utc()).intValue()-Double.valueOf(c1.getCreated_utc()).intValue(); // use your logic
+							    }
+							};
+							Collections.sort(comments, comparator); 
+							break;
+							
+			//			case COMMENTS:
+			//				Comparator<ThingInfo> comparator = new Comparator<ThingInfo>() {
+			//				    public int compare(ThingInfo c1, ThingInfo c2) {
+			//				    	
+			//				    	int t1 = 0;
+			//				    	int t2 = 0;
+			//				    	
+			//				    	t1 = getReplyCount( c1 );
+			//				    	t2 = getReplyCount( c2 );
+			//				    	
+			//				        return t2-t1; // use your logic
+			//				    }
+			//				};
+			//				Collections.sort(comments, comparator); 
+			//				break;
+						}
 			
-			// UPDATE NAV BAR
-			MainActivity act = (MainActivity)getActivity();
-			
-			if( act != null )
-				act.updateCurrentNavItemDescription(comments.size()+" POSTS");
-			
-			
-			// UPDATE MENU ITEMS
-			if (mRefreshMenuItem != null && mLoadingMenuItem != null) {
-				mRefreshMenuItem.setVisible(true);
-				mLoadingMenuItem.setVisible(false);
-			}
+						mPagerAdapter.addComments(comments);
+						mPager.setAdapter(mPagerAdapter);
+						
+						
+				
+						
+						// UPDATE NAV BAR
+						MainActivity act = (MainActivity)getActivity();
+						
+						if( act != null )
+							act.updateCurrentNavItemDescription(comments.size()+" POSTS");
+						
+						
+						// UPDATE MENU ITEMS
+						if (mRefreshMenuItem != null && mLoadingMenuItem != null) {
+							mRefreshMenuItem.setVisible(true);
+							mLoadingMenuItem.setVisible(false);
+						}
+					}
+				}
+			});
 		}
 
 	}
 	
 	@Override
-	public void updateOPComment(ThingInfo comment) {
-		// TODO Auto-generated method stub
-		mOPComment = comment;
+	public void updateOPComment(final ThingInfo comment) {
+		MainActivity act = (MainActivity)getActivity();
 		
-		if( mOPComment != null )
-			setHasOptionsMenu(true);
-		else
-			setHasOptionsMenu(false);
+		if( act != null )
+		{
+			act.runOnUiThread(new Runnable() {
+				
+				@Override
+				public void run() {
+					mOPComment = comment;
+					
+					if( mOPComment != null )
+						setHasOptionsMenu(true);
+					else
+						setHasOptionsMenu(false);
+				}
+			});
+		}
 	}
 	
 	private void fetchComments() 
@@ -298,7 +326,7 @@ public class WaywtFragment extends BaseFragment implements CommentsListener {
 			mRefreshMenuItem.setVisible(false);
 		}
 		
-		getNewDownloadCommentsTask().execute(Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
+		getNewDownloadCommentsTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, Constants.DEFAULT_COMMENT_DOWNLOAD_LIMIT);
 	}
 	
 	
@@ -385,6 +413,7 @@ public class WaywtFragment extends BaseFragment implements CommentsListener {
 		mLoadingMenuItem = menu.findItem(R.id.loading_menu_id);
 		mLoadingMenuItem.setActionView(R.layout.actionbar_indeterminate_progress);
 	}
+	
 	@Override
 	public void onPrepareOptionsMenu(final Menu menu) {
 
@@ -512,7 +541,7 @@ public class WaywtFragment extends BaseFragment implements CommentsListener {
 
 		return super.onOptionsItemSelected(item);
 	}
-	
+
 	
 
 
