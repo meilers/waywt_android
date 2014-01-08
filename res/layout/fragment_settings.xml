@@ -1,212 +1,261 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res/com.sobremesa.waywt"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="@dimen/padding_large" >
+    android:layout_height="wrap_content" >
 
-    <com.sobremesa.waywt.views.WaywtTextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="left"
-        android:text="SUBREDDIT" />
+        android:orientation="vertical"
+        android:padding="@dimen/padding_large" >
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_marginBottom="@dimen/padding_medium"
-        android:layout_marginTop="@dimen/padding_medium"
-        android:background="@color/orange" />
+        <com.sobremesa.waywt.views.WaywtTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:text="SUBREDDIT" />
 
-    <RelativeLayout
-        android:id="@+id/settings_mfa_rl"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:background="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:padding="@dimen/padding_small" >
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginBottom="@dimen/padding_medium"
+            android:layout_marginTop="@dimen/padding_medium"
+            android:background="@color/orange" />
+
+        <RelativeLayout
+            android:id="@+id/settings_mfa_rl"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:padding="@dimen/padding_small" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:text="Male Fashion Advice" />
+
+            <RadioButton
+                android:id="@+id/settings_mfa_rb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/settings_ffa_rl"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:padding="@dimen/padding_small" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:text="Female Fashion Advice" />
+
+            <RadioButton
+                android:id="@+id/settings_ffa_rb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/settings_teen_mfa_rl"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:padding="@dimen/padding_small" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:text="Teen MFA" />
+
+            <RadioButton
+                android:id="@+id/settings_teen_mfa_rb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/settings_teen_ffa_rl"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:padding="@dimen/padding_small" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:text="Teen FFA" />
+
+            <RadioButton
+                android:id="@+id/settings_teen_ffa_rb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+
+        <com.sobremesa.waywt.views.WaywtTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginTop="@dimen/padding_large"
+            android:text="SORT BY" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_centerVertical="true"
+            android:layout_marginBottom="@dimen/padding_medium"
+            android:layout_marginTop="@dimen/padding_medium"
+            android:background="@color/orange" />
+
+        <RelativeLayout
+            android:id="@+id/settings_sort_by_random_rl"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_centerVertical="true"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:padding="@dimen/padding_small" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:text="Random" />
+
+            <RadioButton
+                android:id="@+id/settings_sort_by_random_rb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/settings_sort_by_upvotes_rl"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:padding="@dimen/padding_small" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:text="Upvotes" />
+
+            <RadioButton
+                android:id="@+id/settings_sort_by_upvotes_rb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/settings_sort_by_most_recent_rl"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:padding="@dimen/padding_small" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:text="Most Recent" />
+
+            <RadioButton
+                android:id="@+id/settings_sort_by_most_recent_rb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/settings_sort_by_none_rl"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:padding="@dimen/padding_small" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:text="None" />
+
+            <RadioButton
+                android:id="@+id/settings_sort_by_none_rb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true" />
+        </RelativeLayout>
+
+        <com.sobremesa.waywt.views.WaywtTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginTop="@dimen/padding_large"
+            android:text="PROFILE" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginBottom="@dimen/padding_medium"
+            android:layout_marginTop="@dimen/padding_medium"
+            android:background="@color/orange" />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="Male Fashion Advice" />
-
-        <RadioButton
-            android:id="@+id/settings_mfa_rb"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true" />
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-         android:id="@+id/settings_ffa_rl"
-        android:layout_height="40dp"
-        android:background="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:padding="@dimen/padding_small" >
+            android:id="@+id/settings_login_tv"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_gravity="left|center_vertical"
+            android:background="?android:attr/selectableItemBackground"
+            android:gravity="left|center_vertical"
+            android:padding="@dimen/padding_small" />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="Female Fashion Advice" />
-
-        <RadioButton
-            android:id="@+id/settings_ffa_rb"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true" />
-    </RelativeLayout>
-
-    <com.sobremesa.waywt.views.WaywtTextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="left"
-        android:layout_marginTop="@dimen/padding_large"
-        android:text="SORT BY" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_centerVertical="true"
-        android:layout_marginBottom="@dimen/padding_medium"
-        android:layout_marginTop="@dimen/padding_medium"
-        android:background="@color/orange" />
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:id="@+id/settings_sort_by_random_rl"
-        android:layout_centerVertical="true"
-        android:background="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:padding="@dimen/padding_small" >
+            android:id="@+id/settings_nb_posts_tv"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_gravity="left|center_vertical"
+            android:background="?android:attr/selectableItemBackground"
+            android:gravity="left|center_vertical"
+            android:padding="@dimen/padding_small" />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="Random" />
+            android:id="@+id/settings_nb_points_tv"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_gravity="left|center_vertical"
+            android:background="?android:attr/selectableItemBackground"
+            android:gravity="left|center_vertical"
+            android:padding="@dimen/padding_small"
+            android:text="Logged in as" />
+    </LinearLayout>
 
-        <RadioButton
-            android:id="@+id/settings_sort_by_random_rb"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true" />
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:id="@+id/settings_sort_by_upvotes_rl"
-        android:background="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:padding="@dimen/padding_small" >
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="Upvotes" />
-
-        <RadioButton
-            android:id="@+id/settings_sort_by_upvotes_rb"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true" />
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:id="@+id/settings_sort_by_most_recent_rl"
-        android:background="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:padding="@dimen/padding_small" >
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="Most Recent" />
-
-        <RadioButton
-            android:id="@+id/settings_sort_by_most_recent_rb"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true" />
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:id="@+id/settings_sort_by_none_rl"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:background="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:padding="@dimen/padding_small" >
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="None" />
-
-        <RadioButton
-            android:id="@+id/settings_sort_by_none_rb"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true" />
-    </RelativeLayout>
-
-    <com.sobremesa.waywt.views.WaywtTextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="left"
-        android:layout_marginTop="@dimen/padding_large"
-        android:text="PROFILE" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_marginBottom="@dimen/padding_medium"
-        android:layout_marginTop="@dimen/padding_medium"
-        android:background="@color/orange" />
-
-    <TextView
-        android:id="@+id/settings_login_tv"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_gravity="left|center_vertical"
-        android:background="?android:attr/selectableItemBackground"
-        android:gravity="left|center_vertical"
-        android:padding="@dimen/padding_small" />
-    
-    <TextView
-        android:id="@+id/settings_nb_posts_tv"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_gravity="left|center_vertical"
-        android:background="?android:attr/selectableItemBackground"
-        android:gravity="left|center_vertical"
-        android:padding="@dimen/padding_small"/>
-    
-    <TextView
-        android:id="@+id/settings_nb_points_tv"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_gravity="left|center_vertical"
-        android:background="?android:attr/selectableItemBackground"
-        android:gravity="left|center_vertical"
-        android:padding="@dimen/padding_small"
-        android:text="Logged in as" />
-
-</LinearLayout>
+</ScrollView>

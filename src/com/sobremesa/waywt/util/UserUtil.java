@@ -10,6 +10,7 @@ public class UserUtil {
 	
 	public static final String HAS_CHOSEN_SUBREDDIT = "has_chosen_subreddit";
 	public static final String IS_MALE = "is_male";
+	public static final String IS_TEEN = "is_teen";
 	public static final String SORT_BY = "sort_by";
 
 	public static boolean getHasChosenSubreddit() {
@@ -36,18 +37,51 @@ public class UserUtil {
 		editor.commit(); 
 	}
 	
+	public static boolean getIsTeen() {
+		SharedPreferences prefs = WaywtApplication.getSharedPreferences();
+		return prefs.getBoolean(IS_TEEN, false);
+	}
+	
+	public static void setIsTeen( boolean isTeen ) {
+		SharedPreferences sharedPrefs = WaywtApplication.getSharedPreferences();
+		SharedPreferences.Editor editor = sharedPrefs.edit();
+		editor.putBoolean(IS_TEEN, isTeen);
+		editor.commit(); 
+	}
+	
+	
 	public static String getSubreddit() {
 		if(  getIsMale() )
-			return "malefashionadvice";
+		{
+			if( !getIsTeen() )
+				return "malefashionadvice";
+			else
+				return "TeenMFA";
+		}
 		else
-			return "femalefashionadvice";
+		{
+			if( !getIsTeen() )
+				return "femalefashionadvice";
+			else
+				return "TeenFFA";
+		}
 	}
 	
 	public static String getSubredditAcronym() {
 		if(  getIsMale() )
-			return "MFA";
+		{
+			if( !getIsTeen() )
+				return "MFA";
+			else
+				return "TeenMFA";
+		}
 		else
-			return "FFA"; 
+		{
+			if( !getIsTeen() )
+				return "FFA";
+			else
+				return "TeenFFA";
+		}
 	}
 	
 	public static int getSortBy() {

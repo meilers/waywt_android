@@ -42,9 +42,11 @@ public class PostService extends BaseService {
 	public static final class Extras
 	{
 		public static final String IS_MALE = "is_male";
+		public static final String IS_TEEN = "is_teen";
 	}
 	
 	private boolean mIsMale = true;
+	private boolean mIsTeen = false;
 	
 	public class RemoteResponse {
 		public String kind;
@@ -122,6 +124,16 @@ public class PostService extends BaseService {
 		RemoteResponse getPosts(@EncodedPath("path") String path, @Query("t")String time, @Query("after")String after);  
 	}
 	
+	public interface TeenMFAPostClient extends PostClient {
+		@GET("/r/TeenMFA/{path}.json")
+		RemoteResponse getPosts(@EncodedPath("path") String path, @Query("t")String time, @Query("after")String after);  
+	}
+	
+	public interface TeenFFAPostClient extends PostClient {
+		@GET("/r/TeenFFA/{path}.json")
+		RemoteResponse getPosts(@EncodedPath("path") String path, @Query("t")String time, @Query("after")String after);  
+	}
+	
 	
 
 	public PostService() {
@@ -137,15 +149,27 @@ public class PostService extends BaseService {
 		if (intent.getAction().equals(Intent.ACTION_SYNC)) 
 		{
 			mIsMale = intent.getBooleanExtra(Extras.IS_MALE, true);
+			mIsTeen = intent.getBooleanExtra(Extras.IS_TEEN, false);
 			
 			List<RemoteRedditPost> totalPosts = new ArrayList<RemoteRedditPost>();
 			
 			PostClient client = PostServiceClient.getInstance().getClient(getContext(), PostClient.class); 
 			
-			if( UserUtil.getIsMale() )
-				client = PostServiceClient.getInstance().getClient(getContext(), MFAPostClient.class); 
+			if( mIsMale )
+			{
+				if( !mIsTeen )
+					client = PostServiceClient.getInstance().getClient(getContext(), MFAPostClient.class); 
+				else
+					client = PostServiceClient.getInstance().getClient(getContext(), TeenMFAPostClient.class); 
+				
+			}
 			else
-				client = PostServiceClient.getInstance().getClient(getContext(), FFAPostClient.class); 
+			{
+				if( !mIsTeen )
+					client = PostServiceClient.getInstance().getClient(getContext(), FFAPostClient.class); 
+				else
+					client = PostServiceClient.getInstance().getClient(getContext(), TeenFFAPostClient.class); 
+			}
 				
 			RemoteResponse response; 
 			RemoteData remoteData;
@@ -180,7 +204,7 @@ public class PostService extends BaseService {
 				while (iter.hasNext()) {
 					RemoteRedditPost post = iter.next();
 					
-					if ( isNotValidPost(mIsMale, post) || totalPosts.contains(post) )
+					if ( isNotValidPost(mIsMale, mIsTeen, post) || totalPosts.contains(post) )
 				        iter.remove(); 
 				}
 				
@@ -217,7 +241,7 @@ public class PostService extends BaseService {
 				while (iter.hasNext()) {
 					RemoteRedditPost post = iter.next();
 					
-					if ( isNotValidPost(mIsMale, post) || totalPosts.contains(post) )
+					if ( isNotValidPost(mIsMale, mIsTeen, post) || totalPosts.contains(post) )
 				        iter.remove(); 
 				}
 				
@@ -253,7 +277,7 @@ public class PostService extends BaseService {
 				while (iter.hasNext()) {
 					RemoteRedditPost post = iter.next();
 					
-					if ( isNotValidPost(mIsMale, post) || totalPosts.contains(post) )
+					if ( isNotValidPost(mIsMale, mIsTeen, post) || totalPosts.contains(post) )
 				        iter.remove(); 
 				}
 				
@@ -291,7 +315,7 @@ public class PostService extends BaseService {
 				while (iter.hasNext()) {
 					RemoteRedditPost post = iter.next();
 					
-				    if ( isNotValidPost(mIsMale, post) || totalPosts.contains(post) )
+				    if ( isNotValidPost(mIsMale, mIsTeen, post) || totalPosts.contains(post) )
 				        iter.remove(); 
 				}
 				
@@ -301,14 +325,15 @@ public class PostService extends BaseService {
 				++i;
 			}
 			
-			
+			Log.d("total ffa", totalPosts.size()+"");
 			if (totalPosts != null && totalPosts.size() > 0) { 
 				// synchronize!
-				Cursor localRecCursor = getContext().getContentResolver().query(Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, PostTable.IS_MALE + "=?", new String[] { UserUtil.getIsMale() ? "1":"0" }, null);
+				Cursor localRecCursor = getContext().getContentResolver().query(Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, PostTable.IS_MALE + "=? AND " + PostTable.IS_TEEN + "=?" , new String[] { mIsMale ? "1":"0", mIsTeen ? "1":"0" }, null);
 				localRecCursor.moveToFirst();
 				
 				PostSynchronizer sync = new PostSynchronizer(getContext());
 				sync.setIsMale(mIsMale);
+				sync.setIsTeen(mIsTeen);
 				synchronizeRemoteRecords(totalPosts, localRecCursor, localRecCursor.getColumnIndex(PostTable.PERMALINK), sync, new PostPreprocessor());
 				
 				//
@@ -319,14 +344,25 @@ public class PostService extends BaseService {
 		}
 	}
 	
-	private boolean isNotValidPost( boolean isMale, RemoteRedditPost post )
+	private boolean isNotValidPost( boolean isMale, boolean isTeen, RemoteRedditPost post )
 	{
 		
 		if( isMale )
-			return (!post.data.domain.equals("self.malefashionadvice") || post.data.author_flair_text == null || (!post.data.title.toLowerCase().contains("waywt")) && !post.data.title.toLowerCase().contains("outfit feedback") && !post.data.title.toLowerCase().contains("recent purchases"));
+		{
+			if( !isTeen )
+				return !post.data.domain.equals("self.malefashionadvice") || post.data.title.toLowerCase().contains("announcement") || post.data.title.toLowerCase().contains("phone") || post.data.title.toLowerCase().contains("interest") || post.data.title.toLowerCase().contains("top") || (!post.data.title.toLowerCase().contains("waywt") && !post.data.title.toLowerCase().contains("outfit feedback") && !post.data.title.toLowerCase().contains("recent purchases"));
+			else
+				return !post.data.domain.equals("self.TeenMFA") || post.data.title.toLowerCase().contains("announcement") || post.data.title.toLowerCase().contains("interest")|| post.data.title.toLowerCase().contains("top")|| (!post.data.title.toLowerCase().contains("waywt") && !post.data.title.toLowerCase().contains("recent purchases"));
+
+		}
 		else
 		{
-			return (!post.data.domain.equals("self.femalefashionadvice") || post.data.author_flair_text == null || (!post.data.title.toLowerCase().contains("waywt")) && !post.data.title.toLowerCase().contains("outfit feedback") && !post.data.title.toLowerCase().contains("theme") && !post.data.title.toLowerCase().contains("recent purchases"));
+			if( !isTeen )
+				return !post.data.domain.equals("self.femalefashionadvice") || post.data.title.toLowerCase().contains("announcement") || post.data.title.toLowerCase().contains("interest")|| post.data.title.toLowerCase().contains("top") ||  (!post.data.title.toLowerCase().contains("waywt") && !post.data.title.toLowerCase().contains("outfit feedback") && !post.data.title.toLowerCase().contains("theme") && !post.data.title.toLowerCase().contains("recent purchases"));
+			else
+			{
+				return !post.data.domain.equals("self.TeenFFA") || post.data.title.toLowerCase().contains("announcement") || post.data.title.toLowerCase().contains("interest") || post.data.title.toLowerCase().contains("top") ||  (!post.data.title.toLowerCase().contains("waywt") && !post.data.title.toLowerCase().contains("outfit feedback") && !post.data.title.toLowerCase().contains("recent purchases"));
+			}
 		}
 	}
 

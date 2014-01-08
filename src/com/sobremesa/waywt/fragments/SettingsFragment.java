@@ -34,6 +34,8 @@ public class SettingsFragment extends BaseFragment {
 
 	private RelativeLayout mMfaRl;
 	private RelativeLayout mFfaRl;
+	private RelativeLayout mTeenMfaRl;
+	private RelativeLayout mTeenFfaRl;
 	private RelativeLayout mSortByRandomRl;
 	private RelativeLayout mSortByUpvotesRl;
 	private RelativeLayout mSortByMostRecentRl;
@@ -41,6 +43,8 @@ public class SettingsFragment extends BaseFragment {
 	
 	private RadioButton mMfaRb;
 	private RadioButton mFfaRb;
+	private RadioButton mTeenMfaRb;
+	private RadioButton mTeenFfaRb;
 	private RadioButton mSortByRandomRb;
 	private RadioButton mSortByUpvotesRb;
 	private RadioButton mSortByMostRecentRb;
@@ -60,12 +64,17 @@ public class SettingsFragment extends BaseFragment {
 		
 		mMfaRl = (RelativeLayout)view.findViewById(R.id.settings_mfa_rl);
 		mFfaRl = (RelativeLayout)view.findViewById(R.id.settings_ffa_rl);
+		mTeenMfaRl = (RelativeLayout)view.findViewById(R.id.settings_teen_mfa_rl);
+		mTeenFfaRl = (RelativeLayout)view.findViewById(R.id.settings_teen_ffa_rl);
+		
 		mSortByRandomRl = (RelativeLayout)view.findViewById(R.id.settings_sort_by_random_rl);
 		mSortByUpvotesRl = (RelativeLayout)view.findViewById(R.id.settings_sort_by_upvotes_rl);
 		mSortByMostRecentRl = (RelativeLayout)view.findViewById(R.id.settings_sort_by_most_recent_rl);
 		mSortByNoneRl = (RelativeLayout)view.findViewById(R.id.settings_sort_by_none_rl);
 		mMfaRb = (RadioButton)view.findViewById(R.id.settings_mfa_rb);
 		mFfaRb = (RadioButton)view.findViewById(R.id.settings_ffa_rb);
+		mTeenMfaRb = (RadioButton)view.findViewById(R.id.settings_teen_mfa_rb);
+		mTeenFfaRb = (RadioButton)view.findViewById(R.id.settings_teen_ffa_rb);
 		mSortByRandomRb = (RadioButton)view.findViewById(R.id.settings_sort_by_random_rb);
 		mSortByUpvotesRb = (RadioButton)view.findViewById(R.id.settings_sort_by_upvotes_rb);
 		mSortByMostRecentRb = (RadioButton)view.findViewById(R.id.settings_sort_by_most_recent_rb);
@@ -73,6 +82,41 @@ public class SettingsFragment extends BaseFragment {
 		mLoginTv = (TextView)view.findViewById(R.id.settings_login_tv);
 		mNbPostsTv = (TextView)view.findViewById(R.id.settings_nb_posts_tv);
 		mNbPointsTv = (TextView)view.findViewById(R.id.settings_nb_points_tv);
+		
+		mMfaRb.setChecked(UserUtil.getIsMale() && !UserUtil.getIsTeen());
+		mFfaRb.setChecked(!UserUtil.getIsMale() && !UserUtil.getIsTeen());
+		mTeenMfaRb.setChecked(UserUtil.getIsMale() && UserUtil.getIsTeen());
+		mTeenFfaRb.setChecked(!UserUtil.getIsMale() && UserUtil.getIsTeen());
+		mSortByRandomRb.setChecked(UserUtil.getSortBy() == SortByType.RANDOM.ordinal());
+		mSortByUpvotesRb.setChecked(UserUtil.getSortBy() == SortByType.UPVOTES.ordinal());
+		mSortByMostRecentRb.setChecked(UserUtil.getSortBy() == SortByType.MOST_RECENT.ordinal());
+		mSortByNoneRb.setChecked(UserUtil.getSortBy() == SortByType.NONE.ordinal());
+		
+		if( mRedditSettings.isLoggedIn() )
+		{
+			mLoginTv.setText("Logged in as " + mRedditSettings.getUsername());
+			mNbPostsTv.setVisibility(View.VISIBLE);
+			mNbPointsTv.setVisibility(View.VISIBLE);
+			
+			Cursor cursor = getActivity().getContentResolver().query(Provider.COMMENT_CONTENT_URI, CommentTable.ALL_COLUMNS, CommentTable.AUTHOR + "=?", new String[]{mRedditSettings.getUsername()}, null);
+			
+			int points = 0;
+			
+			for( cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext() )
+			{
+				points += cursor.getInt(cursor.getColumnIndex(CommentTable.UPS))-cursor.getInt(cursor.getColumnIndex(CommentTable.DOWNS));
+			}
+			
+			mNbPostsTv.setText(cursor.getCount() + " posts");
+			mNbPointsTv.setText(points + " upvotes");
+		}
+		else
+		{
+			mLoginTv.setText("Not logged in");
+		
+			mNbPostsTv.setVisibility(View.GONE);
+			mNbPointsTv.setVisibility(View.GONE);	
+		}
 		
 		mMfaRl.setOnClickListener(new OnClickListener() {
 			
@@ -87,6 +131,22 @@ public class SettingsFragment extends BaseFragment {
 			@Override
 			public void onClick(View v) {
 				mFfaRb.setChecked(true);
+			}
+		});
+		
+		mTeenMfaRl.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				mTeenMfaRb.setChecked(true);
+			}
+		});
+		
+		mTeenFfaRl.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				mTeenFfaRb.setChecked(true);
 			}
 		});
 		
@@ -126,13 +186,18 @@ public class SettingsFragment extends BaseFragment {
 			
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				// TODO Auto-generated method stub
-				mMfaRb.setChecked(isChecked);
-				mFfaRb.setChecked(!isChecked);
+				if( isChecked )
+				{
+					mMfaRb.setChecked(isChecked);
+					mFfaRb.setChecked(!isChecked);
+					mTeenMfaRb.setChecked(!isChecked);
+					mTeenFfaRb.setChecked(!isChecked);
+						
+					UserUtil.setIsMale(true);
+					UserUtil.setIsTeen(false);
 					
-				UserUtil.setIsMale(isChecked);
-				
-				updateMainActivity(isChecked);
+					updateMainActivity(isChecked);
+				}
 			}
 		});
 		
@@ -140,13 +205,58 @@ public class SettingsFragment extends BaseFragment {
 			
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				// TODO Auto-generated method stub
-				mMfaRb.setChecked(!isChecked);
-				mFfaRb.setChecked(isChecked);
+				if( isChecked )
+				{
+					mMfaRb.setChecked(!isChecked);
+					mFfaRb.setChecked(isChecked);
+					mTeenMfaRb.setChecked(!isChecked);
+					mTeenFfaRb.setChecked(!isChecked);
 					
-				UserUtil.setIsMale(!isChecked);
-				
-				updateMainActivity(!isChecked);
+					UserUtil.setIsMale(false);
+					UserUtil.setIsTeen(false);
+					
+					updateMainActivity(!isChecked);
+				}
+			}
+		});
+		
+		mTeenMfaRb.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				// TODO Auto-generated method stub
+				if( isChecked )
+				{
+					mMfaRb.setChecked(!isChecked);
+					mFfaRb.setChecked(!isChecked);
+					mTeenMfaRb.setChecked(isChecked);
+					mTeenFfaRb.setChecked(!isChecked);
+						
+					UserUtil.setIsMale(true);
+					UserUtil.setIsTeen(true);
+					
+					updateMainActivity(true);
+				}
+			}
+		});
+		
+		mTeenFfaRb.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				// TODO Auto-generated method stub
+				if( isChecked )
+				{
+					mMfaRb.setChecked(!isChecked);
+					mFfaRb.setChecked(!isChecked);
+					mTeenMfaRb.setChecked(!isChecked);
+					mTeenFfaRb.setChecked(isChecked);
+					
+					UserUtil.setIsMale(false);
+					UserUtil.setIsTeen(true);
+					
+					updateMainActivity(false);
+				}
 			}
 		});
 		
@@ -218,15 +328,16 @@ public class SettingsFragment extends BaseFragment {
 
 		setHasOptionsMenu(true);
 
-		updateView();
 		
 		return view;
 	}
 	
 	private void updateView()
 	{
-		mMfaRb.setChecked(UserUtil.getIsMale());
-		mFfaRb.setChecked(!UserUtil.getIsMale());
+		mMfaRb.setChecked(UserUtil.getIsMale() && !UserUtil.getIsTeen());
+		mFfaRb.setChecked(!UserUtil.getIsMale() && !UserUtil.getIsTeen());
+		mTeenMfaRb.setChecked(UserUtil.getIsMale() && UserUtil.getIsTeen());
+		mTeenFfaRb.setChecked(!UserUtil.getIsMale() && UserUtil.getIsTeen());
 		mSortByRandomRb.setChecked(UserUtil.getSortBy() == SortByType.RANDOM.ordinal());
 		mSortByUpvotesRb.setChecked(UserUtil.getSortBy() == SortByType.UPVOTES.ordinal());
 		mSortByMostRecentRb.setChecked(UserUtil.getSortBy() == SortByType.MOST_RECENT.ordinal());
@@ -281,7 +392,8 @@ public class SettingsFragment extends BaseFragment {
 		
 		
 			getActivity().getSupportLoaderManager().restartLoader(0, null, (MainActivity)getActivity());
-			act.fetchPostData();				
+			act.fetchPostData();		
+			act.resetWaywt();
 
 		}
 	

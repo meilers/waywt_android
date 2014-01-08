@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
+        android:singleLine="true"
         android:textAllCaps="true" 
         android:textSize="18sp"
         android:textColor="@color/white" />
@@ -21,7 +22,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:paddingTop="@dimen/padding_extra_small"
         android:textAllCaps="true"
         android:textColor="@color/gray_75"
         android:textSize="12sp" />

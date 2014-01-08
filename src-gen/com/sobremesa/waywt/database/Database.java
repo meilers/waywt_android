@@ -21,11 +21,11 @@ import com.sobremesa.waywt.database.tables.CommentTable;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.12.27
+ * @date 2014.01.06
  */
 public class Database extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "mdsdacpdatabase.db";
-	private static final int DATABASE_VERSION = 20;
+	private static final int DATABASE_VERSION = 21;
 
 	public Database(final Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -56,6 +56,4 @@ public class Database extends SQLiteOpenHelper {
 		db.execSQL(CommentTable.SQL_DROP);
 		onCreate(db);
 	}
-	
-	
 }

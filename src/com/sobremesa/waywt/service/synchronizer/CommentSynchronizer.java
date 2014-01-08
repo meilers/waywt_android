@@ -36,6 +36,7 @@ import android.widget.Toast;
 public class CommentSynchronizer extends Synchronizer<ThingInfo> {
 
 	private boolean mIsMale = true;
+	private boolean mIsTeen = false;
 	
 	public CommentSynchronizer(Context context) {
 		super(context);
@@ -46,6 +47,13 @@ public class CommentSynchronizer extends Synchronizer<ThingInfo> {
 	{
 		mIsMale = isMale;
 	}
+	
+	public void setIsTeen(boolean isTeen)
+	{
+		mIsTeen = isTeen;
+	}
+	
+	
 
 	@Override
 	protected void performSynchronizationOperations(Context context, List<ThingInfo> inserts, List<ThingInfo> updates, List<Long> deletions) {
@@ -106,6 +114,7 @@ public class CommentSynchronizer extends Synchronizer<ThingInfo> {
 		values.put(CommentTable.UPS, t.getUps());
 		values.put(CommentTable.DOWNS, t.getDowns());
 		values.put(CommentTable.IS_MALE, mIsMale ? 1 : 0);
+		values.put(CommentTable.IS_TEEN, mIsTeen ? 1 : 0);
 		
 		return values;
 	}

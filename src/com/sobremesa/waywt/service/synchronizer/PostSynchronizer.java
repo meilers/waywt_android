@@ -36,6 +36,7 @@ import android.widget.Toast;
 public class PostSynchronizer extends Synchronizer<PostService.RemoteRedditPost> {
 
 	private boolean mIsMale = true;
+	private boolean mIsTeen = false;
 	
 	public PostSynchronizer(Context context) {
 		super(context);
@@ -44,6 +45,11 @@ public class PostSynchronizer extends Synchronizer<PostService.RemoteRedditPost>
 	public void setIsMale(boolean isMale)
 	{
 		mIsMale = isMale;
+	}
+	
+	public void setIsTeen(boolean isTeen)
+	{
+		mIsTeen = isTeen;
 	}
 	
 	@Override
@@ -100,6 +106,7 @@ public class PostSynchronizer extends Synchronizer<PostService.RemoteRedditPost>
 		values.put(PostTable.PERMALINK, t.data.permalink);
 		values.put(PostTable.TITLE, t.data.title);
 		values.put(PostTable.IS_MALE, mIsMale ? 1 : 0);
+		values.put(PostTable.IS_TEEN, mIsTeen ? 1 : 0);
 		
 		return values;
 	}

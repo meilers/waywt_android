@@ -419,24 +419,26 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 			args.putString(WaywtFragment.Extras.PERMALINK, mNavItems.get(position).mPermalink);
 			args.putString(WaywtFragment.Extras.POST_TITLE, mNavItems.get(position).mTitle);
 			fragment.setArguments(args);
-			getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragment).commitAllowingStateLoss();			
+			getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragment).commitAllowingStateLoss();			 
 		}
 		else
 		{
 			Fragment fragment = new LoadingFragment();
 			getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragment).commitAllowingStateLoss();			
 		}
+		
+		mNavAdapter.notifyDataSetChanged(); 
 
 	}
 
 	@Override
 	protected void onActivityResult(int arg0, int arg1, Intent arg2) {
 		// TODO Auto-generated method stub
-		super.onActivityResult(arg0, arg1, arg2);
+		super.onActivityResult(arg0, arg1, arg2);  
 	}
 
 	@Override
-	protected void onPostCreate(Bundle savedInstanceState) {
+	protected void onPostCreate(Bundle savedInstanceState) {  
 		// TODO Auto-generated method stub
 		super.onPostCreate(savedInstanceState);
 		
@@ -465,13 +467,13 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		Intent i = new Intent(this, PostService.class);
 		i.setAction(Intent.ACTION_SYNC);
 		i.putExtra(PostService.Extras.IS_MALE, UserUtil.getIsMale());
+		i.putExtra(PostService.Extras.IS_TEEN, UserUtil.getIsTeen());
 		startService(i);  
 	}
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		mCurrentWaywtIndex = 0;
-		return new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, PostTable.IS_MALE + "=?", new String[] { UserUtil.getIsMale() ? "1" : "0" }, PostTable.CREATED + " DESC");
+		return new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, PostTable.IS_MALE + "=? AND " + PostTable.IS_TEEN + "=?", new String[] { UserUtil.getIsMale() ? "1" : "0", UserUtil.getIsTeen() ? "1" : "0"}, PostTable.CREATED + " DESC");
 	}
 
 
@@ -607,7 +609,9 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_singlechoice); 
 		arrayAdapter.add("Male Fashion Advice");
 		arrayAdapter.add("Female Fashion Advice");
-
+		arrayAdapter.add("Teen MFA");
+		arrayAdapter.add("Teen FFA");
+		
 		int selected = 0;
 		
 		if( !UserUtil.getIsMale() )
@@ -621,11 +625,25 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 				switch (which) {
 				case 0:
 					UserUtil.setIsMale(true);
+					UserUtil.setIsTeen(false);
 					MainActivity.this.getActionBar().setIcon(getResources().getDrawable(R.drawable.ic_logo));
 					break;
 					
 				case 1:
 					UserUtil.setIsMale(false);
+					UserUtil.setIsTeen(false);
+					MainActivity.this.getActionBar().setIcon(getResources().getDrawable(R.drawable.ic_logo_ffa));
+					break;
+					
+				case 2:
+					UserUtil.setIsMale(true);
+					UserUtil.setIsTeen(true);
+					MainActivity.this.getActionBar().setIcon(getResources().getDrawable(R.drawable.ic_logo));
+					break;
+					
+				case 3:
+					UserUtil.setIsMale(false);
+					UserUtil.setIsTeen(true);
 					MainActivity.this.getActionBar().setIcon(getResources().getDrawable(R.drawable.ic_logo_ffa));
 					break;
 				}
@@ -747,6 +765,15 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 			
 			return convertView;
 		}
+	}
+	
+	public void resetWaywt()
+	{
+		mCurrentWaywtIndex = 0;
+		
+		getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+		getActionBar().setSelectedNavigationItem(0);
+		getActionBar().setNavigationMode(ActionBar.DISPLAY_SHOW_TITLE);
 	}
 
 

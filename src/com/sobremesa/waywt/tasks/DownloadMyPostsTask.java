@@ -98,6 +98,7 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
     private final LinkedList<ThingInfo> mDeferredAppendList = new LinkedList<ThingInfo>();
 	
     private boolean mIsMale = true;
+    private boolean mIsTeen = false;
     
 	/**
 	 * Default constructor to do normal comments page
@@ -248,11 +249,12 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
 		
 		if (myPosts != null && myPosts.size() > 0) { 
 			// synchronize!
-			Cursor localRecCursor = WaywtApplication.getContext().getContentResolver().query(Provider.COMMENT_CONTENT_URI, CommentTable.ALL_COLUMNS, CommentTable.AUTHOR + "=?", new String[] { mRedditSettings.getUsername() }, null);
+			Cursor localRecCursor = WaywtApplication.getContext().getContentResolver().query(Provider.COMMENT_CONTENT_URI, CommentTable.ALL_COLUMNS, CommentTable.AUTHOR + "=? AND " + CommentTable.IS_MALE + "=? AND " + CommentTable.IS_TEEN + "=?", new String[] { mRedditSettings.getUsername(), mIsMale ? "1":"0", mIsTeen ? "1":"0" }, null);
 			localRecCursor.moveToFirst();
 			
 			CommentSynchronizer sync = new CommentSynchronizer( WaywtApplication.getContext());
 			sync.setIsMale(mIsMale);
+			sync.setIsTeen(mIsTeen);
 			
 			synchronizeRemoteRecords(myPosts, localRecCursor, localRecCursor.getColumnIndex(CommentTable.NAME), sync, new CommentPreprocessor());
 			
@@ -374,6 +376,7 @@ public class DownloadMyPostsTask extends AsyncTask<Integer, Long, Boolean>
     @Override
 	public void onPreExecute() {
     	mIsMale = UserUtil.getIsMale();
+    	mIsTeen = UserUtil.getIsTeen();
 	}
     
 	@Override

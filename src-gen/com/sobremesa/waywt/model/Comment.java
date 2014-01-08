@@ -10,7 +10,7 @@ import com.sobremesa.waywt.database.tables.CommentTable;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2013.12.27	 
+ * @date 2014.01.06	 
  */
 public class Comment {
 
@@ -27,6 +27,7 @@ public class Comment {
 	private long created;
 	private java.lang.String thread_id;
 	private int is_male;
+	private int is_teen;
 
 	private final ContentValues values = new ContentValues();
 
@@ -52,6 +53,7 @@ public class Comment {
 		setThread_id(cursor.getString(cursor
 				.getColumnIndex(CommentTable.THREAD_ID)));
 		setIs_male(cursor.getInt(cursor.getColumnIndex(CommentTable.IS_MALE)));
+		setIs_teen(cursor.getInt(cursor.getColumnIndex(CommentTable.IS_TEEN)));
 
 	}
 
@@ -300,6 +302,25 @@ public class Comment {
 	 */
 	public int getIs_male() {
 		return this.is_male;
+	}
+
+	/**
+	 * Set is_teen and set content value
+	 *
+	 * @param is_teen from type int
+	 */
+	public void setIs_teen(final int is_teen) {
+		this.is_teen = is_teen;
+		this.values.put(CommentTable.IS_TEEN, is_teen);
+	}
+
+	/**
+	 * Get is_teen
+	 *
+	 * @return is_teen from type int				
+	 */
+	public int getIs_teen() {
+		return this.is_teen;
 	}
 
 	/**
