@@ -35,6 +35,10 @@
         <element xmi:type="ecore:EAttribute" href="model.ecore#//Post/is_teen"/>
         <layoutConstraint xmi:type="notation:Location" xmi:id="_My_P4XdPEeOzk7o48Vk8Sg"/>
       </children>
+      <children xmi:type="notation:Node" xmi:id="_E4Id4IYQEeOIAINjJ9O36Q" type="2001">
+        <element xmi:type="ecore:EAttribute" href="model.ecore#//Post/post_type"/>
+        <layoutConstraint xmi:type="notation:Location" xmi:id="_E4Id4YYQEeOIAINjJ9O36Q"/>
+      </children>
       <styles xmi:type="notation:DrawerStyle" xmi:id="_Jss88UaSEeOAhZ6b1CwEtg"/>
       <styles xmi:type="notation:SortingStyle" xmi:id="_Jss88kaSEeOAhZ6b1CwEtg"/>
       <styles xmi:type="notation:FilteringStyle" xmi:id="_Jss880aSEeOAhZ6b1CwEtg"/>

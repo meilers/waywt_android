@@ -107,6 +107,7 @@ public class PostSynchronizer extends Synchronizer<PostService.RemoteRedditPost>
 		values.put(PostTable.TITLE, t.data.title);
 		values.put(PostTable.IS_MALE, mIsMale ? 1 : 0);
 		values.put(PostTable.IS_TEEN, mIsTeen ? 1 : 0);
+		values.put(PostTable.POST_TYPE, t.postType.ordinal());
 		
 		return values;
 	}

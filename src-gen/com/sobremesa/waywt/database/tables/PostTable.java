@@ -7,7 +7,7 @@ package com.sobremesa.waywt.database.tables;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2014.01.06
+ * @date 2014.01.25
  */
 public interface PostTable {
 	String TABLE_NAME = "post";
@@ -21,20 +21,22 @@ public interface PostTable {
 	String TITLE = "title";
 	String IS_MALE = "is_male";
 	String IS_TEEN = "is_teen";
+	String POST_TYPE = "post_type";
 
 	String[] ALL_COLUMNS = new String[]{ID, UPS, DOWNS, AUTHOR, CREATED,
-			PERMALINK, TITLE, IS_MALE, IS_TEEN};
+			PERMALINK, TITLE, IS_MALE, IS_TEEN, POST_TYPE};
 
 	String SQL_CREATE = "CREATE TABLE " + TABLE_NAME + " ( " + ID
 			+ " INTEGER PRIMARY KEY AUTOINCREMENT" + "," + UPS + " INTEGER"
 			+ "," + DOWNS + " INTEGER" + "," + AUTHOR + " TEXT" + "," + CREATED
 			+ " INTEGER" + "," + PERMALINK + " TEXT" + "," + TITLE + " TEXT"
-			+ "," + IS_MALE + " INTEGER" + "," + IS_TEEN + " INTEGER" + " )";
+			+ "," + IS_MALE + " INTEGER" + "," + IS_TEEN + " INTEGER" + ","
+			+ POST_TYPE + " INTEGER" + " )";
 
 	String SQL_INSERT = "INSERT INTO " + TABLE_NAME + " (" + UPS + "," + DOWNS
 			+ "," + AUTHOR + "," + CREATED + "," + PERMALINK + "," + TITLE
-			+ "," + IS_MALE + "," + IS_TEEN
-			+ ") VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )";
+			+ "," + IS_MALE + "," + IS_TEEN + "," + POST_TYPE
+			+ ") VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ? )";
 
 	String SQL_DROP = "DROP TABLE IF EXISTS " + TABLE_NAME;
 

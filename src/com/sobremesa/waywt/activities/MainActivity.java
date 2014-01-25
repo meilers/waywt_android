@@ -19,6 +19,7 @@ import com.sobremesa.waywt.common.RedditIsFunHttpClientFactory;
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.PostTable;
 import com.sobremesa.waywt.dialog.LoginDialog;
+import com.sobremesa.waywt.enums.PostType;
 import com.sobremesa.waywt.enums.SortByType;
 import com.sobremesa.waywt.fragments.CommentFragment;
 import com.sobremesa.waywt.fragments.LoadingFragment;
@@ -473,7 +474,59 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-		return new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, PostTable.IS_MALE + "=? AND " + PostTable.IS_TEEN + "=?", new String[] { UserUtil.getIsMale() ? "1" : "0", UserUtil.getIsTeen() ? "1" : "0"}, PostTable.CREATED + " DESC");
+		
+		boolean seeWaywtPosts = UserUtil.getSeeWaywtPosts();
+		boolean seeOutfitFeedbackPosts = UserUtil.getSeeOutfitFeedbackPosts();
+		boolean seeRecentPurchasesPosts = UserUtil.getSeeRecentPurchasesPosts();
+		
+		String query = PostTable.IS_MALE + "=? AND " + PostTable.IS_TEEN + "=?";
+		
+		int state = 0;
+		
+		if( !seeWaywtPosts && !seeOutfitFeedbackPosts && seeRecentPurchasesPosts )
+			state = 1;
+		else if( !seeWaywtPosts && seeOutfitFeedbackPosts && !seeRecentPurchasesPosts )
+			state = 2;
+		else if( !seeWaywtPosts && seeOutfitFeedbackPosts && seeRecentPurchasesPosts )
+			state = 3;
+		else if( seeWaywtPosts && !seeOutfitFeedbackPosts && !seeRecentPurchasesPosts )
+			state = 4;
+		else if( seeWaywtPosts && !seeOutfitFeedbackPosts && seeRecentPurchasesPosts )
+			state = 5;
+		else if( seeWaywtPosts && seeOutfitFeedbackPosts && !seeRecentPurchasesPosts )
+			state = 6;
+		else
+			state = 7;
+		
+		switch( state )
+		{
+		case 0:
+			return new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, query, new String[] { UserUtil.getIsMale() ? "1" : "0", UserUtil.getIsTeen() ? "1" : "0"}, PostTable.CREATED + " DESC");
+		case 1:
+			query += " AND " + PostTable.POST_TYPE + " =? ";
+			return new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, query, new String[] { UserUtil.getIsMale() ? "1" : "0", UserUtil.getIsTeen() ? "1" : "0", PostType.RECENT_PURCHASES.ordinal()+""}, PostTable.CREATED + " DESC");
+		case 2:
+			query += " AND " + PostTable.POST_TYPE + " =? ";
+			return new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, query, new String[] { UserUtil.getIsMale() ? "1" : "0", UserUtil.getIsTeen() ? "1" : "0", PostType.OUTFIT_FEEDBACK.ordinal()+""}, PostTable.CREATED + " DESC");
+		case 3:
+			query += " AND (" + PostTable.POST_TYPE + " =? OR " + PostTable.POST_TYPE + "=? )";
+			return new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, query, new String[] { UserUtil.getIsMale() ? "1" : "0", UserUtil.getIsTeen() ? "1" : "0", PostType.RECENT_PURCHASES.ordinal()+"", PostType.OUTFIT_FEEDBACK.ordinal()+""}, PostTable.CREATED + " DESC");
+		case 4:
+			query += " AND " + PostTable.POST_TYPE + " =? ";
+			return new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, query, new String[] { UserUtil.getIsMale() ? "1" : "0", UserUtil.getIsTeen() ? "1" : "0", PostType.WAYWT.ordinal()+""}, PostTable.CREATED + " DESC");
+		case 5:
+			query += " AND (" + PostTable.POST_TYPE + " =? OR " + PostTable.POST_TYPE + "=? )";
+			return new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, query, new String[] { UserUtil.getIsMale() ? "1" : "0", UserUtil.getIsTeen() ? "1" : "0", PostType.RECENT_PURCHASES.ordinal()+"", PostType.WAYWT.ordinal()+""}, PostTable.CREATED + " DESC");
+		case 6:
+			query += " AND (" + PostTable.POST_TYPE + " =? OR " + PostTable.POST_TYPE + "=? )";
+			return new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, query, new String[] { UserUtil.getIsMale() ? "1" : "0", UserUtil.getIsTeen() ? "1" : "0", PostType.WAYWT.ordinal()+"", PostType.OUTFIT_FEEDBACK.ordinal()+""}, PostTable.CREATED + " DESC");
+		default:
+		case 7:
+			return new CursorLoader(this, Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, query, new String[] { UserUtil.getIsMale() ? "1" : "0", UserUtil.getIsTeen() ? "1" : "0"}, PostTable.CREATED + " DESC");
+			
+		}
+		
+		
 	}
 
 

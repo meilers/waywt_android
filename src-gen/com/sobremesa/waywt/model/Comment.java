@@ -10,7 +10,7 @@ import com.sobremesa.waywt.database.tables.CommentTable;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2014.01.06	 
+ * @date 2014.01.25	 
  */
 public class Comment {
 

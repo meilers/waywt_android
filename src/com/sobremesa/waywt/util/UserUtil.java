@@ -12,6 +12,11 @@ public class UserUtil {
 	public static final String IS_MALE = "is_male";
 	public static final String IS_TEEN = "is_teen";
 	public static final String SORT_BY = "sort_by";
+	
+	public static final String SEE_WAYWT_POSTS = "see_waywt_posts";
+	public static final String SEE_OUTFIT_FEEDBACK_POSTS = "see_recent_purchases_posts";
+	public static final String SEE_RECENT_PURCHASES_POSTS = "see_recent_purchases_posts";
+	
 
 	public static boolean getHasChosenSubreddit() {
 		SharedPreferences prefs = WaywtApplication.getSharedPreferences();
@@ -82,6 +87,42 @@ public class UserUtil {
 			else
 				return "TeenFFA";
 		}
+	}
+	
+	public static boolean getSeeWaywtPosts() {
+		SharedPreferences prefs = WaywtApplication.getSharedPreferences();
+		return prefs.getBoolean(SEE_WAYWT_POSTS, true);
+	}
+	
+	public static void setSeeWaywtPosts(boolean flag) {
+		SharedPreferences sharedPrefs = WaywtApplication.getSharedPreferences();
+		SharedPreferences.Editor editor = sharedPrefs.edit();
+		editor.putBoolean(SEE_WAYWT_POSTS, flag);
+		editor.commit(); 
+	}
+	
+	public static boolean getSeeOutfitFeedbackPosts() {
+		SharedPreferences prefs = WaywtApplication.getSharedPreferences();
+		return prefs.getBoolean(SEE_OUTFIT_FEEDBACK_POSTS, false);
+	}
+	
+	public static void setSeeOutfitFeedbackPosts(boolean flag) {
+		SharedPreferences sharedPrefs = WaywtApplication.getSharedPreferences();
+		SharedPreferences.Editor editor = sharedPrefs.edit();
+		editor.putBoolean(SEE_OUTFIT_FEEDBACK_POSTS, flag);
+		editor.commit(); 
+	}
+	
+	public static boolean getSeeRecentPurchasesPosts() {
+		SharedPreferences prefs = WaywtApplication.getSharedPreferences();
+		return prefs.getBoolean(SEE_RECENT_PURCHASES_POSTS, false);
+	}
+	
+	public static void setSeeRecentPurchasesPosts(boolean flag) {
+		SharedPreferences sharedPrefs = WaywtApplication.getSharedPreferences();
+		SharedPreferences.Editor editor = sharedPrefs.edit();
+		editor.putBoolean(SEE_RECENT_PURCHASES_POSTS, flag);
+		editor.commit(); 
 	}
 	
 	public static int getSortBy() {

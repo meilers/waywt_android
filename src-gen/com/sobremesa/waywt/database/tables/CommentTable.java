@@ -7,7 +7,7 @@ package com.sobremesa.waywt.database.tables;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2014.01.06
+ * @date 2014.01.25
  */
 public interface CommentTable {
 	String TABLE_NAME = "comment";

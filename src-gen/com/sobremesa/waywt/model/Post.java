@@ -10,7 +10,7 @@ import com.sobremesa.waywt.database.tables.PostTable;
  * Generated Class. Do not modify!
  * 
  * @author MDSDACP Team - goetzfred@fh-bingen.de 
- * @date 2014.01.06	 
+ * @date 2014.01.25	 
  */
 public class Post {
 
@@ -23,6 +23,7 @@ public class Post {
 	private java.lang.String title;
 	private int is_male;
 	private int is_teen;
+	private int post_type;
 
 	private final ContentValues values = new ContentValues();
 
@@ -40,6 +41,7 @@ public class Post {
 		setTitle(cursor.getString(cursor.getColumnIndex(PostTable.TITLE)));
 		setIs_male(cursor.getInt(cursor.getColumnIndex(PostTable.IS_MALE)));
 		setIs_teen(cursor.getInt(cursor.getColumnIndex(PostTable.IS_TEEN)));
+		setPost_type(cursor.getInt(cursor.getColumnIndex(PostTable.POST_TYPE)));
 
 	}
 
@@ -212,6 +214,25 @@ public class Post {
 	 */
 	public int getIs_teen() {
 		return this.is_teen;
+	}
+
+	/**
+	 * Set post_type and set content value
+	 *
+	 * @param post_type from type int
+	 */
+	public void setPost_type(final int post_type) {
+		this.post_type = post_type;
+		this.values.put(PostTable.POST_TYPE, post_type);
+	}
+
+	/**
+	 * Get post_type
+	 *
+	 * @return post_type from type int				
+	 */
+	public int getPost_type() {
+		return this.post_type;
 	}
 
 	/**

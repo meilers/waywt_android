@@ -26,6 +26,7 @@ import android.util.Log;
 
 import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.PostTable;
+import com.sobremesa.waywt.enums.PostType;
 import com.sobremesa.waywt.service.BaseService;
 import com.sobremesa.waywt.service.RemoteObject;
 import com.sobremesa.waywt.service.clients.PostServiceClient;
@@ -66,6 +67,7 @@ public class PostService extends BaseService {
 	
 	public class RemoteRedditPost extends RemoteObject {
 		public String kind;
+		public PostType postType;
 		public RemoteRedditPostData data;
 		
 		@Override
@@ -204,7 +206,10 @@ public class PostService extends BaseService {
 				while (iter.hasNext()) {
 					RemoteRedditPost post = iter.next();
 					
-					if ( isNotValidPost(mIsMale, mIsTeen, post) || totalPosts.contains(post) )
+					PostType postType = getPostType(mIsMale, mIsTeen, post);
+					post.postType = postType;
+					
+					if ( postType == PostType.INVALID || totalPosts.contains(post) )
 				        iter.remove(); 
 				}
 				
@@ -241,7 +246,10 @@ public class PostService extends BaseService {
 				while (iter.hasNext()) {
 					RemoteRedditPost post = iter.next();
 					
-					if ( isNotValidPost(mIsMale, mIsTeen, post) || totalPosts.contains(post) )
+					PostType postType = getPostType(mIsMale, mIsTeen, post);
+					post.postType = postType;
+					
+					if ( postType == PostType.INVALID || totalPosts.contains(post) )
 				        iter.remove(); 
 				}
 				
@@ -277,7 +285,10 @@ public class PostService extends BaseService {
 				while (iter.hasNext()) {
 					RemoteRedditPost post = iter.next();
 					
-					if ( isNotValidPost(mIsMale, mIsTeen, post) || totalPosts.contains(post) )
+					PostType postType = getPostType(mIsMale, mIsTeen, post);
+					post.postType = postType;
+					
+					if ( postType == PostType.INVALID || totalPosts.contains(post) )
 				        iter.remove(); 
 				}
 				
@@ -315,7 +326,10 @@ public class PostService extends BaseService {
 				while (iter.hasNext()) {
 					RemoteRedditPost post = iter.next();
 					
-				    if ( isNotValidPost(mIsMale, mIsTeen, post) || totalPosts.contains(post) )
+					PostType postType = getPostType(mIsMale, mIsTeen, post);
+					post.postType = postType;
+					
+					if ( postType == PostType.INVALID || totalPosts.contains(post) )
 				        iter.remove(); 
 				}
 				
@@ -325,7 +339,6 @@ public class PostService extends BaseService {
 				++i;
 			}
 			
-			Log.d("total ffa", totalPosts.size()+"");
 			if (totalPosts != null && totalPosts.size() > 0) { 
 				// synchronize!
 				Cursor localRecCursor = getContext().getContentResolver().query(Provider.POST_CONTENT_URI, PostTable.ALL_COLUMNS, PostTable.IS_MALE + "=? AND " + PostTable.IS_TEEN + "=?" , new String[] { mIsMale ? "1":"0", mIsTeen ? "1":"0" }, null);
@@ -344,24 +357,68 @@ public class PostService extends BaseService {
 		}
 	}
 	
-	private boolean isNotValidPost( boolean isMale, boolean isTeen, RemoteRedditPost post )
+	private PostType getPostType( boolean isMale, boolean isTeen, RemoteRedditPost post )
 	{
-		
 		if( isMale )
 		{
 			if( !isTeen )
-				return !post.data.domain.equals("self.malefashionadvice") || post.data.title.toLowerCase().contains("announcement") || post.data.title.toLowerCase().contains("phone") || post.data.title.toLowerCase().contains("interest") || post.data.title.toLowerCase().contains("top") || (!post.data.title.toLowerCase().contains("waywt") && !post.data.title.toLowerCase().contains("outfit feedback") && !post.data.title.toLowerCase().contains("recent purchases"));
+			{
+				if( !post.data.domain.equals("self.malefashionadvice") || post.data.title.toLowerCase().contains("announcement") || post.data.title.toLowerCase().contains("phone") || post.data.title.toLowerCase().contains("interest") || post.data.title.toLowerCase().contains("top") || (!post.data.title.toLowerCase().contains("waywt") && !post.data.title.toLowerCase().contains("outfit feedback") && !post.data.title.toLowerCase().contains("recent purchases")) )
+					return PostType.INVALID;
+				
+				if( post.data.title.toLowerCase().contains("waywt") )
+					return PostType.WAYWT;
+				else if( post.data.title.toLowerCase().contains("outfit feedback") )
+					return PostType.OUTFIT_FEEDBACK;
+				else if( post.data.title.toLowerCase().contains("recent purchases") )
+					return PostType.RECENT_PURCHASES;
+				else
+					return PostType.INVALID;
+			}
 			else
-				return !post.data.domain.equals("self.TeenMFA") || post.data.title.toLowerCase().contains("announcement") || post.data.title.toLowerCase().contains("interest")|| post.data.title.toLowerCase().contains("top")|| (!post.data.title.toLowerCase().contains("waywt") && !post.data.title.toLowerCase().contains("recent purchases"));
-
+			{
+				if( !post.data.domain.equals("self.TeenMFA") || post.data.title.toLowerCase().contains("announcement") || post.data.title.toLowerCase().contains("interest")|| post.data.title.toLowerCase().contains("top")|| (!post.data.title.toLowerCase().contains("waywt") && !post.data.title.toLowerCase().contains("recent purchases")) )
+					return PostType.INVALID;
+				
+				if( post.data.title.toLowerCase().contains("waywt") )
+					return PostType.WAYWT;
+				else if( post.data.title.toLowerCase().contains("outfit feedback") )
+					return PostType.OUTFIT_FEEDBACK;
+				else if( post.data.title.toLowerCase().contains("recent purchases") )
+					return PostType.RECENT_PURCHASES;
+				else
+					return PostType.INVALID;
+			}
 		}
 		else
 		{
 			if( !isTeen )
-				return !post.data.domain.equals("self.femalefashionadvice") || post.data.title.toLowerCase().contains("announcement") || post.data.title.toLowerCase().contains("interest")|| post.data.title.toLowerCase().contains("top") ||  (!post.data.title.toLowerCase().contains("waywt") && !post.data.title.toLowerCase().contains("outfit feedback") && !post.data.title.toLowerCase().contains("theme") && !post.data.title.toLowerCase().contains("recent purchases"));
+			{
+				if( !post.data.domain.equals("self.femalefashionadvice") || post.data.title.toLowerCase().contains("announcement") || post.data.title.toLowerCase().contains("interest")|| post.data.title.toLowerCase().contains("top") ||  (!post.data.title.toLowerCase().contains("waywt") && !post.data.title.toLowerCase().contains("outfit feedback") && !post.data.title.toLowerCase().contains("theme") && !post.data.title.toLowerCase().contains("recent purchases")) )
+					return PostType.INVALID;
+				
+				if( post.data.title.toLowerCase().contains("waywt") )
+					return PostType.WAYWT;
+				else if( post.data.title.toLowerCase().contains("outfit feedback") )
+					return PostType.OUTFIT_FEEDBACK;
+				else if( post.data.title.toLowerCase().contains("recent purchases") )
+					return PostType.RECENT_PURCHASES;
+				else
+					return PostType.INVALID;
+			}	
 			else
 			{
-				return !post.data.domain.equals("self.TeenFFA") || post.data.title.toLowerCase().contains("announcement") || post.data.title.toLowerCase().contains("interest") || post.data.title.toLowerCase().contains("top") ||  (!post.data.title.toLowerCase().contains("waywt") && !post.data.title.toLowerCase().contains("outfit feedback") && !post.data.title.toLowerCase().contains("recent purchases"));
+				if( !post.data.domain.equals("self.TeenFFA") || post.data.title.toLowerCase().contains("announcement") || post.data.title.toLowerCase().contains("interest") || post.data.title.toLowerCase().contains("top") ||  (!post.data.title.toLowerCase().contains("waywt") && !post.data.title.toLowerCase().contains("outfit feedback") && !post.data.title.toLowerCase().contains("recent purchases")) )
+					return PostType.INVALID;
+				
+				if( post.data.title.toLowerCase().contains("waywt") )
+					return PostType.WAYWT;
+				else if( post.data.title.toLowerCase().contains("outfit feedback") )
+					return PostType.OUTFIT_FEEDBACK;
+				else if( post.data.title.toLowerCase().contains("recent purchases") )
+					return PostType.RECENT_PURCHASES;
+				else
+					return PostType.INVALID;
 			}
 		}
 	}
