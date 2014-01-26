@@ -24,6 +24,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.RadioButton;
@@ -40,6 +41,9 @@ public class SettingsFragment extends BaseFragment {
 	private RelativeLayout mSortByUpvotesRl;
 	private RelativeLayout mSortByMostRecentRl;
 	private RelativeLayout mSortByNoneRl;
+	private RelativeLayout mThreadWaywtRl;
+	private RelativeLayout mThreadOutfitFeedbackRl;
+	private RelativeLayout mThreadRecentPurchasesRl;
 	
 	private RadioButton mMfaRb;
 	private RadioButton mFfaRb;
@@ -49,6 +53,10 @@ public class SettingsFragment extends BaseFragment {
 	private RadioButton mSortByUpvotesRb;
 	private RadioButton mSortByMostRecentRb;
 	private RadioButton mSortByNoneRb;
+	
+	private CheckBox mThreadWaywtCb;
+	private CheckBox mThreadOutfitFeedbackCb;
+	private CheckBox mThreadRecentPurchasesCb;
 	
 	private TextView mLoginTv;
 	private TextView mNbPostsTv;
@@ -71,6 +79,11 @@ public class SettingsFragment extends BaseFragment {
 		mSortByUpvotesRl = (RelativeLayout)view.findViewById(R.id.settings_sort_by_upvotes_rl);
 		mSortByMostRecentRl = (RelativeLayout)view.findViewById(R.id.settings_sort_by_most_recent_rl);
 		mSortByNoneRl = (RelativeLayout)view.findViewById(R.id.settings_sort_by_none_rl);
+		
+		mThreadWaywtRl = (RelativeLayout)view.findViewById(R.id.settings_threads_waywt_rl);
+		mThreadOutfitFeedbackRl = (RelativeLayout)view.findViewById(R.id.settings_threads_outfit_feedback_rl);
+		mThreadRecentPurchasesRl = (RelativeLayout)view.findViewById(R.id.settings_threads_recent_purchases_rl);
+		
 		mMfaRb = (RadioButton)view.findViewById(R.id.settings_mfa_rb);
 		mFfaRb = (RadioButton)view.findViewById(R.id.settings_ffa_rb);
 		mTeenMfaRb = (RadioButton)view.findViewById(R.id.settings_teen_mfa_rb);
@@ -79,9 +92,18 @@ public class SettingsFragment extends BaseFragment {
 		mSortByUpvotesRb = (RadioButton)view.findViewById(R.id.settings_sort_by_upvotes_rb);
 		mSortByMostRecentRb = (RadioButton)view.findViewById(R.id.settings_sort_by_most_recent_rb);
 		mSortByNoneRb = (RadioButton)view.findViewById(R.id.settings_sort_by_none_rb);
+		
+		mThreadWaywtCb = (CheckBox)view.findViewById(R.id.settings_threads_waywt_cb);
+		mThreadOutfitFeedbackCb = (CheckBox)view.findViewById(R.id.settings_threads_outfit_feedback_cb);
+		mThreadRecentPurchasesCb = (CheckBox)view.findViewById(R.id.settings_threads_recent_purchases_cb);
+		
+		
 		mLoginTv = (TextView)view.findViewById(R.id.settings_login_tv);
 		mNbPostsTv = (TextView)view.findViewById(R.id.settings_nb_posts_tv);
 		mNbPointsTv = (TextView)view.findViewById(R.id.settings_nb_points_tv);
+		
+		
+		// INIT
 		
 		mMfaRb.setChecked(UserUtil.getIsMale() && !UserUtil.getIsTeen());
 		mFfaRb.setChecked(!UserUtil.getIsMale() && !UserUtil.getIsTeen());
@@ -91,6 +113,10 @@ public class SettingsFragment extends BaseFragment {
 		mSortByUpvotesRb.setChecked(UserUtil.getSortBy() == SortByType.UPVOTES.ordinal());
 		mSortByMostRecentRb.setChecked(UserUtil.getSortBy() == SortByType.MOST_RECENT.ordinal());
 		mSortByNoneRb.setChecked(UserUtil.getSortBy() == SortByType.NONE.ordinal());
+		mThreadWaywtCb.setChecked(UserUtil.getSeeWaywtPosts());
+		mThreadOutfitFeedbackCb.setChecked(UserUtil.getSeeOutfitFeedbackPosts());
+		mThreadRecentPurchasesCb.setChecked(UserUtil.getSeeRecentPurchasesPosts());
+		
 		
 		if( mRedditSettings.isLoggedIn() )
 		{
@@ -117,6 +143,11 @@ public class SettingsFragment extends BaseFragment {
 			mNbPostsTv.setVisibility(View.GONE);
 			mNbPointsTv.setVisibility(View.GONE);	
 		}
+		
+		
+
+		
+		// CALLBACKS
 		
 		mMfaRl.setOnClickListener(new OnClickListener() {
 			
@@ -181,6 +212,32 @@ public class SettingsFragment extends BaseFragment {
 				mSortByNoneRb.setChecked(true);
 			}
 		});
+		
+		mThreadWaywtRl.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				mThreadWaywtCb.setChecked(!mThreadWaywtCb.isChecked());
+			}
+		});
+		
+		mThreadOutfitFeedbackRl.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				mThreadOutfitFeedbackCb.setChecked(!mThreadOutfitFeedbackCb.isChecked());
+			}
+		});
+		
+		mThreadRecentPurchasesRl.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				mThreadRecentPurchasesCb.setChecked(!mThreadRecentPurchasesCb.isChecked());
+			}
+		});
+		
+		
 		
 		mMfaRb.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			
@@ -259,6 +316,37 @@ public class SettingsFragment extends BaseFragment {
 				}
 			}
 		});
+		
+		mThreadWaywtCb.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				UserUtil.setSeeWaywtPosts(isChecked);
+				
+				updateMainActivity(UserUtil.getIsMale());
+			}
+		});
+		
+		mThreadOutfitFeedbackCb.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				UserUtil.setSeeOutfitFeedbackPosts(isChecked);
+				
+				updateMainActivity(UserUtil.getIsMale());
+			}
+		});
+
+		mThreadRecentPurchasesCb.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				UserUtil.setSeeRecentPurchasesPosts(isChecked);
+				
+				updateMainActivity(UserUtil.getIsMale());
+			}
+		});
+		
 		
 		mSortByRandomRb.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			

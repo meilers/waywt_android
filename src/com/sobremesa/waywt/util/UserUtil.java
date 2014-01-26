@@ -14,7 +14,7 @@ public class UserUtil {
 	public static final String SORT_BY = "sort_by";
 	
 	public static final String SEE_WAYWT_POSTS = "see_waywt_posts";
-	public static final String SEE_OUTFIT_FEEDBACK_POSTS = "see_recent_purchases_posts";
+	public static final String SEE_OUTFIT_FEEDBACK_POSTS = "see_outfit_feedback_posts";
 	public static final String SEE_RECENT_PURCHASES_POSTS = "see_recent_purchases_posts";
 	
 

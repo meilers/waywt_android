@@ -37,10 +37,12 @@ import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -70,7 +72,10 @@ import android.view.View.OnClickListener;
 import android.webkit.CookieSyncManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -120,13 +125,15 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	private DrawerListAdapter mDrawerListAdapter;
 	private ActionBarDrawerToggle mDrawerToggle;
 	private DrawerLayout mDrawerLayout;
+	private RelativeLayout mDrawerRelativeLayout;
+	
 	private CharSequence mDrawerTitle;
 	
 	// META
 	private int mSelectedTabFromDrawer = -1;
 	private CharSequence mTitle = "";
 	private int mCurrentTab = -1;
-	
+	private boolean mResetActionBar = false;
 
 	private CustomAdapter mNavAdapter;
 	private int mCurrentWaywtIndex = 0;
@@ -165,6 +172,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		mTitle = mDrawerTitle = getString(R.string.app_name);
 		setTitle(mTitle);
 		
+		
 		// For WAYWT navigation
 		mNavAdapter = new CustomAdapter(this, R.layout.list_item_navigation,  new ArrayList<NavItem>());
 		actionBar.setListNavigationCallbacks(mNavAdapter, this);
@@ -175,8 +183,9 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		
 		// DRAWER
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+		mDrawerRelativeLayout = (RelativeLayout) findViewById(R.id.drawer_relative_layout);
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
-
+		
 		mDrawerList.setOnItemClickListener(new ListView.OnItemClickListener() {
 
 			@Override
@@ -215,6 +224,21 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		mDrawerList.setAdapter(mDrawerListAdapter);  
 		
 		
+		// FOOTER
+		LinearLayout rateTheAppLl = (LinearLayout)findViewById(R.id.drawer_rate_the_app_ll);
+		rateTheAppLl.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Uri uri = Uri.parse("market://details?id=" + WaywtApplication.getContext().getPackageName());
+			    Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
+			    try {
+			    	MainActivity.this.startActivity(goToMarket);
+			    } catch (ActivityNotFoundException e) {
+			    }
+			}
+		});
+		
 		
 
 		
@@ -245,8 +269,8 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	}
 	
 	private void closeDrawer() {
-		if (mDrawerLayout.isDrawerOpen(mDrawerList)) {
-			mDrawerLayout.closeDrawer(mDrawerList);
+		if (mDrawerLayout.isDrawerOpen(mDrawerRelativeLayout)) {
+			mDrawerLayout.closeDrawer(mDrawerRelativeLayout);
 		}
 	}
 	
@@ -456,7 +480,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
+		boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerRelativeLayout);
 		if (drawerOpen)
 			menu.clear();
 		return super.onPrepareOptionsMenu(menu);
@@ -497,6 +521,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 			state = 6;
 		else
 			state = 7;
+		
 		
 		switch( state )
 		{
@@ -543,7 +568,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 			refresh = !item.mPermalink.equals(cursor.getString(cursor.getColumnIndex(PostTable.PERMALINK)));
 		}
 		
-		if( refresh )
+		if( refresh || mResetActionBar )
 		{
 			mNavAdapter.clear();
 			mNavItems.clear();
@@ -568,6 +593,8 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 					refreshNavigationBar(0);
 			}
 		}
+		
+		mResetActionBar = false;
 		
 	}
 
@@ -644,11 +671,11 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 
 
 	private void toggleDrawer() {
-		if (mDrawerLayout.isDrawerOpen(mDrawerList)) {
-			mDrawerLayout.closeDrawer(mDrawerList);
+		if (mDrawerLayout.isDrawerOpen(mDrawerRelativeLayout)) {
+			mDrawerLayout.closeDrawer(mDrawerRelativeLayout);
 		} else {
 			mDrawerListAdapter.notifyDataSetChanged();
-			mDrawerLayout.openDrawer(mDrawerList);
+			mDrawerLayout.openDrawer(mDrawerRelativeLayout);
 
 		}
 
@@ -658,6 +685,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	private void showSubredditDialog() {
 		AlertDialog.Builder builderSingle = new AlertDialog.Builder(this);
 		// builderSingle.setIcon(R.drawable.ic_launcher);
+		builderSingle.setCancelable(false);
 		builderSingle.setTitle("Choose Subreddit");
 		final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_singlechoice); 
 		arrayAdapter.add("Male Fashion Advice");
@@ -822,6 +850,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	
 	public void resetWaywt()
 	{
+		mResetActionBar = true;
 		mCurrentWaywtIndex = 0;
 		
 		getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
