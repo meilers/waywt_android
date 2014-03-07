@@ -13,6 +13,7 @@ import com.sobremesa.waywt.contentprovider.Provider;
 import com.sobremesa.waywt.database.tables.CommentTable;
 import com.sobremesa.waywt.enums.SortByType;
 import com.sobremesa.waywt.settings.RedditSettings;
+import com.sobremesa.waywt.util.AnalyticsUtil;
 import com.sobremesa.waywt.util.UserUtil;
 
 import android.database.Cursor;
@@ -33,6 +34,8 @@ import android.widget.TextView;
 
 public class SettingsFragment extends BaseFragment {
 
+	private static final String TAG = SettingsFragment.class.getSimpleName();
+	
 	private RelativeLayout mMfaRl;
 	private RelativeLayout mFfaRl;
 	private RelativeLayout mTeenMfaRl;
@@ -459,6 +462,15 @@ public class SettingsFragment extends BaseFragment {
 
 	}
 	
+    @Override
+    public void onStart() {
+    	// TODO Auto-generated method stub
+    	super.onStart();
+    	
+    	AnalyticsUtil.sendView(getActivity(), TAG);
+    }
+    
+    
 	private void updateMainActivity( boolean isMale )
 	{
 		MainActivity act = (MainActivity)getActivity();

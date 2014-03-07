@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 
 import org.apache.http.client.HttpClient;
 
+import com.sobremesa.waywt.util.AnalyticsUtil;
 import com.sobremesa.waywt.util.StringUtils;
 import com.sobremesa.waywt.util.UserUtil;
 import com.sobremesa.waywt.util.Util;
@@ -69,7 +70,7 @@ import android.widget.Toast;
 
 public class MyPostsFragment extends BaseFragment implements MyPostsListener, LoaderCallbacks<Cursor> {
 
-	public static final String TAG = WaywtFragment.class.getCanonicalName();
+	public static final String TAG = WaywtFragment.class.getSimpleName();
 
 	public static final int POST_LOADER_ID = 0;
 	public static final int COMMENT_LOADER_ID = 1;
@@ -157,14 +158,13 @@ public class MyPostsFragment extends BaseFragment implements MyPostsListener, Lo
 	}
 	
 
-	@Override
-	public void onStart() {
-		// TODO Auto-generated method stub
-		super.onStart();
-		
-
-
-	}
+    @Override
+    public void onStart() {
+    	// TODO Auto-generated method stub
+    	super.onStart();
+    	
+    	AnalyticsUtil.sendView(getActivity(), TAG);
+    }
 
 	@Override
 	public void onPause() {

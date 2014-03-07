@@ -43,6 +43,7 @@ import com.sobremesa.waywt.tasks.DownloadRepliesTask;
 import com.sobremesa.waywt.tasks.DrsdTask;
 import com.sobremesa.waywt.tasks.ImgurAlbumTask;
 import com.sobremesa.waywt.tasks.VoteTask;
+import com.sobremesa.waywt.util.AnalyticsUtil;
 import com.sobremesa.waywt.util.CollectionUtils;
 import com.sobremesa.waywt.util.StringUtils;
 import com.sobremesa.waywt.util.UserUtil;
@@ -301,6 +302,7 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 
 	}
 	
+    
 	@Override
 	public void onResume() {
 		super.onResume();
@@ -471,13 +473,13 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		new CommentReplyTask(mComment.getName()).execute(mReplyEt.getText().toString());
 	}
 	
-	@Override
-	public void onStart() {
-		// TODO Auto-generated method stub
-		super.onStart();
-		
-		
-	}
+    @Override
+    public void onStart() {
+    	// TODO Auto-generated method stub
+    	super.onStart();
+    	
+    	AnalyticsUtil.sendView(getActivity(), TAG);
+    }
 
 	@Override
 	public void onDestroy() {
@@ -520,9 +522,12 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 	
 	private void updateImages( final View view )
 	{
-		Log.d("icii", mImageUrls.size()+"");
+		
 		if( mImageUrls.size() > 0 )
 		{
+			TextView noImageTv = (TextView)view.findViewById(R.id.comment_no_image_tv);
+			noImageTv.setVisibility(View.GONE);
+			
 			final String mainImageUrl = mImageUrls.get(0);
 			
 			mImageLoader.loadImage(mMainIv, mainImageUrl, new ImageLoaderListener() {
@@ -635,12 +640,14 @@ public class CommentFragment extends Fragment implements View.OnCreateContextMen
 		}
 		else
 		{
-			View parentView = getView();
+		
+			TextView noImageTv = (TextView)view.findViewById(R.id.comment_no_image_tv);
+			noImageTv.setVisibility(View.VISIBLE);
 			
-			if( parentView != null )
+			if( getView() != null )
 			{
 				
-				ListView lv = (ListView)parentView.findViewById(R.id.replies_lv);
+				ListView lv = (ListView)getView().findViewById(R.id.replies_lv);
 				lv.setVisibility(View.VISIBLE);
 				
 				Animation myFadeInAnimation = AnimationUtils.loadAnimation(getActivity(), R.anim.fade_in);

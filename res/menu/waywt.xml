@@ -9,11 +9,11 @@
         android:id="@+id/refresh_menu_id"
         android:icon="@drawable/ic_action_refresh"
         android:orderInCategory="1"
-        android:showAsAction="always"
+        android:showAsAction="always" 
         android:title="refresh"/>
     <item
         android:id="@+id/loading_menu_id"
-        android:orderInCategory="1"
+        android:orderInCategory="1" 
         android:showAsAction="always"
         android:visible="false"/>
     <!--

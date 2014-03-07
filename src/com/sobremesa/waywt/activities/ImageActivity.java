@@ -11,6 +11,7 @@ import com.sobremesa.waywt.database.tables.CommentTable;
 import com.sobremesa.waywt.fragments.WaywtFragment.Extras;
 import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.managers.TypefaceSpan;
+import com.sobremesa.waywt.util.AnalyticsUtil;
 import com.viewpagerindicator.CirclePageIndicator;
 import com.viewpagerindicator.TitlePageIndicator;
 
@@ -28,6 +29,8 @@ import android.view.MenuItem;
 
 public class ImageActivity extends BaseFragmentActivity {
 
+	private static final String TAG = ImageActivity.class.getSimpleName();
+	
 	public static class Extras
 	{
 		public static String ARG_AUTHOR = "author";
@@ -69,11 +72,13 @@ public class ImageActivity extends BaseFragmentActivity {
 		mindicator.setViewPager(mPager);
 	}
 	
-	@Override
-	protected void onStart() {
-		// TODO Auto-generated method stub
-		super.onStart();
-	}
+    @Override
+    public void onStart() {
+    	// TODO Auto-generated method stub
+    	super.onStart();
+    	
+    	AnalyticsUtil.sendView(this, TAG);
+    }
 	
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
@@ -140,7 +145,7 @@ public class ImageActivity extends BaseFragmentActivity {
 //		
 //	}
 	
-	
+    
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {

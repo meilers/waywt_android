@@ -259,10 +259,6 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 			
 			// listings[1] is a comment Listing for the comments 
 			// Go through the children and get the ThingInfos
-			Pattern pattern1 = Pattern.compile("href=\"[^\"]+?imgur.com[^\"]+?\"");
-			Pattern pattern2 = Pattern.compile("href=\"[^\"]+?dressed.so[^\"]+?\"");
-			Pattern pattern3 = Pattern.compile("href=\"[^\"]+?drsd.so[^\"]+?\""); 
-			Pattern pattern4 = Pattern.compile("href=\"[^\"]+?.jpg|.jpeg|.png|.JPG|.JPEG|.PNG\""); 
 			
 			ListingData commentListingData = listings[1].getData();
 			for (ThingListing commentThingListing : commentListingData.getChildren()) {
@@ -272,30 +268,14 @@ public class DownloadCommentsTask extends AsyncTask<Integer, Long, Boolean>
 				
 				if( thingInfo != null && thingInfo.getBody_html() != null )
 				{
-					Matcher matcher1 = pattern1.matcher(Html.fromHtml(thingInfo.getBody_html()));  
-					Matcher matcher2 = pattern2.matcher(Html.fromHtml(thingInfo.getBody_html()));
-					Matcher matcher3 = pattern3.matcher(Html.fromHtml(thingInfo.getBody_html()));
-					Matcher matcher4 = pattern4.matcher(Html.fromHtml(thingInfo.getBody_html()));
+					ThingInfo ci = commentThingListing.getData();
 					
-					boolean one = matcher1.find();
-					boolean two = matcher2.find();
-					boolean three = matcher3.find();
-					boolean four = matcher4.find();
-					
-					if (one || two || three || four )  
-					{
-						
-						ThingInfo ci = commentThingListing.getData();
-						
-						if (ci.getBody_html() != null) {
-				        	CharSequence spanned = createSpanned(ci.getBody_html());  
-				        	ci.setSpannedBody(spanned);
-						}
-						
-						deferCommentAppend(ci);
-						
-//						insertedCommentIndex = insertNestedComment(commentThingListing, 0, insertedCommentIndex + 1);
+					if (ci.getBody_html() != null) {
+			        	CharSequence spanned = createSpanned(ci.getBody_html());  
+			        	ci.setSpannedBody(spanned);
 					}
+					
+					deferCommentAppend(ci);
 				}
 //				else if (Constants.MORE_KIND.equals(commentThingListing.getKind()))
 //				{

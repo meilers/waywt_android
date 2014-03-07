@@ -1,5 +1,6 @@
 package com.sobremesa.waywt.activities;
 
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -16,6 +17,7 @@ import com.sobremesa.waywt.R;
 import com.sobremesa.waywt.fragments.CameraFragment;
 import com.sobremesa.waywt.listeners.CameraFragmentListener;
 import com.sobremesa.waywt.model.ThingInfo;
+import com.sobremesa.waywt.util.AnalyticsUtil;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -104,12 +106,13 @@ public class CameraActivity extends BaseFragmentActivity implements CameraFragme
 
 	}
 
-	@Override
-	protected void onStart() {
-		// TODO Auto-generated method stub
-		super.onStart();
-
-	}
+    @Override
+    public void onStart() {
+    	// TODO Auto-generated method stub
+    	super.onStart();
+    	
+    	AnalyticsUtil.sendView(this, TAG);
+    }
 
 	private void showCameraFragment(boolean facing) {
 		mCameraFragment = new CameraFragment();

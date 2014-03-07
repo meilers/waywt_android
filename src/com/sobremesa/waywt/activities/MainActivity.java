@@ -30,6 +30,7 @@ import com.sobremesa.waywt.managers.FontManager;
 import com.sobremesa.waywt.service.PostService;
 import com.sobremesa.waywt.settings.RedditSettings;
 import com.sobremesa.waywt.tasks.LoginTask;
+import com.sobremesa.waywt.util.AnalyticsUtil;
 import com.sobremesa.waywt.util.UiUtil;
 import com.sobremesa.waywt.util.UserUtil;
 
@@ -83,6 +84,8 @@ import android.widget.ViewFlipper;
 
 public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNavigationListener, LoaderCallbacks<Cursor> {
 
+	private static final String TAG = MainActivity.class.getSimpleName();
+	
 	public static final class Extras {
 		public static final String SELECTED_TAB_FROM_DRAWER = "selected_tab_from_drawer";
 
@@ -258,6 +261,8 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		
 		updateMainView(false);
 	}
+	
+	
 
 	public void onDrawerItemSelected(int position) {
 		setTitle(getString(R.string.app_name));
@@ -384,13 +389,15 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 	}
 	
 	
-	@Override
-	protected void onStart() {
-		// TODO Auto-generated method stub
-		super.onStart();
-
-	}
-
+    @Override
+    public void onStart() {
+    	// TODO Auto-generated method stub
+    	super.onStart();
+    	
+    	AnalyticsUtil.sendView(this, TAG);
+    }
+    
+    
 	@Override
 	protected void onResume() {
 		// TODO Auto-generated method stub
@@ -570,6 +577,7 @@ public class MainActivity extends BaseFragmentActivity implements ActionBar.OnNa
 		
 		if( refresh || mResetActionBar )
 		{
+			
 			mNavAdapter.clear();
 			mNavItems.clear();
 			

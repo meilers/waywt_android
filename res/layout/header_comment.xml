@@ -29,41 +29,58 @@
                 android:orientation="vertical" />
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/comment_points_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right|top"
-            android:gravity="right|top"
-            android:orientation="vertical"
-            android:paddingBottom="100dp"
-            android:paddingLeft="100dp"
-            android:paddingRight="@dimen/padding_large"
-            android:paddingTop="@dimen/padding_large" >
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
 
-            <ImageView
-                android:id="@+id/comment_arrow_up_iv"
+            <LinearLayout
+                android:id="@+id/comment_points_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:src="@drawable/arrow_up" />
+                android:layout_gravity="right|top"
+                android:gravity="right|top"
+                android:orientation="vertical"
+                android:paddingBottom="100dp"
+                android:paddingLeft="100dp"
+                android:paddingRight="@dimen/padding_large"
+                android:paddingTop="@dimen/padding_large" >
 
-            <com.sobremesa.waywt.views.OutlineWaywtTextView
-                android:id="@+id/comment_points_tv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:textAllCaps="true"
-                android:textColor="@android:color/white"
-                android:textSize="24sp"
-                android:textStyle="bold" />
+                <ImageView
+                    android:id="@+id/comment_arrow_up_iv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:src="@drawable/arrow_up" />
 
-            <ImageView
-                android:id="@+id/comment_arrow_down_iv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:src="@drawable/arrow_down" />
-        </LinearLayout>
+                <com.sobremesa.waywt.views.OutlineWaywtTextView
+                    android:id="@+id/comment_points_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:textAllCaps="true"
+                    android:textColor="@android:color/white"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/comment_arrow_down_iv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:src="@drawable/arrow_down" />
+            </LinearLayout>
+            
+            <TextView
+                    android:id="@+id/comment_no_image_tv"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:textSize="24sp"
+                    android:text="No Image." />
+            
+            
+        </FrameLayout>
     </FrameLayout>
+
 </LinearLayout>

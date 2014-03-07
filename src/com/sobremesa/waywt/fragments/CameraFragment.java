@@ -26,6 +26,7 @@ import android.view.Window;
 import com.sobremesa.waywt.R;
 import com.sobremesa.waywt.listeners.CameraFragmentListener;
 import com.sobremesa.waywt.listeners.CameraOrientationListener;
+import com.sobremesa.waywt.util.AnalyticsUtil;
 import com.sobremesa.waywt.views.CameraPreview;
 
 /**
@@ -33,7 +34,7 @@ import com.sobremesa.waywt.views.CameraPreview;
  *
  */
 public class CameraFragment extends Fragment implements SurfaceHolder.Callback, Camera.PictureCallback {
-    public static final String TAG = "Mustache/CameraFragment";
+    public static final String TAG = CameraFragment.class.getSimpleName();
 
     public static final class Extras
     {
@@ -84,6 +85,14 @@ public class CameraFragment extends Fragment implements SurfaceHolder.Callback, 
         return mCameraPreview;
     }
 
+    @Override
+    public void onStart() {
+    	// TODO Auto-generated method stub
+    	super.onStart();
+    	
+    	AnalyticsUtil.sendView(getActivity(), TAG);
+    }
+    
     /**
      * On fragment getting resumed.
      */

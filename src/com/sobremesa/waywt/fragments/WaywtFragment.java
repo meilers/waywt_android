@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import org.apache.http.client.HttpClient;
 
+import com.sobremesa.waywt.util.AnalyticsUtil;
 import com.sobremesa.waywt.util.StringUtils;
 import com.sobremesa.waywt.util.UserUtil;
 import com.sobremesa.waywt.util.Util;
@@ -63,7 +64,7 @@ import android.widget.Toast;
 
 public class WaywtFragment extends BaseFragment implements CommentsListener {
 
-	public static final String TAG = WaywtFragment.class.getCanonicalName();
+	public static final String TAG = WaywtFragment.class.getSimpleName();
 
 	public static class Extras {
 		public static String SUBREDDIT = "subreddit";
@@ -165,16 +166,15 @@ public class WaywtFragment extends BaseFragment implements CommentsListener {
 		fetchComments();
 	}
 	
-
-	@Override
-	public void onStart() {
-		// TODO Auto-generated method stub
-		super.onStart();
-		
-
-
-	}
-
+    @Override
+    public void onStart() {
+    	// TODO Auto-generated method stub
+    	super.onStart();
+    	
+    	AnalyticsUtil.sendView(getActivity(), TAG);
+    }
+    
+    
 	@Override
 	public void onPause() {
 		super.onPause();

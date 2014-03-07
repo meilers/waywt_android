@@ -37,6 +37,7 @@ import com.sobremesa.waywt.model.ThingInfo;
 import com.sobremesa.waywt.settings.RedditSettings;
 import com.sobremesa.waywt.tasks.DownloadMyPostsTask;
 import com.sobremesa.waywt.tasks.ImgurUploadTask;
+import com.sobremesa.waywt.util.AnalyticsUtil;
 import com.sobremesa.waywt.util.UserUtil;
 
 import android.app.Activity;
@@ -136,6 +137,15 @@ public class PhotoActivity extends BaseFragmentActivity implements MyPostsListen
 				postPhoto();
 			}
 		});
+    }
+    
+    
+    @Override
+    public void onStart() {
+    	// TODO Auto-generated method stub
+    	super.onStart();
+    	
+    	AnalyticsUtil.sendView(this, TAG);
     }
     
     
